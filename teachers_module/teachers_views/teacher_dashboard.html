@@ -1,0 +1,45 @@
+{% extends "layouts/teacher_base.html" %}
+
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teacher Dashboard</title>
+     <link rel="stylesheet" href="{{ url_for('static', filename='css/teachers_module.css') }}">
+</head>
+<body>
+    <h2 class="headings"> Teacher Dashboard</h2>
+    <div class="container">
+        {% if schedule %}
+        <table>
+            <tr>
+                <th>Subject Name</th>
+                <th>Class</th>
+                <th>Semester</th>
+                <th>Section</th>
+                <th>Location</th>
+                <th>Time</th>
+                <th>Action</th>
+            </tr>
+            {% for s in schedule %}
+                <tr>
+                    <td>{{ s.course_name }}</td>
+                    <td>{{ s.class }}</td>
+                    <td>{{ s.semester }}</td>
+                    <td>{{ s.section }}</td>
+                    <td>{{ s.location }}</td>
+                    <td>{{ s.time }}</td>
+                   <td><a href="{{ url_for('teacher.mark_attendance', schedule_id=s.course_schedule_id) }}" class="anchor-tags" >Mark Attendance</a></td>
+                </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p class="no-courses">No schedule assigned yet.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
+{% endblock %}

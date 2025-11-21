@@ -1,0 +1,18 @@
+{% extends "layouts/student_base.html" %}
+
+{% block title %}Student Course Registeration{% endblock %}
+
+{% block content %}
+
+<head>
+    <title>Student-FYP-Dashboard</title>
+  </head>
+  <div class="container">
+    <div class="profile-card">
+        {% if student %}
+      <h3>{{ student.first_name }} {{ student.last_name }}</h3>
+      <p>{{ student.student_id }} <span style="color:green;">Active</span></p>
+      {% endif %}
+    </div>
+
+{%  endblock %}

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Student Portal{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/students_module.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base_style.css') }}">
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/help_desk.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="main-header">
+    <div class="header-left">
+        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="ISP Logo" class="logo">
+        <h1>Student Management System</h1>
+    </div>
+    <a href="{{ url_for('logout') }}" class="logout-btn">
+        <i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span>
+    </a>
+</header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+    <div class="main-wrapper">
+        <nav class="sidebar">
+            {% if student_name %}
+        <div style="text-align:center; margin: 15px 0;">
+            <h3>{{ student_name.first_name }} {{ student_name.last_name }}</h3>
+            <p>ID: {{ student_name.student_id }}</p>
+        </div>
+        {% endif %}
+            <ul>
+                <li><a href="{{ url_for('student.student_dashboard') }}"><i class="fa-solid fa-chart-line"></i> <span>Dashboard</span></a></li>
+                <li><a href="{{ url_for('student.student_profile') }}"><i class="fa-solid fa-user"></i> <span>My Profile</span></a></li>
+                <li><a href="{{ url_for('student.view_grades') }}"><i class="fa-solid fa-graduation-cap"></i> <span>My Results</span></a></li>
+                <li><a href="{{ url_for('student.view_attendence') }}"><i class="fa-solid fa-calendar-check"></i> <span>Attendance Summary</span></a></li> 
+                <li><a href="{{ url_for('student.student_fee') }}"><i class="fa-solid fa-dollar-sign"></i> <span>Fee</span></a></li>
+                <li><a href="{{ url_for('student.notifications') }}"><i class="fa-solid fa-bell"></i> <span>Notifications</span></a></li>
+                <li><a href="{{ url_for('student.complaint_suggestion') }}"><i class="fa-solid fa-comment-dots"></i> <span>Complaints</span></a></li>                 
+                <li><a href="{{ url_for('student.course_registeration')}}"><i class="fa-solid fa-book-open"></i> <span>Course Registration</span></a></li> 
+                <li><a href="{{url_for('student.summer_semester')}}"><i class="fa-solid fa-sun"></i><span>Summer Semester</span></a></li>
+                <li><a href="{{url_for('student.semester_freeze')}}"><i class="fa-solid fa-snowflake"></i><span>Semester Freeze</span></a></li>
+                <li><a href="#"><i class="fa-solid fa-bed"></i> <span>Hostel</span></a></li>
+                <li><a href="{{url_for('student.student_fyp')}}"><i class="fa-solid fa-diagram-project"></i> <span>FYP</span></a></li>
+                <li><a href="{{url_for('student.help_desk')}}"><i class="fa-solid fa-headset"></i> <span>HelpDesk</span></a></li>
+                  <li><a href="{{ url_for('logout') }}" class="logout-btn">
+                  <i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span>
+                </a></li>
+            </ul>
+        </nav>
+        
+        <main class="content-area">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    
+    <footer>
+        <p>&copy; 2023 Student Management System. All rights reserved.</p>
+    </footer>
+</body>
+</html>

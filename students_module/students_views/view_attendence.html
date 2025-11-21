@@ -1,0 +1,45 @@
+{% extends "layouts/student_base.html" %}
+
+{% block title %}Student Result Summary{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="dashboard-content">
+        <h1 class="headings">Attendance Dashboard</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Subject Name</th>
+                    <th>Total Credit Hours</th>
+                    <th>Obtained Credit Hours</th>
+                    <th>Percentage</th>
+                    <th>Lecture No#1</th>   
+                </tr>
+            </thead>
+            <tbody>
+                {% for course in courses %}
+                <tr>
+                    <td>{{ course.course_name }}</td>
+                    <td>{{ course.credit_hours }}</td>
+                    <td>{{ percentage|round(2) }}</td>
+                    <td>{{ percentage|round(2) }}%</td>
+                    <td>
+                        {% for lecture in lecture_status %}
+                            {% if lecture.attendance_status == 'Absent' %}
+                                Absent {{ lecture.attendance_date }}
+                                <form action="#" method="POST" style="display:inline">
+                                    <input type="hidden" name="date" value="{{ lecture.attendance_date }}">
+                                    <button type="submit" class="btn btn-warning btn-sum">I was Present</button>
+                                </form>
+                            {% else %}
+                                Present {{ lecture.attendance_date }}
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

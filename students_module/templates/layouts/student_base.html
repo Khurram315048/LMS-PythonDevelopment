@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- ...existing head content... -->
+</head>
+<body>
+    <!-- ...existing body content... -->
+
+    <li class="nav-item">
+        <a class="nav-link position-relative" href="{{ url_for('student.notifications') }}">
+            Notifications
+            <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+            </span>
+        </a>
+    </li>
+
+    <!-- ...existing body content... -->
+
+    <script>
+    function updateNotificationBadge() {
+        fetch('{{ url_for("student.unread_notifications_count") }}')
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.getElementById('notification-badge');
+                if (data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.classList.remove('d-none');
+                } else {
+                    badge.classList.add('d-none');
+                }
+            });
+    }
+
+    // Update badge on page load and every 30 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        updateNotificationBadge();
+        setInterval(updateNotificationBadge, 30000);
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+{% extends "layouts/student_base.html" %}
+{% block title %}Semester Freeze{% endblock %}
+
+{% block content %}
+<head>
+    <title>Student-Semester-Freeze</title>
+  </head>
+<div class="container mt-5">
+    <div class="card shadow p-4">
+        <h3 class="mb-3 text-center">Semester Freeze Application</h3>
+
+        {% if already_applied %}
+        <div class="alert alert-info text-center">
+            ⚠️ You have already applied for a semester freeze. Please wait for coordinator approval.
+        </div>
+        {% elif semester %}
+        <form method="POST" onsubmit="return confirmFreeze();">
+            <div class="mb-3">
+                <label class="form-label"><strong>Current Semester:</strong></label>
+                <input type="text" name="semester" class="form-control" value="{{ semester }}" readonly>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><strong>Reason for Freezing:</strong></label>
+                <textarea name="reason" class="form-control" placeholder="Enter your reason..." required></textarea>
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-danger px-4">Submit Application</button>
+            </div>
+        </form>
+        {% else %}
+        <div class="alert alert-warning text-center">
+            No semester record found.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function confirmFreeze() {
+    return confirm("⚠️ Are you sure you want to freeze this semester?");
+}
+</script>
+{% endblock %}

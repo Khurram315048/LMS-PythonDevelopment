@@ -1,0 +1,54 @@
+{% extends "layouts/student_base.html" %}
+
+{% block title %}Student Course Registeration{% endblock %}
+
+{% block content %}
+  <head>
+    <title>Student-Course-Registeration</title>
+  </head>
+  <div class="container">
+    <div class="profile-card">
+        {% if student %}
+      <h3>{{ student.first_name }} {{ student.last_name }}</h3>
+      <p>{{ student.student_id }} <span style="color:green;">Active</span></p>
+      {% endif %}
+    </div>
+
+    <div class="subject-card">
+      <h4>Application's Flow</h4>
+      <div class="subject-list">
+        <p>Pending submission.</p>
+      </div>
+    </div>
+    <div class="actions-card">
+      <div class="button-row">
+        <form action="/improvement_subject" method="GET">
+        <button class="btn-yellow">Add Subject (For Improvement)</button>
+        </form>
+        <form action="/fail_subjects" method="GET">
+        <button class="btn-yellow">Add Subject (After Fail)</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="subject-card">
+  <h4>Selected Subject(s)</h4>
+  <div class="subject-list">
+    {% if selected %}
+      {% for sel in selected %}
+        <p>
+          {{ sel.course_name }} ({{ sel.type|capitalize }}) - 
+          <span style="color:green;">{{ sel.status }}</span>
+          <form method="POST" action="{% if sel.type=='improvement' %}{{ url_for('student.delete_improvement', improvement_id=sel.id) }}{% else %}{{ url_for('student.delete_fail', fail_id=sel.id) }}{% endif %}" style="display:inline;">
+            <button type="submit" class="delete-btn" title="Delete Subject">🗑️</button>
+          </form>
+        </p>
+      {% endfor %}
+    {% else %}
+      <p>No Subject Selected</p>
+    {% endif %}
+  </div>
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "layouts/teacher_base.html" %}
+
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+
+
+<!DOCTYPE html>
+<html>
+<head>
+   
+   <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/teachers_module.css') }}">
+    <title>Mark Attendance</title>
+</head>
+<body>
+    
+    <div class="container">
+    <h2 class="headings">Mark Attendance for {{ course_name }}</h2>
+    {% if message %}
+        <p class="error">{{ message }}</p>
+    {% else %}
+        <form method="POST" action="{{ url_for('teacher.mark_attendance', schedule_id=schedule_id) }}">
+            <label for="attendance_date">Attendance Date:</label>
+            <input type="date" name="attendance_date" value="{{ attendance_date }}" required><br><br>
+            <table>
+                <tr>
+                    <th>Student ID</th>
+                    <th>Student Name</th>
+                    <th>Lecture No</th>
+                    <th>Attendance</th>
+                </tr>
+                {% for student in students %}
+                    <tr>
+                        <td>{{ student.student_id }}</td>
+                        <td>{{ student.student_name }}</td>
+                        <td>{{ lecture_no }}</td>
+                        <td>
+                            <select name="status_{{ student.student_course_id }}">
+                                <option value="Present">Present</option>
+                                <option value="Absent" selected>Absent</option>
+                            </select>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+            <br>
+            <button type="submit">Submit Attendance</button>
+        </form>
+        </div>
+    {% endif %}
+</body>
+</html>
+{% endblock %}

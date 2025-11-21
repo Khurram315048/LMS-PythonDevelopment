@@ -1,0 +1,56 @@
+{% extends "layouts/student_base.html" %}
+
+{% block title %}Student Profile{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="profile-card">
+        {% if student %}
+        <h2>{{ student.first_name }} {{ student.last_name }}</h2>
+        <p><strong>Reg. Number:</strong> {{ student.student_id }}</p>
+        <p><strong>E-Mail:</strong> {{ student.email }}</p>
+        {% endif %}
+    </div>
+
+    <div class="details-section">
+        <h3>Personal Information</h3>
+        {% if student and program %}
+        <form class="details-grid">
+            <label>Student ID</label>
+            <input type="text" name="student_id" value="{{ student.student_id }}" readonly>
+
+            <label>First Name</label>
+            <input type="text" name="first_name" value="{{ student.first_name }}" readonly>
+
+            <label>Last Name</label>
+            <input type="text" name="last_name" value="{{ student.last_name }}" readonly>
+
+            <label>Phone</label>
+            <input type="text" name="phone" value="{{ student.contact }}" readonly>
+
+            <label>Program</label>
+            <input type="text" name="program_name" value="{{ program.program_name }}" readonly>
+
+            <label>Admission Date</label>
+            <input type="text" name="admission_date" value="{{ student.admission_date }}" readonly>
+
+            <label>Admission Session</label>
+            <input type="text" name="admission_session" value="{{ student.admission_session }}" readonly>
+        </form>
+        
+        <div class="edit-profile-section">
+            <form method="POST">
+                <button type="submit" name="edit_request" value="true" class="edit-btn">
+                    Click Here If Anything Is Wrong 😊
+                </button>
+            </form>
+            {% if show_notification %}
+            <div class="notification">
+                Contact To Register Office
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

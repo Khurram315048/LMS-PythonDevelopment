@@ -1,0 +1,13 @@
+
+import secrets
+import os
+TEMPLATES_AUTO_RELOAD=True
+MYSQL_HOST='localhost'
+MYSQL_USER='root'
+MYSQL_PASSWORD=''
+MYSQL_DB='lms'
+SECRET_KEY=secrets.token_hex(16)
+MYSQL_CURSORCLASS='DictCursor'
+BASE_DIR=os.path.abspath(os.path.dirname(__file__))
+FEE_UPLOAD_FOLDER=os.path.join(BASE_DIR, "static", "uploads", "students_uploads", "voucher_pics")
+os.makedirs(FEE_UPLOAD_FOLDER, exist_ok=True)

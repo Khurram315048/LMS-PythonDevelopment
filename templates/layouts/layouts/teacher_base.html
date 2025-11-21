@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Teacher Portal{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/teachers_module.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base_style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Teacher Management System</h1>
+    </header>
+    
+    <div class="main-wrapper">
+        <nav class="sidebar">
+            <ul>
+                <li><a href="{{ url_for('teacher.teacher_profile') }}"><i class="fa-solid fa-user"></i> <span>Profile</span></a></li>
+                <li><a href="{{ url_for('teacher.teacher_dashboard') }}"><i class="fa-solid fa-chart-line"></i> <span>Dashboard</span></a></li>
+                <li><a href="{{ url_for('complaint_suggestion', id=session['user_id']) }}"><i class="fa-solid fa-comment-dots"></i> <span>Complaints</span></a></li>
+                <li><a href="#"><i class="fa-solid fa-dollar-sign"></i> <span>Salary</span></a></li> 
+                <li><a href="#"><i class="fa-solid fa-book-open"></i> <span>Course Registration</span></a></li> 
+                <li><a href="#"><i class="fa-solid fa-calendar-check"></i> <span>Attendance</span></a></li> 
+                
+                <li><a href="{{ url_for('logout') }}" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span></a></li>
+            </ul>
+        </nav>
+        
+        <main class="content-area">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    
+    <footer>
+        <p>&copy; 2023 Student Management System. All rights reserved.</p>
+    </footer>
+</body>
+</html>
