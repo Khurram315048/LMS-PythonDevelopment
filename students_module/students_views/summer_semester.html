@@ -1,6 +1,6 @@
 {% extends "layouts/student_base.html" %}
 
-{% block title %}Student Summer Registeration{% endblock %}
+{% block title %}Student Summer Registration{% endblock %}
 
 {% block content %}
   
@@ -15,35 +15,53 @@
     <div class="subject-card">
       <h4>Application's Flow</h4>
       <div class="subject-list">
-        <p>Pending submission.</p>
+        <p>Summer Semester Registration (Recent Failures Only)</p>
       </div>
     </div>
+    
     <div class="actions-card">
       <div class="button-row">
-        <form action="/summer_subjects" method="GET">
-        <button class="btn-yellow">Add Subject (For Summer Intake)</button>
-        </form>
+        {% if can_register %}
+            <!-- Button Active: Failed subjects exist and not all are selected -->
+            <form action="{{ url_for('student.summer_subjects') }}" method="GET">
+                <button class="btn-yellow">Add Subject (For Summer Intake)</button>
+            </form>
+        {% else %}
+            <!-- Button Disabled: Logic to show WHY it is disabled -->
+            <button class="btn-yellow" style="background-color: grey; cursor: not-allowed;" disabled>
+                {% if failed_count == 0 %}
+                    No Eligible Failed Subjects Found
+                {% elif selected|length >= failed_count %}
+                    All Failed Subjects Selected
+                {% else %}
+                    Registration Closed
+                {% endif %}
+            </button>
+        {% endif %}
       </div>
     </div>
   </div>
-  <div class="subject-card">
-  <h4>Selected Subject(s)</h4>
-  <div class="subject-list">
-    {% if selected %}
-      {% for sel in selected %}
-        <p>
-          {{ sel.course_name }} ({{ sel.type|capitalize }}) - 
-          <span style="color:green;">{{ sel.status }}</span>
-          <form method="#" action="#" style="display:inline;">
-            <button type="submit" class="delete-btn" title="Delete Subject">🗑️</button>
-          </form>
-        </p>
-      {% endfor %}
-    {% else %}
-      <p>No Subject Selected</p>
-    {% endif %}
-  </div>
-</div>
 
+  <div class="subject-card">
+    <h4>Selected Subject(s)</h4>
+    <div class="subject-list">
+      {% if selected %}
+        {% for sel in selected %}
+          <p>
+            {{ sel.course_name }} ({{ sel.credit_hours }} Cr) - 
+            <span style="color:green;">{{ sel.status }}</span>
+
+            <form method="POST"
+                  action="{{ url_for('student.delete_summer_subject', subject_id=sel.course_id) }}"
+                  style="display:inline; margin-left: 10px;">
+              <button type="submit" class="delete-btn" title="Delete Subject" onclick="return confirm('Are you sure you want to remove this subject?');">🗑️</button>
+            </form>
+          </p>
+        {% endfor %}
+      {% else %}
+        <p>No Subject Selected Yet.</p>
+      {% endif %}
+    </div>
+  </div>
 
 {% endblock %}

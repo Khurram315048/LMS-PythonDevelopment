@@ -436,6 +436,52 @@ class StudentModel:
         mysql.connection.commit()
         cursor.close()
 
+
+    @staticmethod
+    def get_eligible_summer_failed_subjects(student_id):
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        query = """
+            SELECT 
+                c.course_id, 
+                c.course_name, 
+                c.credit_hours,
+                rm.student_semester as semester,
+                CONCAT(t.first_name, ' ', t.last_name) AS teacher_name
+            FROM student_result_marks rm
+            JOIN student_course sc ON rm.student_course_id = sc.student_course_id
+            JOIN courses c ON sc.course_id = c.course_id
+            LEFT JOIN teacher_course tc ON c.course_id = tc.course_id
+            LEFT JOIN teachers t ON tc.teacher_id = t.teacher_id
+            WHERE sc.student_id = %s
+              AND rm.student_grade = 'F'
+              AND rm.student_semester = (
+                  SELECT MAX(rm2.student_semester) 
+                  FROM student_result_marks rm2 
+                  JOIN student_course sc2 ON rm2.student_course_id = sc2.student_course_id 
+                  WHERE sc2.student_id = %s AND rm2.student_grade = 'F'
+              )
+        """
+        cursor.execute(query, (student_id, student_id))
+        failed_subjects = cursor.fetchall()
+        cursor.close()
+        return failed_subjects
+ 
+
+
+    @staticmethod
+    def get_latest_summer_semester():
+        cursor = mysql.connection.cursor()
+        cursor.execute("""
+            SELECT *
+            FROM summer_semesters
+            ORDER BY summer_semesters_id DESC
+            LIMIT 1
+        """)
+        semester = cursor.fetchone()
+        cursor.close()
+        return semester  
+
+
     @staticmethod
     def get_failed_subjects_for_last_semester(student_id, last_semester):
         cursor = mysql.connection.cursor()
@@ -458,6 +504,49 @@ class StudentModel:
         subjects = cursor.fetchall()
         cursor.close()
         return subjects
+    
+
+    @staticmethod
+    def add_summer_subject(student_id, course_id, summer_semester_id):
+        cursor = mysql.connection.cursor()
+        cursor.execute("SELECT * FROM summer_registration WHERE student_id=%s AND course_id=%s AND summer_semesters_id=%s", 
+                       (student_id, course_id, summer_semester_id))
+        if cursor.fetchone():
+            cursor.close()
+            return False
+
+        query = """
+            INSERT INTO summer_registration
+            (student_id, course_id, summer_semesters_id, registration_date)
+            VALUES (%s, %s, %s, NOW())
+        """
+        cursor.execute(query, (student_id, course_id, summer_semester_id))
+        mysql.connection.commit()
+        cursor.close()
+        return True
+
+    @staticmethod
+    def delete_summer_subject(student_id, course_id, summer_semester_id):
+        cursor = mysql.connection.cursor()
+        query = "DELETE FROM summer_registration WHERE student_id = %s AND course_id = %s AND summer_semesters_id = %s"
+        cursor.execute(query, (student_id, course_id, summer_semester_id))
+        mysql.connection.commit()
+        cursor.close()
+        return True
+
+    @staticmethod
+    def get_selected_summer_subjects(student_id, summer_semester_id):
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        query = """
+            SELECT sr.course_id, c.course_name, c.credit_hours, 'Summer' as type, 'Registered' as status
+            FROM summer_registration sr
+            JOIN courses c ON sr.course_id = c.course_id
+            WHERE sr.student_id = %s AND sr.summer_semesters_id = %s
+        """
+        cursor.execute(query, (student_id, summer_semester_id))
+        selected = cursor.fetchall()
+        cursor.close()
+        return selected
 
 
 class NotificationModel:

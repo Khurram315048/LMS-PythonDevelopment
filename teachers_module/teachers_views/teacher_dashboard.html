@@ -9,7 +9,8 @@
 <head>
     <title>Teacher Dashboard</title>
      <link rel="stylesheet" href="{{ url_for('static', filename='css/teachers_module.css') }}">
-</head>
+   
+    </head>
 <body>
     <h2 class="headings"> Teacher Dashboard</h2>
     <div class="container">
@@ -17,7 +18,7 @@
         <table>
             <tr>
                 <th>Subject Name</th>
-                <th>Class</th>
+                <th>Class ID </th>
                 <th>Semester</th>
                 <th>Section</th>
                 <th>Location</th>
@@ -27,7 +28,7 @@
             {% for s in schedule %}
                 <tr>
                     <td>{{ s.course_name }}</td>
-                    <td>{{ s.class }}</td>
+                    <td>{{ s.class_id }}</td>
                     <td>{{ s.semester }}</td>
                     <td>{{ s.section }}</td>
                     <td>{{ s.location }}</td>

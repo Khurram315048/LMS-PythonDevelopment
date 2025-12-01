@@ -27,9 +27,6 @@ def teacher_login():
             return redirect(url_for('teacher.teacher_login'))
     return render_template('teacher_login.html')
 
-
-
-
 @teacher.route('/teacher_profile', methods=['GET', 'POST'])
 @login_required
 def teacher_profile():
@@ -163,3 +160,15 @@ def mark_attendance(schedule_id):
 
     cursor.close()
     return render_template('attendance.html', students=students, course_name=schedule_row['course_name'], schedule_id=schedule_id, lecture_no=lecture_no, attendance_date=attendance_date)
+
+@teacher.route('/complaint_suggestions', methods=['GET', 'POST'])
+@login_required
+def complaint_suggestions():
+    if request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        user_id = session['user_id']
+        # Save to database (you will add this)
+        return redirect(url_for('teacher.teacher_dashboard'))
+    
+    return render_template('complaint_suggestions.html')

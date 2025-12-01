@@ -22,16 +22,18 @@
       <td>{{ course.teacher_name }}</td>
       <td>{{ course.semester }}</td>
       <td>
-        <form action="#" method="POST">
-          <input type="hidden" name="course_id" value="{{course.course_id}}">
-            <button type="submit" style="background:#3aaed7;border:none;padding:5px 10px;cursor:pointer;">Select</button>
+        <form method="POST" action="{{ url_for('student.select_summer_subject', subject_id=course.course_id) }}" style="display:inline;">
+            <button type="submit" style="background:#3aaed7;border:none;padding:5px 10px;cursor:pointer;color:white;border-radius:4px;">Select</button>
         </form>
       </td>
     </tr>
     {% endfor %}
   </table>
   {% else %}
-    <p style="color:red;">No courses available for Repeat.</p>
+    <p style="color:red; text-align:center; padding:20px;">No more courses available to select.</p>
+    <div style="text-align:center;">
+        <a href="{{ url_for('student.summer_semester') }}" class="btn-yellow">Go Back</a>
+    </div>
   {% endif %}
 </div>
 

@@ -324,27 +324,80 @@ def semester_freeze():
         return redirect(url_for('student.semester_freeze'))
     return render_template("semester_freeze.html", semester=semester, student=student, already_applied=False)
 
+
+
 @student.route('/summer_semester')
 @login_required
 def summer_semester():
     student_id = session.get('student_id')
     if not student_id:
         return redirect(url_for('student.student_login'))
+    
     student = StudentModel.get_student_by_id(student_id)
-    return render_template('summer_semester.html', student=student)
+    latest_summer = StudentModel.get_latest_summer_semester()
+    
+    selected_subjects = []
+    failed_subjects = []
+    can_register = False
+    
+    if latest_summer:
+        summer_id = latest_summer['summer_semesters_id']
+        selected_subjects = StudentModel.get_selected_summer_subjects(student_id, summer_id)
+        failed_subjects = StudentModel.get_eligible_summer_failed_subjects(student_id)
+        
+        if failed_subjects and len(selected_subjects) < len(failed_subjects):
+            can_register = True
+            
+    return render_template('summer_semester.html', 
+                           student=student, 
+                           selected=selected_subjects, 
+                           can_register=can_register,
+                           failed_count=len(failed_subjects))
 
-@student.route('/summer_subjects')
+
+@student.route("/summer_subjects", methods=["GET"])
 @login_required
 def summer_subjects():
+    student_id = session.get("student_id")  
+    latest_summer = StudentModel.get_latest_summer_semester()
+    
+    if not latest_summer:
+        flash("No active summer semester found.", "warning")
+        return redirect(url_for('student.summer_semester'))
+
+    summer_semester_id = latest_summer['summer_semesters_id']
+    failed_subjects = StudentModel.get_eligible_summer_failed_subjects(student_id)
+    selected_subjects = StudentModel.get_selected_summer_subjects(student_id, summer_semester_id)
+    selected_ids = [s['course_id'] for s in selected_subjects]
+    available_subjects = [sub for sub in failed_subjects if sub['course_id'] not in selected_ids]
+    return render_template("summer_subjects.html", subjects=available_subjects)
+
+
+@student.route("/select_summer_subject/<int:subject_id>", methods=["POST"])
+@login_required
+def select_summer_subject(subject_id):
     student_id = session.get('student_id')
-    if not student_id:
-        return redirect(url_for('student.student_login'))
-    last_semester = StudentModel.get_last_recorded_semester(student_id)
-    if not last_semester:
-        flash("No semester record found.", "warning")
-        return render_template("summer_subjects.html", subjects=[])
-    subjects = StudentModel.get_failed_subjects_for_last_semester(student_id, last_semester)
-    if not subjects:
-        flash("No failed subjects found for your recent semester.", "info")
-        return render_template("summer_subjects.html", subjects=[])
-    return render_template("summer_subjects.html", subjects=subjects)
+    summer_semester = StudentModel.get_latest_summer_semester()
+    
+    if not summer_semester:
+        flash("No summer semester available.", "warning")
+        return redirect(url_for("student.summer_semester"))
+
+    StudentModel.add_summer_subject(student_id, subject_id, summer_semester['summer_semesters_id'])
+    flash("Subject added for summer semester.", "success")
+    return redirect(url_for("student.summer_semester"))
+
+
+
+@student.route("/delete_summer_subject/<int:subject_id>", methods=["POST"])
+@login_required
+def delete_summer_subject(subject_id):
+    student_id = session.get('student_id')
+    summer_semester = StudentModel.get_latest_summer_semester()
+
+    if summer_semester:
+        StudentModel.delete_summer_subject(student_id, subject_id, summer_semester['summer_semesters_id'])
+        flash("Subject removed from summer semester.", "success")
+    
+    return redirect(url_for("student.summer_semester"))
+

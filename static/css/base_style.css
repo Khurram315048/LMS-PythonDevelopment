@@ -21,7 +21,7 @@
             font-size: 1.8em;
             text-align: center; /* Center the header text */
         }
-
+        
         .main-wrapper {
             
             transition: margin-left 0.3s ease;
@@ -80,6 +80,9 @@
     transition: opacity 0.3s ease;
 }
 
+.tchr_text{
+    color:white;
+}
 .sidebar:hover ul li a span {
     opacity: 1;
 }
