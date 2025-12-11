@@ -22,7 +22,7 @@
         <p class="error">{{ message }}</p>
     {% else %}
         <form method="POST" action="{{ url_for('teacher.mark_attendance', schedule_id=schedule_id) }}">
-            <label for="attendance_date">Attendance Date:</label>
+            <label for="attendance_date">Attendance Date: </label>
             <input type="date" name="attendance_date" value="{{ attendance_date }}" required><br><br>
             <table>
                 <tr>

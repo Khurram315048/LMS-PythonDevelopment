@@ -79,6 +79,8 @@ def teacher_dashboard():
 
     return render_template('teacher_dashboard.html', schedule=schedule)
 
+
+
 @teacher.route('/attendance/<int:schedule_id>', methods=['GET', 'POST'])
 @login_required
 def mark_attendance(schedule_id):
@@ -168,7 +170,6 @@ def complaint_suggestions():
         title = request.form['title']
         description = request.form['description']
         user_id = session['user_id']
-        # Save to database (you will add this)
         return redirect(url_for('teacher.teacher_dashboard'))
     
     return render_template('complaint_suggestions.html')
