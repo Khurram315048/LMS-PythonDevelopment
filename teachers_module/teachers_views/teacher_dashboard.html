@@ -3,44 +3,77 @@
 {% block title %}Teacher Dashboard{% endblock %}
 
 {% block content %}
+<h2 class="headings">Teacher Dashboard</h2>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Teacher Dashboard</title>
-     <link rel="stylesheet" href="{{ url_for('static', filename='css/teachers_module.css') }}">
-   
-    </head>
-<body>
-    <h2 class="headings"> Teacher Dashboard</h2>
-    <div class="container">
-        {% if schedule %}
-        <table>
+<div class="container">
+    <h2>My Today Timetable ({{ today_name }})</h2>
+    <table class="today-time-tbl">
+        <thead>
             <tr>
-                <th>Subject Name</th>
-                <th>Class ID </th>
-                <th>Semester</th>
-                <th>Section</th>
-                <th>Location</th>
-                <th>Time</th>
                 <th>Action</th>
+                <th>Coordinator</th>
+                <th>ClassID</th>
+                <th>Course Name</th>
+                <th>Semester</th>
+                <th>Class</th>
+                <th>Section</th>
+                <th>Class-Time</th>
             </tr>
-            {% for s in schedule %}
-                <tr>
-                    <td>{{ s.course_name }}</td>
-                    <td>{{ s.class_id }}</td>
-                    <td>{{ s.semester }}</td>
-                    <td>{{ s.section }}</td>
-                    <td>{{ s.location }}</td>
-                    <td>{{ s.time }}</td>
-                   <td><a href="{{ url_for('teacher.mark_attendance', schedule_id=s.course_schedule_id) }}" class="anchor-tags" >Mark Attendance</a></td>
-                </tr>
+        </thead>
+        <tbody>
+            {% for row in today_schedule %}
+            <tr>
+                <td><a href="{{ url_for('teacher.class_structure', section_id=row.section_id) }}" class="btn-open">Open Class Structure</a></td>
+                <td>{{ row.coordinator_name }}</td>
+                <td>{{ row.section_id }}</td>
+                <td>{{ row.course_name }}</td>
+                <td>{{ row.semester }}</td>
+                <td>{{ row.class_name }}</td>
+                <td>{{ row.section }}</td>
+                <td>{{ row.day_of_week }} ({{ row.start }} - {{ row.end }})</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align:center;">No classes scheduled for today.</td>
+            </tr>
             {% endfor %}
-        </table>
-        {% else %}
-        <p class="no-courses">No schedule assigned yet.</p>
-        {% endif %}
-    </div>
-</body>
-</html>
+        </tbody>  
+    </table>  
+</div>
+
+<br><br>
+
+<div class="container">
+    <h2>Weekly Timetable</h2>
+    <table class="weekly-time-tbl">
+        <thead>
+            <tr>
+                <th>Action</th>
+                <th>Coordinator</th>
+                <th>ClassID</th>
+                <th>Course Name</th>
+                <th>Semester</th>
+                <th>Class</th>
+                <th>Section</th>
+                <th>Class-Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in full_schedule %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('teacher.class_structure', section_id=row.section_id) }}" class="btn-open">Open Class Structure</a>
+                </td>
+                <td>{{ row.coordinator_name }}</td>
+                <td>{{ row.section_id }}</td>
+                <td>{{ row.course_name }}</td>
+                <td>{{ row.semester }}</td>
+                <td>{{ row.class_name }}</td>
+                <td>{{ row.section }}</td>
+                <td>{{ row.day_of_week }} ({{ row.start }} - {{ row.end }})</td>
+            </tr>
+            {% endfor %}
+        </tbody> 
+    </table>   
+</div>
 {% endblock %}

@@ -1,40 +1,50 @@
 {% extends "layouts/student_base.html" %}
 
-{% block title %}Student Result Summary{% endblock %}
+{% block title %}Attendance Summary{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="dashboard-content">
         <h1 class="headings">Attendance Dashboard</h1>
-        <table>
+        <table class="table">
             <thead>
                 <tr>
                     <th>Subject Name</th>
-                    <th>Total Credit Hours</th>
-                    <th>Obtained Credit Hours</th>
+                    <th>Credit Hours</th>
+                    <th>Lectures (Attended/Total)</th>
                     <th>Percentage</th>
-                    <th>Lecture No#1</th>   
+                    <th>Detailed History</th>   
                 </tr>
             </thead>
             <tbody>
-                {% for course in courses %}
+                {% for item in attendance_report %}
                 <tr>
-                    <td>{{ course.course_name }}</td>
-                    <td>{{ course.credit_hours }}</td>
-                    <td>{{ percentage|round(2) }}</td>
-                    <td>{{ percentage|round(2) }}%</td>
+                    <td>{{ item.course_name }}</td>
+                    <td>{{ item.credit_hours }}</td>
+                    <td>{{ item.attended_lectures }} / {{ item.total_lectures }}</td>
                     <td>
-                        {% for lecture in lecture_status %}
-                            {% if lecture.attendance_status == 'Absent' %}
-                                Absent {{ lecture.attendance_date }}
-                                <form action="#" method="POST" style="display:inline">
-                                    <input type="hidden" name="date" value="{{ lecture.attendance_date }}">
-                                    <button type="submit" class="btn btn-warning btn-sum">I was Present</button>
-                                </form>
-                            {% else %}
-                                Present {{ lecture.attendance_date }}
-                            {% endif %}
+                        <strong style="color: blue">
+                            {{ item.percentage }}%
+                        </strong>
+                    </td>
+                    <td>
+                        <div style="max-height: 100px; overflow-y: auto; font-size: 0.8em;">
+                        {% for lecture in item.lecture_status %}
+                            <div>
+                                {% if lecture.attendance_status == 'Absent' %}
+                                    <span style="color:red"> Absent</span> ({{ lecture.attendance_date }})
+                                    <form action="#" method="POST" style="display:inline">
+                                        <input type="hidden" name="date" value="{{ lecture.attendance_date }}">
+                                        <button type="submit" style="font-size: 10px; padding: 2px;">Dispute</button>
+                                    </form>
+                                {% else %}
+                                    <span style="color:green"> Present</span> ({{ lecture.attendance_date }})
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            No lectures recorded yet.
                         {% endfor %}
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}

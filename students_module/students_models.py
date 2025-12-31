@@ -5,7 +5,7 @@ from utils.db import mysql
 class UserModel:
     @staticmethod
     def get_user_by_email(email):
-        cursor = mysql.connection.cursor()
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT user_id, password FROM users WHERE email = %s', (email,))
         user = cursor.fetchone()
         cursor.close()
@@ -23,7 +23,7 @@ class UserModel:
 class StudentModel:
     @staticmethod
     def get_student_by_user_id(user_id):
-        cursor = mysql.connection.cursor()
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM students WHERE user_id = %s', (user_id,))
         student = cursor.fetchone()
         cursor.close()
@@ -197,34 +197,34 @@ class StudentModel:
         return schedule
 
     @staticmethod
-    def get_attendance_summary(student_course_id, course_schedule_id):
+    def get_attendance_summary(student_course_id):
         cursor = mysql.connection.cursor()
         cursor.execute('''
-            SELECT COUNT(*) AS total
-            FROM attendance
-            WHERE student_course_id = %s AND course_schedule_id = %s
-        ''', (student_course_id, course_schedule_id))
+        SELECT COUNT(*) AS total
+        FROM attendance
+        WHERE student_course_id = %s
+        ''', (student_course_id,))
         total_lectures_row = cursor.fetchone()
 
         cursor.execute('''
-            SELECT COUNT(*) AS attended
-            FROM attendance
-            WHERE student_course_id = %s AND course_schedule_id = %s AND attendance_status = %s
-        ''', (student_course_id, course_schedule_id, 'Present'))
+        SELECT COUNT(*) AS attended
+        FROM attendance
+        WHERE student_course_id = %s AND attendance_status = %s
+        ''', (student_course_id, 'Present'))
         attended_row = cursor.fetchone()
         cursor.close()
         return total_lectures_row['total'] if total_lectures_row else 0, \
-               attended_row['attended'] if attended_row else 0
+           attended_row['attended'] if attended_row else 0
 
     @staticmethod
-    def get_attendance_status_details(student_course_id, course_schedule_id):
-        cursor = mysql.connection.cursor()
+    def get_attendance_status_details(student_course_id): 
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('''
-            SELECT attendance_date, attendance_status
-            FROM attendance
-            WHERE student_course_id = %s AND course_schedule_id = %s
-            ORDER BY attendance_date ASC
-        ''', (student_course_id, course_schedule_id))
+        SELECT attendance_date, attendance_status
+        FROM attendance
+        WHERE student_course_id = %s
+        ORDER BY attendance_date ASC
+        ''', (student_course_id,))
         lecture_status = cursor.fetchall()
         cursor.close()
         return lecture_status

@@ -19,12 +19,12 @@ def student_login():
             student_obj = StudentModel.get_student_by_user_id(user['user_id'])
             if student_obj:
                 session['user_id'] = user['user_id']
-                session['user_type'] = 'student'
+                session['role'] = 'student'
                 session['student_id'] = student_obj['student_id']
                 session.permanent = remember
                 return redirect(url_for('student.student_dashboard'))
             else:
-                return redirect(url_for('user_signup'))
+                return redirect(url_for('student.student_login'))
         else:
             return redirect(url_for('student.student_login'))
     return render_template('student_login.html')
@@ -33,7 +33,7 @@ def student_login():
 @student.route('/student_base', methods=['GET'])
 @login_required
 def base():
-    if session.get('user_type') != 'student':
+    if session.get('role') != 'student':
         return redirect(url_for('main_view'))
     student_name = StudentModel.get_student_name_by_user_id(session['user_id'])
     return render_template('student_base.html', student_name=student_name)
@@ -42,7 +42,7 @@ def base():
 @student.route('/student_profile', methods=['GET', 'POST'])
 @login_required
 def student_profile():
-    if session.get('user_type') != 'student':
+    if session.get('role') != 'student':
         return redirect(url_for('main_view'))
 
     student_id = session['student_id']
@@ -54,7 +54,7 @@ def student_profile():
 @student.route('/student_dashboard', methods=['GET', 'POST'])
 @login_required
 def student_dashboard():
-    if session.get('user_type') != 'student':
+    if session.get('role') != 'student':
         return redirect(url_for('main_view'))
     student_id = session['student_id']
     courses = StudentModel.get_enrolled_courses_by_student_id(student_id)
@@ -83,8 +83,9 @@ def student_dashboard():
 @student.route('/student_fee', methods=['GET', 'POST'])
 @login_required
 def student_fee():
-    if session.get('user_type') != 'student':
+    if session.get('role') != 'student':
         return redirect(url_for('main_view'))
+    
     student_id = session['student_id']
     fee_records = StudentModel.get_student_fee_records(student_id)
     return render_template("student_fee.html", fee_records=fee_records)
@@ -103,8 +104,6 @@ def complaint_suggestion():
 @student.route('/upload_fee', methods=['GET', 'POST'])
 @login_required
 def upload_fee():
-    if session.get('user_type') != 'student':
-        return redirect(url_for('main_view'))
     student_id = session['student_id']
     if request.method == 'POST':
         month = request.form['month']
@@ -151,6 +150,7 @@ def notifications():
     notifications = NotificationModel.get_notifications_for_user(user_id, student_id)
     return render_template('notifications.html', notifications=notifications)
 
+
 @student.route('/view_attendence', methods=['GET', 'POST'])
 @login_required
 def view_attendence():
@@ -159,29 +159,31 @@ def view_attendence():
         flash("Student not logged in.", "danger")
         return redirect(url_for('student.student_login'))
 
-    courses = StudentModel.get_student_courses_for_attendance(student_id)
-    if not courses:
-        flash("No courses found for this student.", "warning")
-        return render_template('view_attendence.html', courses=[], percentage=0, lecture_status=[])
+   
+    enrolled_courses = StudentModel.get_student_courses_for_attendance(student_id)
+    attendance_report = []
 
-    student_course_id = courses[0]['student_course_id']
-    schedule = StudentModel.get_course_schedule_for_student_course(student_course_id)
-    course_schedule_id = schedule['course_schedule_id'] if schedule else None
+    for course in enrolled_courses:
+        sc_id = course['student_course_id']
+        total_lectures, attended = StudentModel.get_attendance_summary(sc_id)
+        history = StudentModel.get_attendance_status_details(sc_id)
+        perc = (attended / total_lectures * 100) if total_lectures > 0 else 0
 
-    if not course_schedule_id:
-        flash("No schedule found for this course.", "warning")
-        return render_template('view_attendence.html', courses=courses, percentage=0, lecture_status=[])
-
-    total_lectures, attended = StudentModel.get_attendance_summary(student_course_id, course_schedule_id)
-    percentage = (attended / total_lectures * 100) if total_lectures > 0 else 0
-    lecture_status = StudentModel.get_attendance_status_details(student_course_id, course_schedule_id)
+        attendance_report.append({
+            'course_name': course['course_name'],
+            'credit_hours': course['credit_hours'],
+            'total_lectures': total_lectures,
+            'attended_lectures': attended,
+            'percentage': round(perc, 2),
+            'lecture_status': history
+        })
 
     return render_template(
         'view_attendence.html',
-        courses=courses,
-        percentage=round(percentage, 2),
-        lecture_status=lecture_status
+        attendance_report=attendance_report
     )
+
+    
 
 @student.route('/view_grades', methods=['GET', 'POST'])
 @login_required

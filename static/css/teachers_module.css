@@ -144,3 +144,71 @@ button:hover, input[type="submit"]:hover {
 .notification:hover {
     opacity: 0.9;
 }
+
+/* Table General Styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 0.95em;
+    background-color: white;
+}
+
+table thead tr {
+    background-color: #10367D; /* Matches your profile card blue */
+    color: #ffffff;
+    text-align: left;
+    font-weight: bold;
+}
+
+table th, table td {
+    padding: 12px 15px;
+    border: 1px solid #dddddd;
+}
+
+table tbody tr {
+    border-bottom: 1px solid #dddddd;
+}
+
+/* Zebra Striping for readability */
+table tbody tr:nth-of-type(even) {
+    background-color: #f3f6ff;
+}
+
+/* Hover effect on rows */
+table tbody tr:hover {
+    background-color: #e9f0ff;
+    transition: 0.2s;
+}
+
+/* Action Button (Open Class Structure) */
+.btn-open {
+    display: inline-block;
+    padding: 6px 12px;
+    background-color: #74B4D9;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.btn-open:hover {
+    background-color: #10367D;
+    color: #fff;
+}
+
+/* Section Headings Styling */
+.headings {
+    color: #10367D;
+    margin-bottom: 20px;
+    padding-left: 10px;
+    border-left: 5px solid #74B4D9;
+}
+
+/* Responsive Table container */
+.container {
+    overflow-x: auto; /* Adds scroll if table is too wide for mobile */
+    margin-bottom: 30px;
+}

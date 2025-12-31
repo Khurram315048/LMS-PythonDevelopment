@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/teachers_module.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/teachers_module.css') }}">
     <link rel="icon" type="image/jpg" href="{{ url_for('static', filename='images/logo.jpg') }}">
 </head>
 <body>
@@ -24,12 +25,12 @@
         <nav class="sidebar">
             <ul>
                 <li><a href="{{ url_for('teacher.teacher_profile') }}"><i class="fa-solid fa-user"></i> <span>Profile</span></a></li>
-                <li><a href="{{ url_for('teacher.teacher_dashboard') }}"><i class="fa-solid fa-chart-line"></i> <span>Dashboard</span></a></li>
-                <li><a href="{{ url_for('teacher.complaint_suggestions') }}"><i class="fa-solid fa-comment-dots"></i> <span>Complaints | Suggesstion</span></a></li>
-                <li><a href="#"><i class="fa-solid fa-dollar-sign"></i> <span>Salary</span></a></li> 
-                <li><a href="#"><i class="fa-solid fa-book-open"></i> <span>Course Registration</span></a></li> 
-                <li><a href="{{ url_for('teacher.attendance') }}"><i class="fa-solid fa-calendar-check"></i> <span>Attendance</span></a></li> 
-                
+                <li><a href="{{ url_for('teacher.teacher_dashboard') }}"><i class="fa-solid fa-chart-line"></i> <span>Dashboard</span></a></li> 
+                <li><a href="{{ url_for('teacher.class_attendance') }}"><i class="fa-solid fa-calendar-check"> </i> <span>Class Attendance</span></a></li> 
+                <li><a href="#"><i class="fa-solid fa-hourglass-half"></i><span>Semester Extension</span></a></li>
+                <li><a href="#"><i class="fa-solid fa-square-poll-vertical"></i><span>Survey Perfoma</span></a></li>
+                <li><a href="#"><i class="fa-solid fa-user-tie"></i><span>FYP Supervisor</span></a></li>
+                <li><a href="#"><i class="fa-solid fa-survey"></i><span>OBE</span></a></li>
                 <li><a href="{{ url_for('logout') }}" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span></a></li>
             </ul>
         </nav>
@@ -39,8 +40,7 @@
         </main>
     </div>
     
-    <footer>
-        <p>&copy; 2023 Student Management System. All rights reserved.</p>
-    </footer>
+    
 </body>
+
 </html>

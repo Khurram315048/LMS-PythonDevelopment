@@ -1,0 +1,52 @@
+{% extends "layouts/teacher_base.html" %}
+
+{% block title %}Class Structure{% endblock %}
+
+{% block content %}
+<h2 class="headings">Class Structured</h2>
+
+<div class="container">
+    <h2>Assign Classes</h2>
+    <table class="today-time-tbl">
+        <thead>
+            <tr>
+                <th>Class ID</th>
+                <th>Coordinator</th>
+                <th>Semester</th>
+                <th>Course Name</th>
+                <th>Class</th>
+                <th>Section</th>
+                <th>Total Enroll</th>
+                <th>Upload Assignments</th>
+                <th>Upload Quizes</th>
+            </tr>
+        </thead>
+        <tbody>
+             {% for row in   class_info %}
+            <tr>
+                <td>{{row.section_id}}</td>
+                <td>{{row.program_coordinator}}</td>
+                <td>{{row.semester}}</td>
+                <td>{{row.course_name}}</td>
+                <td>{{row.program_name}}</td>
+                <td>{{row.section_name}}</td>
+                <td>{{row.total_enroll}}</td>
+                <td><a href="#" class="btn-open">Best Assignment</a>
+                    <a href="#" class="btn-open">Average Assignment</a>
+                    <a href="#" class="btn-open">Worst Assignment</a>
+                
+                </td>
+                <td><a href="#" class="btn-open">Best Quiz</a>
+                    <a href="#" class="btn-open">Average Quiz</a>
+                    <a href="#" class="btn-open">Worst Quiz</a>
+                
+                </td>
+
+            </tr>
+            {%  endfor %}
+        </tbody>  
+    </table>  
+</div>
+
+
+{% endblock %}
