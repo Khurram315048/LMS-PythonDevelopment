@@ -271,14 +271,7 @@ def fail_subjects():
     courses = StudentModel.get_eligible_fail_subjects(student_id, max_semester)
     return render_template('fail_subjects.html', courses=courses)
 
-@student.route('/student_fyp')
-@login_required
-def student_fyp():
-    student_id = session.get('student_id')
-    if not student_id:
-        return redirect(url_for('student.student_login'))
-    student = StudentModel.get_student_by_id(student_id)
-    return render_template('student_fyp.html', student=student)
+
 
 @student.route('/student/select_fail/<int:course_id>', methods=['POST'])
 @login_required
@@ -403,3 +396,101 @@ def delete_summer_subject(subject_id):
     
     return redirect(url_for("student.summer_semester"))
 
+
+@student.route('/student_fyp', methods=['GET'])
+@login_required
+def student_fyp():
+    if session.get('role') != 'student':
+        return redirect(url_for('main_view'))
+    
+    student_id = session.get('student_id')
+    student_obj = StudentModel.get_student_by_id(student_id)
+    fyp_project = StudentModel.get_fyp_project(student_id)
+    messages_list = []
+    if fyp_project:
+        messages_list = StudentModel.get_fyp_messages(fyp_project['fyp_id'])
+        teacher_details = StudentModel.get_teacher_full_details(fyp_project['teacher_id'])
+    
+    return render_template('student_fyp.html', 
+                           student=student_obj, 
+                           fyp=fyp_project, 
+                           messages=messages_list,teacher=teacher_details)
+
+
+
+@student.route('/submit_fyp', methods=['POST'])
+@login_required
+def submit_fyp():
+    if session.get('role') != 'student':
+        return redirect(url_for('main_view'))
+
+    student_id = session.get('student_id')
+    if not student_id:
+        return redirect(url_for('student.student_login'))
+
+    upload_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'students_uploads', 'students_fyp_proposal')
+    
+    
+    if not os.path.exists(upload_folder):
+        os.makedirs(upload_folder, exist_ok=True)
+
+
+    title = request.form.get('project_title')
+    description = request.form.get('description')
+    teacher_id = request.form.get('teacher_id', 1) 
+    file = request.files.get('proposal_file')
+    db_file_path = None
+
+    if file and file.filename != '':
+        filename = secure_filename(file.filename)
+        unique_name = f"SID_{student_id}_{filename}"
+        file.save(os.path.join(upload_folder, unique_name))
+        db_file_path = f"uploads/students_uploads/students_fyp_proposal/{unique_name}"
+
+    try:
+        StudentModel.insert_fyp_proposal(student_id, title, description, teacher_id, db_file_path)
+        flash('FYP Proposal Submitted Successfully!', 'success')
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'danger')
+
+    return redirect(url_for('student.student_fyp'))
+
+
+@student.route('/send_fyp_message/<int:fyp_id>', methods=['POST'])
+@login_required
+def send_fyp_message(fyp_id):
+    if session.get('role') != 'student':
+        return redirect(url_for('main_view'))
+
+    message_text = request.form.get('message')
+    student_id = session.get('student_id')
+    
+    if message_text and message_text.strip():
+        StudentModel.insert_fyp_message(fyp_id, student_id, 'student', message_text)
+        
+    return redirect(url_for('student.student_fyp'))
+
+
+@student.route('/update_fyp', methods=['POST'])
+@login_required
+def update_fyp():
+    if session.get('role') != 'student':
+        return redirect(url_for('main_view'))
+
+    student_id = session.get('student_id')
+    title = request.form.get('project_title')
+    file = request.files.get('proposal_file')
+    db_file_path = None 
+    
+    upload_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'students_uploads', 'students_fyp_proposal')
+    
+    if file and file.filename != '':
+        filename = secure_filename(file.filename)
+        unique_name = f"SID_{student_id}_{filename}"
+        file.save(os.path.join(upload_folder, unique_name))
+        db_file_path = f"uploads/students_uploads/students_fyp_proposal/{unique_name}"
+    
+    
+    StudentModel.update_fyp_data(student_id, title, db_file_path)
+    flash('FYP Project updated successfully!', 'success')
+    return redirect(url_for('student.student_fyp'))

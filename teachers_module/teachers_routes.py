@@ -216,3 +216,78 @@ def marked_attendance(section_id):
                            course_name=class_info['course_name'],
                            lecture_no=lec_count['next_lec'],
                            attendance_date=datetime.datetime.now().strftime('%Y-%m-%d'))
+
+
+
+@teacher.route('/fyp_management')
+@login_required
+def fyp_management():
+    teacher_id = session.get('teacher_id')
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    query = """
+        SELECT f.*, 
+               s.first_name, s.last_name, s.student_id as reg_num,
+               s.contact, s.email,
+               p.program_name, sec.semester
+        FROM fyp_groups f
+        JOIN students s ON f.student_id = s.student_id
+        LEFT JOIN programs p ON s.program_id = p.program_id
+        LEFT JOIN student_section ss ON s.student_id = ss.student_id
+        LEFT JOIN sections sec ON ss.section_id = sec.section_id
+        WHERE f.teacher_id = %s
+    """
+    cursor.execute(query, (teacher_id,))
+    fyp_data = cursor.fetchall()
+    for group in fyp_data:
+        cursor.execute("""
+            SELECT * FROM fyp_messages 
+            WHERE fyp_id = %s 
+            ORDER BY created_at ASC
+        """, (group['fyp_id'],))
+        messages = cursor.fetchall()
+        group['messages'] = messages
+        group['has_unread'] = False
+        if messages and messages[-1]['sender_role'] == 'student':
+            group['has_unread'] = True
+
+    total = len(fyp_data)
+    completed = len([g for g in fyp_data if g['status'] == 'Approved'])
+    pending = len([g for g in fyp_data if g['status'] == 'Pending Approval'])
+    
+    cursor.close()
+    return render_template('fyp_management.html', fyp_data=fyp_data, total=total, completed=completed, pending=pending)
+
+@teacher.route('/approve_fyp/<int:fyp_id>/<string:status>')
+@login_required
+def approve_fyp(fyp_id, status):
+    cursor = mysql.connection.cursor()
+    cursor.execute("UPDATE fyp_groups SET status=%s WHERE fyp_id=%s", (status, fyp_id))
+    mysql.connection.commit()
+    cursor.close()
+    return redirect(url_for('teacher.fyp_management'))                         
+
+
+
+@teacher.route('/send_message/<int:fyp_id>', methods=['POST'])
+@login_required
+def send_message(fyp_id):
+    if session.get('role') != 'teacher':
+        return redirect(url_for('main_view'))
+
+    message_text = request.form.get('message')
+    teacher_id = session.get('teacher_id')
+    
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute("SELECT student_id FROM fyp_groups WHERE fyp_id=%s", (fyp_id,))
+    result = cursor.fetchone() 
+    if result:
+        student_id = result['student_id']
+        cursor.execute("""
+            INSERT INTO fyp_messages (fyp_id, teacher_id, student_id, sender_role, message)
+            VALUES (%s, %s, %s, 'teacher', %s)
+        """, (fyp_id, teacher_id, student_id, message_text))
+        
+        mysql.connection.commit()
+    
+    cursor.close()
+    return redirect(url_for('teacher.fyp_management'))

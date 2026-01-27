@@ -547,21 +547,7 @@ class StudentModel:
         selected = cursor.fetchall()
         cursor.close()
         return selected
-
-
-class NotificationModel:
-    @staticmethod
-    def get_notifications_for_user(user_id, student_id):
-        cursor = mysql.connection.cursor()
-        cursor.execute("""
-            SELECT * FROM notifications
-            WHERE sender_id = %s OR (receiver_role='student' AND receiver_id = %s)
-            ORDER BY created_at DESC
-        """, (user_id, student_id))
-        notifications = cursor.fetchall()
-        cursor.close()
-        return notifications
-
+    
     @staticmethod
     def create_notification(sender_id, sender_role, receiver_role, title, description, related_course_id, status='Pending', receiver_id=None):
         cursor = mysql.connection.cursor()
@@ -578,3 +564,95 @@ class NotificationModel:
         mysql.connection.commit()
 
         cursor.close()
+
+    @staticmethod
+    def get_fyp_project(student_id):
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        query = """
+            SELECT f.*, t.first_name as t_fname, t.last_name as t_lname
+            FROM fyp_groups f
+            LEFT JOIN teachers t ON f.teacher_id = t.teacher_id
+            WHERE f.student_id = %s
+        """
+        
+        cursor.execute(query, (student_id,))
+        fyp = cursor.fetchone()
+        cursor.close()
+        return fyp
+
+    @staticmethod
+    def insert_fyp_proposal(student_id, title, description, teacher_id, filename):
+        cursor = mysql.connection.cursor()
+        query = """INSERT INTO fyp_groups 
+                   (project_title, description, teacher_id, student_id, status, progress, last_submission) 
+                   VALUES (%s, %s, %s, %s, 'Pending Approval', 0, %s)"""
+        cursor.execute(query, (title, description, teacher_id, student_id, filename))
+        mysql.connection.commit()
+        cursor.close()    
+
+    @staticmethod
+    def get_fyp_messages(fyp_id):
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        query = """
+            SELECT * FROM fyp_messages 
+            WHERE fyp_id = %s 
+            ORDER BY created_at ASC
+        """
+        cursor.execute(query, (fyp_id,))
+        messages = cursor.fetchall()
+        cursor.close()
+        return messages
+
+    @staticmethod
+    def insert_fyp_message(fyp_id, student_id, role, message_text):
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute("SELECT teacher_id FROM fyp_groups WHERE fyp_id = %s", (fyp_id,))
+        group = cursor.fetchone()
+        
+        if group:
+            teacher_id = group['teacher_id']
+            query = """
+                INSERT INTO fyp_messages (fyp_id, teacher_id, student_id, sender_role, message)
+                VALUES (%s, %s, %s, %s, %s)
+            """
+            cursor.execute(query, (fyp_id, teacher_id, student_id, role, message_text))
+            mysql.connection.commit()
+            
+        cursor.close()
+
+    @staticmethod
+    def update_fyp_data(student_id, title, filename=None):
+        cursor = mysql.connection.cursor()
+        if filename:
+            query = "UPDATE fyp_groups SET project_title=%s, last_submission=%s WHERE student_id=%s"
+            cursor.execute(query, (title, filename, student_id))
+        else:
+            query = "UPDATE fyp_groups SET project_title=%s WHERE student_id=%s"
+            cursor.execute(query, (title, student_id))
+        
+        mysql.connection.commit()
+        cursor.close()    
+
+    @staticmethod
+    def get_teacher_full_details(teacher_id):
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        query ="SELECT teacher_id,first_name,last_name,email,contact_num FROM teachers WHERE teacher_id=%s"
+        cursor.execute(query, (teacher_id,))
+        teacher = cursor.fetchone()
+        cursor.close()
+        return teacher    
+
+
+
+class NotificationModel:
+    @staticmethod
+    def get_notifications_for_user(user_id, student_id):
+        cursor = mysql.connection.cursor()
+        cursor.execute("""
+            SELECT * FROM notifications
+            WHERE sender_id = %s OR (receiver_role='student' AND receiver_id = %s)
+            ORDER BY created_at DESC
+        """, (user_id, student_id))
+        notifications = cursor.fetchall()
+        cursor.close()
+        return notifications

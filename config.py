@@ -6,6 +6,7 @@ MYSQL_HOST='localhost'
 MYSQL_USER='root'
 MYSQL_PASSWORD=''
 MYSQL_DB='lms'
+MYSQL_PORT=3307
 SECRET_KEY=secrets.token_hex(16)
 MYSQL_CURSORCLASS='DictCursor'
 BASE_DIR=os.path.abspath(os.path.dirname(__file__))
