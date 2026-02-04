@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Jan 27, 2026 at 02:17 PM
+-- Generation Time: Feb 04, 2026 at 11:26 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -42,7 +42,10 @@ CREATE TABLE `attendance` (
 
 INSERT INTO `attendance` (`attendance_id`, `student_course_id`, `course_schedule_id`, `attendance_date`, `attendance_status`, `student_id`) VALUES
 (1, 2, 3, '2025-12-31', 'Present', 3),
-(2, 3, 4, '2025-12-31', 'Present', 4);
+(2, 3, 4, '2025-12-31', 'Present', 4),
+(3, 2, 3, '2026-02-04', 'Present', 3),
+(4, 2, 3, '2026-02-04', 'Present', 3),
+(5, 3, 4, '2026-02-04', 'Present', 4);
 
 -- --------------------------------------------------------
 
@@ -70,20 +73,22 @@ CREATE TABLE `courses` (
   `course_type` varchar(50) NOT NULL,
   `program_id` int(11) NOT NULL,
   `credit_hours` varchar(50) DEFAULT NULL,
-  `no_of_lectures` varchar(50) DEFAULT NULL
+  `no_of_lectures` varchar(50) DEFAULT NULL,
+  `assignments_enabled` tinyint(1) DEFAULT 1,
+  `quizzes_enabled` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `courses`
 --
 
-INSERT INTO `courses` (`course_id`, `course_name`, `course_type`, `program_id`, `credit_hours`, `no_of_lectures`) VALUES
-(1, 'Introduction to Computing', 'Regular', 1, '3', '17'),
-(2, 'Programming Fundamentals', 'Regular', 1, '4', '19'),
-(3, 'IT Infrastructure', 'Regular', 2, '3', '12'),
-(4, 'Network Administration', 'Regular', 2, '3', '19'),
-(5, 'Introduction to AI', 'Regular', 3, '3', '22'),
-(6, 'Machine Learning', 'Regular', 3, '4', '20');
+INSERT INTO `courses` (`course_id`, `course_name`, `course_type`, `program_id`, `credit_hours`, `no_of_lectures`, `assignments_enabled`, `quizzes_enabled`) VALUES
+(1, 'Introduction to Computing', 'Regular', 1, '3', '17', 1, 1),
+(2, 'Programming Fundamentals', 'Regular', 1, '4', '19', 1, 1),
+(3, 'IT Infrastructure', 'Regular', 2, '3', '12', 1, 1),
+(4, 'Network Administration', 'Regular', 2, '3', '19', 1, 1),
+(5, 'Introduction to AI', 'Regular', 3, '3', '22', 1, 1),
+(6, 'Machine Learning', 'Regular', 3, '4', '20', 1, 1);
 
 -- --------------------------------------------------------
 
@@ -134,7 +139,7 @@ CREATE TABLE `fyp_groups` (
 --
 
 INSERT INTO `fyp_groups` (`fyp_id`, `project_title`, `description`, `teacher_id`, `student_id`, `status`, `progress`, `last_submission`, `created_at`) VALUES
-(1, 'testing updation of fyp again', 'aaaabscs', 1, 2, 'Approved', 0, 'uploads/students_uploads/students_fyp_proposal/SID_2_ccp_seo_project.pdf', '2026-01-27 06:49:29'),
+(1, 'testing updation of fyp again again2', 'aaaabscs', 1, 2, 'Approved', 0, 'uploads/students_uploads/students_fyp_proposal/SID_2_PROJECT_REPORT-osama-new.pdf', '2026-01-27 06:49:29'),
 (2, 'Huzaifa Title pr', 'i am again checking the project ', 1, 3, 'Approved', 0, 'uploads/students_uploads/students_fyp_proposal/SID_3_portfolio-cv.pdf', '2026-01-27 08:44:04');
 
 -- --------------------------------------------------------
@@ -161,7 +166,9 @@ INSERT INTO `fyp_messages` (`message_id`, `fyp_id`, `teacher_id`, `student_id`, 
 (1, 1, 1, 2, 'teacher', 'kindly visit my office with hard copy of your proposal file.', '2026-01-27 10:01:38'),
 (3, 1, 1, 2, 'student', 'ok sir i do my best', '2026-01-27 11:49:41'),
 (6, 1, 1, 2, 'teacher', 'ok good come to me', '2026-01-27 12:44:31'),
-(7, 2, 1, 3, 'teacher', 'huzaifa come to me', '2026-01-27 12:45:49');
+(7, 2, 1, 3, 'teacher', 'huzaifa come to me', '2026-01-27 12:45:49'),
+(8, 1, 1, 2, 'teacher', 'hye', '2026-02-04 10:20:03'),
+(9, 1, 1, 2, 'student', 'aaj chly naveed biryani', '2026-02-04 10:20:46');
 
 -- --------------------------------------------------------
 
@@ -215,18 +222,20 @@ CREATE TABLE `sections` (
   `course_id` int(11) NOT NULL,
   `section_name` varchar(50) NOT NULL,
   `program_id` int(11) NOT NULL,
-  `semester` int(11) NOT NULL
+  `semester` int(11) NOT NULL,
+  `assignments_enabled` tinyint(1) DEFAULT 1,
+  `quizzes_enabled` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `sections`
 --
 
-INSERT INTO `sections` (`section_id`, `course_id`, `section_name`, `program_id`, `semester`) VALUES
-(1, 1, 'Blue', 1, 5),
-(2, 1, 'Green', 1, 5),
-(3, 1, 'Red', 1, 5),
-(4, 1, 'Orange', 1, 5);
+INSERT INTO `sections` (`section_id`, `course_id`, `section_name`, `program_id`, `semester`, `assignments_enabled`, `quizzes_enabled`) VALUES
+(1, 1, 'Blue', 1, 5, 1, 1),
+(2, 1, 'Green', 1, 5, 1, 1),
+(3, 1, 'Red', 1, 5, 1, 1),
+(4, 1, 'Orange', 1, 5, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -351,7 +360,8 @@ CREATE TABLE `student_fees` (
 --
 
 INSERT INTO `student_fees` (`student_fees_id`, `fee_amount`, `fee_status`, `update_date`, `voucher_front_pic`, `voucher_back_pic`, `program_id`, `fee_month`, `student_id`) VALUES
-(1, 18708.00, 'paid', '2025-12-31 09:10:20', 'uploads/students_uploads/voucher_pics/student_4_front_contact.PNG', 'uploads/students_uploads/voucher_pics/student_4_back_prj.PNG', 1, 'December', 4);
+(1, 18708.00, 'paid', '2025-12-31 09:10:20', 'uploads/students_uploads/voucher_pics/student_4_front_contact.PNG', 'uploads/students_uploads/voucher_pics/student_4_back_prj.PNG', 1, 'December', 4),
+(2, 68102.00, 'paid', '2026-02-04 06:54:59', 'uploads/students_uploads/voucher_pics/student_2_front_dep_view.PNG', 'uploads/students_uploads/voucher_pics/student_2_back_students_view.PNG', 1, 'January', 2);
 
 -- --------------------------------------------------------
 
@@ -416,6 +426,36 @@ INSERT INTO `student_section` (`student_id`, `section_id`) VALUES
 (2, 1),
 (3, 3),
 (4, 4);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `student_submissions`
+--
+
+CREATE TABLE `student_submissions` (
+  `submission_id` int(11) NOT NULL,
+  `student_id` int(11) DEFAULT NULL,
+  `course_id` int(11) DEFAULT NULL,
+  `section_id` int(11) DEFAULT NULL,
+  `file_path` varchar(255) DEFAULT NULL,
+  `submission_type` enum('assignment','quiz') DEFAULT NULL,
+  `upload_date` datetime DEFAULT current_timestamp(),
+  `marks` int(11) DEFAULT NULL,
+  `total_marks` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `student_submissions`
+--
+
+INSERT INTO `student_submissions` (`submission_id`, `student_id`, `course_id`, `section_id`, `file_path`, `submission_type`, `upload_date`, `marks`, `total_marks`) VALUES
+(1, 3, 1, 3, 'uploads/students_uploads/students_assignments/SID3_20260204_120727_new_cover.docx', 'assignment', '2026-02-04 12:07:27', 5, 5),
+(2, 3, 1, 3, 'uploads/students_uploads/students_quizes/SID3_20260204_121554_Student_Management_System_Report_Project.docx', 'quiz', '2026-02-04 12:15:54', 2, 5),
+(3, 2, 1, 1, 'uploads/students_uploads/students_assignments/SID2_20260204_135331_signup_view.PNG', 'assignment', '2026-02-04 13:53:31', 4, 5),
+(4, 4, 1, 4, 'uploads/students_uploads/students_assignments/SID4_20260204_135820_add_view_st.PNG', 'assignment', '2026-02-04 13:58:20', 3, 5),
+(5, 4, 1, 4, 'uploads/students_uploads/students_quizes/SID4_20260204_135954_home_view.PNG', 'quiz', '2026-02-04 13:59:54', 3, 5),
+(6, 2, 1, 1, 'uploads/students_uploads/students_quizes/SID2_20260204_151638_login_view.PNG', 'quiz', '2026-02-04 15:16:38', 4, 5);
 
 -- --------------------------------------------------------
 
@@ -687,6 +727,12 @@ ALTER TABLE `student_section`
   ADD KEY `section_id` (`section_id`);
 
 --
+-- Indexes for table `student_submissions`
+--
+ALTER TABLE `student_submissions`
+  ADD PRIMARY KEY (`submission_id`);
+
+--
 -- Indexes for table `summer_registration`
 --
 ALTER TABLE `summer_registration`
@@ -740,7 +786,7 @@ ALTER TABLE `users_role`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `attendance_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `attendance_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `complaint_suggestion`
@@ -770,7 +816,7 @@ ALTER TABLE `fyp_groups`
 -- AUTO_INCREMENT for table `fyp_messages`
 --
 ALTER TABLE `fyp_messages`
-  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -824,7 +870,7 @@ ALTER TABLE `student_fail_subjects`
 -- AUTO_INCREMENT for table `student_fees`
 --
 ALTER TABLE `student_fees`
-  MODIFY `student_fees_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `student_fees_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `student_improvement`
@@ -843,6 +889,12 @@ ALTER TABLE `student_results`
 --
 ALTER TABLE `student_result_marks`
   MODIFY `marks_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `student_submissions`
+--
+ALTER TABLE `student_submissions`
+  MODIFY `submission_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `summer_registration`

@@ -402,3 +402,167 @@ tr:hover {
 }
 .flash.warning { background: #fff3cd; color: #856404; }
 .flash.success { background: #d4edda; color: #155724; }
+
+
+
+/* --- Attendance Dashboard Table Styling --- */
+
+/* 1. Table Container Cleanup */
+.dashboard-content .table {
+    width: 100%;
+    border-collapse: separate; /* Allows for rounded corners */
+    border-spacing: 0;
+    margin-top: 25px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden; /* Clips the inner rows to the rounded corners */
+    background-color: #fff;
+}
+
+/* 2. Header Styling - Using your primary dark blue */
+.dashboard-content .table thead th {
+    background-color: #10367D; 
+    color: #ffffff;
+    font-size: 0.9em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 15px;
+    border-bottom: none;
+}
+
+/* 3. Row and Cell Styling */
+.dashboard-content .table tbody td {
+    padding: 15px;
+    vertical-align: middle;
+    border-bottom: 1px solid #eee;
+    color: #444;
+    font-size: 0.95em;
+}
+
+.dashboard-content .table tbody tr:last-child td {
+    border-bottom: none; /* Removes border from the last row */
+}
+
+/* Alternating Row Colors */
+.dashboard-content .table tbody tr:nth-child(even) {
+    background-color: #fcfdfe;
+}
+
+/* Hover Effect */
+.dashboard-content .table tbody tr:hover {
+    background-color: #f0f7ff;
+}
+
+/* 4. Percentage Text Styling */
+.dashboard-content .table strong[style*="color: blue"] {
+    color: #10367D !important; /* Forces consistency with your theme */
+    font-size: 1.1em;
+}
+
+/* 5. Detailed History (The Scrollable Box) */
+/* We target the div you have inside the last TD */
+.dashboard-content .table td div[style*="overflow-y: auto"] {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 8px;
+    scrollbar-width: thin; /* For Firefox */
+}
+
+/* Webkit Scrollbar Styling (Chrome/Safari) */
+.dashboard-content .table td div::-webkit-scrollbar {
+    width: 6px;
+}
+.dashboard-content .table td div::-webkit-scrollbar-thumb {
+    background: #74B4D9;
+    border-radius: 10px;
+}
+
+/* 6. Dispute Button Styling */
+/* This transforms the small generic button into a clean design */
+.dashboard-content .table td form button {
+    background-color: #fff !important;
+    color: #d9534f !important; /* Subtle Red */
+    border: 1px solid #d9534f !important;
+    border-radius: 4px;
+    padding: 2px 8px !important;
+    margin-left: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.dashboard-content .table td form button:hover {
+    background-color: #d9534f !important;
+    color: #fff !important;
+    transform: scale(1.05);
+}
+
+/* 7. Present/Absent Text Labels */
+.dashboard-content .table td span[style*="color:green"] {
+    color: #28a745 !important;
+    font-weight: 600;
+}
+
+.dashboard-content .table td span[style*="color:red"] {
+    color: #dc3545 !important;
+    font-weight: 600;
+}
+
+
+/* Styling for disabled upload state */
+.text-danger.small {
+    display: block;
+    background-color: #fff5f5;
+    border: 1px solid #feb2b2;
+    color: #c53030 !important;
+    padding: 5px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+
+.upload-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.btn-upload-small {
+    background-color: #10367D;
+    color: white;
+    border: none;
+    font-size: 10px;
+    padding: 3px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.btn-upload-small:hover {
+    background-color: #74B4D9;
+}
+
+
+ .btn-cancel {
+    display: inline-block;    
+    padding: 10px 20px;       
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;    
+    border-radius: 5px;       
+    cursor: pointer;          
+    border: none;            
+    transition: background 0.3s ease;
+    vertical-align: middle;   
+    line-height: 1.2;        
+}
+
+.btn-cancel {
+    background-color: #789cbb;
+    color: white !important;
+}
+
+.btn-cancel:hover { background-color: #5a6268; color: white !important; }

@@ -8,44 +8,68 @@
 <div class="container">
     <h2>Assign Classes</h2>
     <table class="today-time-tbl">
-        <thead>
-            <tr>
-                <th>Class ID</th>
-                <th>Coordinator</th>
-                <th>Semester</th>
-                <th>Course Name</th>
-                <th>Class</th>
-                <th>Section</th>
-                <th>Total Enroll</th>
-                <th>Upload Assignments</th>
-                <th>Upload Quizes</th>
-            </tr>
-        </thead>
-        <tbody>
-             {% for row in   class_info %}
-            <tr>
-                <td>{{row.section_id}}</td>
-                <td>{{row.program_coordinator}}</td>
-                <td>{{row.semester}}</td>
-                <td>{{row.course_name}}</td>
-                <td>{{row.program_name}}</td>
-                <td>{{row.section_name}}</td>
-                <td>{{row.total_enroll}}</td>
-                <td><a href="#" class="btn-open">Best Assignment</a>
-                    <a href="#" class="btn-open">Average Assignment</a>
-                    <a href="#" class="btn-open">Worst Assignment</a>
-                
-                </td>
-                <td><a href="#" class="btn-open">Best Quiz</a>
-                    <a href="#" class="btn-open">Average Quiz</a>
-                    <a href="#" class="btn-open">Worst Quiz</a>
-                
-                </td>
-
-            </tr>
-            {%  endfor %}
-        </tbody>  
-    </table>  
+    <thead>
+        <tr>
+            <th>Class ID</th>
+            <th>Coordinator</th>
+            <th>Semester</th>
+            <th>Course Name</th>
+            <th>Section</th>
+            <th>Total Enroll</th>
+            <th>Upload Assignments</th>
+            <th>Upload Quizes</th>
+            <th>Upload Controls</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for row in class_info %}
+    <tr>
+        <td>{{row.section_id}}</td>
+        <td>{{row.program_coordinator}}</td>
+        <td>{{row.semester}}</td>
+        <td>{{row.course_name}}</td>
+        <td>{{row.section_name}}</td>
+        <td>{{row.total_enroll}}</td>
+        <td>
+            <a href="{{ url_for('teacher.view_submissions', section_id=row.section_id, sub_type='assignment') }}" 
+               class="btn-open" style="background-color: #28a745; margin-bottom: 8px; display: block; text-align: center;">
+               📥 View All
+            </a>
+            <div style="border-top: 1px solid #ddd; padding-top: 5px; display: flex; flex-direction: column; gap: 2px;">
+                <a href="#" class="btn-open">Best</a>
+                <a href="#" class="btn-open">Average</a>
+                <a href="#" class="btn-open">Worst</a>
+            </div>
+        </td>
+        <td>
+            <a href="{{ url_for('teacher.view_submissions', section_id=row.section_id, sub_type='quiz') }}" 
+               class="btn-open" style="background-color: #28a745; margin-bottom: 8px; display: block; text-align: center;">
+               📥 View All
+            </a>
+            <div style="border-top: 1px solid #ddd; padding-top: 5px; display: flex; flex-direction: column; gap: 2px;">
+                <a href="#" class="btn-open">Best</a>
+                <a href="#" class="btn-open">Average</a>
+                <a href="#" class="btn-open">Worst</a>
+            </div>
+        </td>
+        <td>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <form action="{{ url_for('teacher.toggle_upload', section_id=row.section_id, upload_type='assignment') }}" method="POST">
+                    <button type="submit" class="btn-status {% if row.assignments_enabled %}btn-enabled{% else %}btn-disabled{% endif %}">
+                        Assignments: {{ 'ON' if row.assignments_enabled else 'OFF' }}
+                    </button>
+                </form>
+                <form action="{{ url_for('teacher.toggle_upload', section_id=row.section_id, upload_type='quiz') }}" method="POST">
+                    <button type="submit" class="btn-status {% if row.quizzes_enabled %}btn-enabled{% else %}btn-disabled{% endif %}">
+                        Quizzes: {{ 'ON' if row.quizzes_enabled else 'OFF' }}
+                    </button>
+                </form>
+            </div>
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
+</table>
 </div>
 
 

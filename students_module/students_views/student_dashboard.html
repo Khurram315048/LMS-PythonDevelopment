@@ -3,9 +3,10 @@
 {% block title %}Student Dashboard{% endblock %}
 
 {% block content %}
+
 <head>
     <title>Student-Dashboard</title>
-  </head>
+</head>
 <div class="container">
     <div class="dashboard-content">
         <h1 class="headings">My Dashboard</h1>
@@ -17,8 +18,6 @@
                     <th>Teacher Name</th>
                     <th>Class Time</th>
                     <th>Location</th>
-                    <th>Upload Assignments</th>
-                    <th>Upload Quiz</th>
                 </tr>
             </thead>
             <tbody>
@@ -27,17 +26,14 @@
                     <td>{{ s.course_name }}</td>
                     <td>
                         {% for t in teacher %}
-                            {% if t.teacher_id in teacher_ids.get(s.course_id, []) %}
-                                {{ t.first_name }} {{ t.last_name }}
-                            {% endif %}
+                        {% if t.teacher_id in teacher_ids.get(s.course_id, []) %}
+                        {{ t.first_name }} {{ t.last_name }}
+                        {% endif %}
                         {% endfor %}
                     </td>
                     <td>{{ s.day_of_week }} {{ s.start_time }}</td>
                     <td>{{ s.location }}</td>
-                    <td><input type="file" name="assignment_{{ s.course_id }}" /></td>
-                    <td><input type="file" name="quiz_{{ s.course_id }}" /></td>
-                </tr>
-                {% endfor %}
+                     {% endfor %}
             </tbody>
         </table>
         {% else %}

@@ -3,6 +3,7 @@ import MySQLdb.cursors
 from utils.auth import login_required
 from utils.db import mysql
 from datetime import datetime
+from datetime import date
 import datetime
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -150,10 +151,26 @@ def class_structure(section_id):
     return render_template('class_structure.html', class_info=class_info)
 
 
+@teacher.route("/toggle_upload/<int:section_id>/<string:upload_type>", methods=['POST'])
+@login_required
+def toggle_upload(section_id, upload_type):
+    cursor = mysql.connection.cursor()
+    if upload_type == 'assignment':
+        cursor.execute("UPDATE sections SET assignments_enabled = 1 - assignments_enabled WHERE section_id = %s", (section_id,))
+    elif upload_type == 'quiz':
+        cursor.execute("UPDATE sections SET quizzes_enabled = 1 - quizzes_enabled WHERE section_id = %s", (section_id,))
+    
+    mysql.connection.commit()
+    cursor.close()
+    return redirect(url_for('teacher.class_structure', section_id=section_id))
+
+
+
 @teacher.route("/marked_attendance/<int:section_id>", methods=['GET', 'POST'])
 @login_required
 def marked_attendance(section_id):
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    
     cursor.execute('''
         SELECT c.course_name, c.course_id, cs.course_schedule_id 
         FROM sections s
@@ -166,10 +183,21 @@ def marked_attendance(section_id):
     if not class_info:
         return "Error: Schedule not found for this section."
 
+   
+    attendance_date = request.form.get('attendance_date') or request.args.get('date') or str(date.today())
+
+    cursor.execute('''
+        SELECT COUNT(*) as count FROM attendance 
+        WHERE course_schedule_id = %s AND attendance_date = %s
+    ''', (class_info['course_schedule_id'], attendance_date))
+    already_marked = cursor.fetchone()['count'] > 0
+
     if request.method == 'POST':
-        attendance_date = request.form.get('attendance_date')
-        attendance_data = []
         
+        if already_marked:
+            return "Error: Attendance already marked for this date."
+
+        attendance_data = []
         cursor.execute('''
             SELECT sc.student_course_id, sc.student_id 
             FROM student_course sc
@@ -180,7 +208,6 @@ def marked_attendance(section_id):
 
         for student in students_list:
             status = request.form.get(f"status_{student['student_course_id']}", "Absent")
-            
             attendance_data.append((
                 student['student_course_id'], 
                 class_info['course_schedule_id'], 
@@ -195,28 +222,27 @@ def marked_attendance(section_id):
         '''
         cursor.executemany(insert_query, attendance_data)
         mysql.connection.commit()
-        
-        return redirect(url_for('teacher.teacher_dashboard'))
+        return redirect(url_for('teacher.class_attendance'))
 
+    
     cursor.execute('''
-        SELECT sc.student_course_id, s.student_id, CONCAT(s.first_name, ' ', s.last_name) AS student_name
-        FROM student_course sc
-        JOIN students s ON sc.student_id = s.student_id
-        JOIN student_section ss ON s.student_id = ss.student_id
-        WHERE ss.section_id = %s AND sc.course_id = %s
+    SELECT 
+        ss.student_id, 
+        CONCAT(s.first_name, ' ', s.last_name) AS student_name, 
+        sc.student_course_id
+    FROM student_section ss
+    JOIN student_course sc ON ss.student_id = sc.student_id
+    JOIN students s ON ss.student_id = s.student_id  -- Changed join to 'students' table
+    WHERE ss.section_id = %s AND sc.course_id = %s
     ''', (section_id, class_info['course_id']))
     students = cursor.fetchall()
-    
-    cursor.execute('SELECT COUNT(DISTINCT attendance_date) + 1 as next_lec FROM attendance WHERE course_schedule_id = %s', (class_info['course_schedule_id'],))
-    lec_count = cursor.fetchone()
 
-    cursor.close()
     return render_template('marked_attendance.html', 
-                           students=students, 
                            course_name=class_info['course_name'],
-                           lecture_no=lec_count['next_lec'],
-                           attendance_date=datetime.datetime.now().strftime('%Y-%m-%d'))
-
+                           students=students,
+                           attendance_date=attendance_date,
+                           already_marked=already_marked, 
+                           section_id=section_id)
 
 
 @teacher.route('/fyp_management')
@@ -291,3 +317,56 @@ def send_message(fyp_id):
     
     cursor.close()
     return redirect(url_for('teacher.fyp_management'))
+
+
+@teacher.route("/mark_submission/<int:submission_id>", methods=['POST'])
+@login_required
+def mark_submission(submission_id):
+    total_marks=request.form.get('total_marks')
+    obtained_marks = request.form.get('marks')
+    section_id = request.form.get('section_id')
+    sub_type = request.form.get('sub_type')
+    
+    cursor = mysql.connection.cursor()
+    query = "UPDATE student_submissions SET marks = %s , total_marks=%s  WHERE submission_id = %s"
+    cursor.execute(query, (obtained_marks,total_marks, submission_id))
+    mysql.connection.commit()
+    cursor.close()
+    
+    print("Marks updated successfully!", "success")
+    return redirect(url_for('teacher.view_submissions', section_id=section_id, sub_type=sub_type))
+
+
+
+@teacher.route("/view_submissions/<int:section_id>/<string:sub_type>")
+@login_required
+def view_submissions(section_id, sub_type):
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    query = """
+        SELECT sub.submission_id, sub.student_id, sub.file_path, sub.upload_date, 
+               sub.marks, sub.total_marks, 
+               s.first_name, s.last_name 
+        FROM student_submissions sub
+        JOIN students s ON sub.student_id = s.student_id
+        WHERE sub.section_id = %s 
+        AND LOWER(sub.submission_type) = LOWER(%s)
+    """
+    cursor.execute(query, (section_id, sub_type))
+    submissions = cursor.fetchall()
+    cursor.execute('''
+        SELECT c.course_name, s.section_name 
+        FROM sections s 
+        JOIN courses c ON s.course_id = c.course_id 
+        WHERE s.section_id = %s
+    ''', (section_id,))
+    info = cursor.fetchone()
+    
+    course_name = info['course_name'] if info else "Unknown Course"
+    section_name = info['section_name'] if info else ""
+
+    cursor.close()
+    return render_template('view_submissions.html', 
+                           submissions=submissions, 
+                           sub_type=sub_type, 
+                           course_name=f"{course_name} ({section_name})", 
+                           section_id=section_id)

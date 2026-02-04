@@ -212,3 +212,26 @@ table tbody tr:hover {
     overflow-x: auto; /* Adds scroll if table is too wide for mobile */
     margin-bottom: 30px;
 }
+
+
+    .btn-cancel {
+    display: inline-block;    
+    padding: 10px 20px;       
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;    
+    border-radius: 5px;       
+    cursor: pointer;          
+    border: none;            
+    transition: background 0.3s ease;
+    vertical-align: middle;   
+    line-height: 1.2;        
+}
+
+.btn-cancel {
+    background-color: #789cbb;
+    color: white !important;
+}
+
+.btn-cancel:hover { background-color: #5a6268; color: white !important; }

@@ -4,6 +4,7 @@ from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
 from students_module.students_models import UserModel, StudentModel, NotificationModel
 import os
+from datetime import datetime
 
 student = Blueprint('student', __name__, template_folder='students_views')
 
@@ -65,6 +66,10 @@ def student_dashboard():
     course_data = StudentModel.get_course_details_by_ids(course_ids)
     course_names = {course['course_id']: course['course_name'] for course in course_data}
 
+    submissions = StudentModel.get_student_submission_status(student_id)
+    uploaded_assignments = [sub['course_id'] for sub in submissions if sub['submission_type'] == 'assignment']
+    uploaded_quizzes = [sub['course_id'] for sub in submissions if sub['submission_type'] == 'quiz']
+
     teacher_rows = StudentModel.get_teachers_by_course_ids(course_ids)
     teacher_ids_by_course = {}
     for row in teacher_rows:
@@ -77,8 +82,8 @@ def student_dashboard():
         s['course_name'] = course_names.get(s['course_id'], 'Unknown Course')
 
     return render_template(
-        'student_dashboard.html', schedule=schedule, teacher=teacher_info, teacher_ids=teacher_ids_by_course
-    )
+        'student_dashboard.html', schedule=schedule, teacher=teacher_info, teacher_ids=teacher_ids_by_course,
+         uploaded_assignments=uploaded_assignments,uploaded_quizzes=uploaded_quizzes)
 
 @student.route('/student_fee', methods=['GET', 'POST'])
 @login_required
@@ -494,3 +499,75 @@ def update_fyp():
     StudentModel.update_fyp_data(student_id, title, db_file_path)
     flash('FYP Project updated successfully!', 'success')
     return redirect(url_for('student.student_fyp'))
+
+
+@student.route('/upload_submission', methods=['POST'])
+@login_required
+def upload_submission():
+    student_id = session.get('student_id')
+    course_id = request.form.get('course_id')
+    section_id = request.form.get('section_id')
+    sub_type = request.form.get('type') 
+    file = request.files.get('file')
+
+    if file and file.filename != '':
+        if sub_type == 'assignment':
+            folder_name = 'students_assignments'
+        else:
+            folder_name = 'students_quizes'
+            
+        upload_path = os.path.join(current_app.root_path, 'static', 'uploads', 'students_uploads', folder_name)
+        os.makedirs(upload_path, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = secure_filename(f"SID{student_id}_{timestamp}_{file.filename}")
+        file.save(os.path.join(upload_path, filename))
+        db_file_path = f"uploads/students_uploads/{folder_name}/{filename}"
+        StudentModel.insert_submission(student_id, course_id, section_id, db_file_path, sub_type)
+        
+        flash(f"{sub_type.capitalize()} uploaded successfully!", "success")
+    else:
+        flash("File upload failed. No file selected.", "danger")
+
+    return redirect(url_for('student.my_submissions'))
+
+
+@student.route('/my_submissions')
+@login_required
+def my_submissions():
+    student_id = session.get('student_id')
+    courses = StudentModel.get_enrolled_courses_by_student_id(student_id)
+    if not courses:
+        return render_template('my_submissions.html', schedule=[], message="No courses enrolled.")
+
+    course_ids = [c['course_id'] for c in courses]
+    schedule = StudentModel.get_course_schedule_for_enrolled_sections(course_ids, student_id)
+    
+    course_data = StudentModel.get_course_details_by_ids(course_ids)
+    course_names = {c['course_id']: c['course_name'] for c in course_data}
+    for s in schedule:
+        s['course_name'] = course_names.get(s['course_id'], 'Unknown')
+
+    submissions = StudentModel.get_student_submission_status(student_id)
+    
+    
+    assignment_marks = {int(sub['course_id']): sub['marks'] for sub in submissions if sub['submission_type'] == 'assignment'}
+    quiz_marks = {int(sub['course_id']): sub['marks'] for sub in submissions if sub['submission_type'] == 'quiz'}
+    
+    assignment_totals = {int(sub['course_id']): sub['total_marks'] for sub in submissions if sub['submission_type'] == 'assignment'}
+    quiz_totals = {int(sub['course_id']): sub['total_marks'] for sub in submissions if sub['submission_type'] == 'quiz'}
+
+    uploaded_assignments = list(assignment_marks.keys())
+    uploaded_quizzes = list(quiz_marks.keys())
+
+    return render_template('my_submissions.html', 
+                           schedule=schedule, 
+                           uploaded_assignments=uploaded_assignments,
+                           uploaded_quizzes=uploaded_quizzes,
+                           assignment_marks=assignment_marks,
+                           quiz_marks=quiz_marks,
+                           assignment_totals=assignment_totals,
+                           quiz_totals=quiz_totals
+                           )
+
+
+                           

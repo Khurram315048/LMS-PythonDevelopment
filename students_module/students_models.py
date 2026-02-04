@@ -111,20 +111,51 @@ class StudentModel:
         cursor.close()
         return teacher_data
 
+    
     @staticmethod
     def get_course_schedule_by_course_ids(course_ids):
         if not course_ids:
             return []
-        cursor = mysql.connection.cursor()
-        course_placeholders = ','.join(['%s'] * len(course_ids))
-        cursor.execute(f'''
-            SELECT *
-            FROM course_schedule
-            WHERE course_id IN ({course_placeholders})
-        ''', tuple(course_ids))
+
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        placeholders = ', '.join(['%s'] * len(course_ids))
+        
+        query = """
+        SELECT cs.*, s.assignments_enabled, s.quizzes_enabled 
+        FROM course_schedule cs
+        JOIN sections s ON cs.section_id = s.section_id
+        WHERE cs.course_id IN (%s)
+    """ % placeholders
+        cursor.execute(query, tuple(course_ids))
+        
         schedule = cursor.fetchall()
         cursor.close()
         return schedule
+
+
+    @staticmethod
+    def get_course_schedule_for_enrolled_sections(course_ids, student_id):
+        if not course_ids:
+            return []
+    
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        placeholders = ', '.join(['%s'] * len(course_ids))
+        query = f"""
+        SELECT cs.*, s.assignments_enabled, s.quizzes_enabled, s.section_name
+        FROM course_schedule cs
+        JOIN sections s ON cs.section_id = s.section_id
+        JOIN student_section ss ON s.section_id = ss.section_id
+        WHERE cs.course_id IN ({placeholders}) AND ss.student_id = %s
+    """
+    
+        params = list(course_ids)
+        params.append(student_id)
+    
+        cursor.execute(query, tuple(params))
+        schedule = cursor.fetchall()
+        cursor.close()
+        return schedule
+
 
     @staticmethod
     def get_student_fee_records(student_id):
@@ -154,6 +185,46 @@ class StudentModel:
         cursor.execute('INSERT INTO complaint_suggestion (title, description, user_id) VALUES (%s, %s, %s)', (title, description, user_id))
         mysql.connection.commit()
         cursor.close()
+
+    @staticmethod
+    def insert_submission(student_id, course_id, section_id, file_path, submission_type):
+        cursor = mysql.connection.cursor()
+        query = """
+            INSERT INTO student_submissions 
+            (student_id, course_id, section_id, file_path, submission_type)
+            VALUES (%s, %s, %s, %s, %s)
+        """
+        cursor.execute(query, (student_id, course_id, section_id, file_path, submission_type))
+        mysql.connection.commit()
+        cursor.close()  
+
+    @staticmethod
+    def get_all_submissions(student_id):
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        query = """
+            SELECT sub.*, c.course_name
+            FROM student_submissions sub
+            JOIN courses c ON sub.course_id = c.course_id
+            WHERE sub.student_id = %s
+            ORDER BY sub.upload_date DESC
+        """
+        cursor.execute(query, (student_id,))
+        submissions = cursor.fetchall()
+        cursor.close()
+        return submissions
+
+    @staticmethod
+    def get_student_submission_status(student_id):
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        query = """
+            SELECT course_id, submission_type, marks, total_marks 
+            FROM student_submissions 
+            WHERE student_id = %s
+        """
+        cursor.execute(query, (student_id,))
+        submissions = cursor.fetchall()
+        cursor.close()
+        return submissions     
 
     @staticmethod
     def upload_fee_voucher(student_id, program_id, month, fee_amount, front_path, back_path):
