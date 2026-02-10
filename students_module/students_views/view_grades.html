@@ -22,6 +22,7 @@
                         <th>Credit Hours</th>
                         <th>Obtained Marks</th>
                         <th>Grade</th>
+                        <th>Subject GPa</th>
                         <th>Result Status</th>
                     </tr>
                 </thead>
@@ -32,9 +33,14 @@
                         <td>{{ mark.semester }}</td>
                         <td>{{ mark.course_name }}</td>
                         <td>{{ mark.credit_hours }}</td>
-                        <td>{{ mark.student_marks }}</td>
+                        <td>{{ mark.total_marks }}</td>
                         <td>{{ mark.student_grade }}</td>
-                        <td>{{ mark.status }}</td>
+                        <td>{{ mark.subject_gpa }}</td>
+                        <td>
+                            <span class="badge {{ 'bg-success' if mark.status == 'Pass' else 'bg-danger' }}">
+                                {{ mark.status }}
+                            </span>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

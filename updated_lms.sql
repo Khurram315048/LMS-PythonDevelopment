@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Feb 04, 2026 at 11:26 AM
+-- Generation Time: Feb 10, 2026 at 02:17 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -145,34 +145,6 @@ INSERT INTO `fyp_groups` (`fyp_id`, `project_title`, `description`, `teacher_id`
 -- --------------------------------------------------------
 
 --
--- Table structure for table `fyp_messages`
---
-
-CREATE TABLE `fyp_messages` (
-  `message_id` int(11) NOT NULL,
-  `fyp_id` int(11) DEFAULT NULL,
-  `teacher_id` int(11) DEFAULT NULL,
-  `student_id` int(11) DEFAULT NULL,
-  `sender_role` enum('teacher','student') DEFAULT NULL,
-  `message` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `fyp_messages`
---
-
-INSERT INTO `fyp_messages` (`message_id`, `fyp_id`, `teacher_id`, `student_id`, `sender_role`, `message`, `created_at`) VALUES
-(1, 1, 1, 2, 'teacher', 'kindly visit my office with hard copy of your proposal file.', '2026-01-27 10:01:38'),
-(3, 1, 1, 2, 'student', 'ok sir i do my best', '2026-01-27 11:49:41'),
-(6, 1, 1, 2, 'teacher', 'ok good come to me', '2026-01-27 12:44:31'),
-(7, 2, 1, 3, 'teacher', 'huzaifa come to me', '2026-01-27 12:45:49'),
-(8, 1, 1, 2, 'teacher', 'hye', '2026-02-04 10:20:03'),
-(9, 1, 1, 2, 'student', 'aaj chly naveed biryani', '2026-02-04 10:20:46');
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `notifications`
 --
 
@@ -300,7 +272,8 @@ CREATE TABLE `students` (
 INSERT INTO `students` (`student_id`, `user_id`, `first_name`, `last_name`, `contact`, `email`, `last_qualification`, `program_id`, `admission_session`, `admission_date`) VALUES
 (2, 3, 'Umair', 'Ullah', '923150484043', 'ullahcentral123@gmail.com', 'FSC-PreMedical', 1, 'Fall-2023', '2023-10-01'),
 (3, 5, 'Muhammad', 'Huzaifa', '923047698099', 'huzaifacentral123@gmail.com', 'ICS', 1, 'Fall-2023', '2025-12-31'),
-(4, 6, 'Muhammad', 'Hammad', '923047698098', 'hammadcentral123@gmail.com', 'FSC-PreMedical', 1, 'Fall-2023', '2025-12-31');
+(4, 6, 'Muhammad', 'Hammad', '923047698098', 'hammadcentral123@gmail.com', 'FSC-PreMedical', 1, 'Fall-2023', '2025-12-31'),
+(5, 7, 'Muhammad', 'Mubeen', '923047698091', 'mubeencentral123@gmail.com', 'FSC-PreMedical', 1, 'Fall-2023', '2026-02-10');
 
 -- --------------------------------------------------------
 
@@ -321,7 +294,8 @@ CREATE TABLE `student_course` (
 INSERT INTO `student_course` (`student_course_id`, `student_id`, `course_id`) VALUES
 (1, 2, 1),
 (2, 3, 1),
-(3, 4, 1);
+(3, 4, 1),
+(4, 5, 1);
 
 -- --------------------------------------------------------
 
@@ -391,6 +365,16 @@ CREATE TABLE `student_results` (
   `result_status` varchar(50) NOT NULL CHECK (`result_status` in ('Pass','Fail'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `student_results`
+--
+
+INSERT INTO `student_results` (`student_result_id`, `student_id`, `student_semester`, `overall_gpa`, `result_status`) VALUES
+(2, 2, '5', 1.27, 'Pass'),
+(3, 3, '5', 3.70, 'Pass'),
+(4, 5, '5', 3.20, 'Pass'),
+(5, 4, '5', 3.10, 'Pass');
+
 -- --------------------------------------------------------
 
 --
@@ -401,11 +385,28 @@ CREATE TABLE `student_result_marks` (
   `marks_id` int(11) NOT NULL,
   `student_course_id` int(11) NOT NULL,
   `student_result_id` int(11) NOT NULL,
-  `student_marks` decimal(5,2) NOT NULL CHECK (`student_marks` between 0.00 and 100.00),
-  `student_grade` varchar(2) NOT NULL CHECK (`student_grade` in ('A','B','C','D','F')),
+  `total_marks` int(11) DEFAULT 0,
+  `student_grade` varchar(10) NOT NULL,
   `status` varchar(50) NOT NULL,
-  `student_semester` varchar(50) DEFAULT NULL
+  `student_semester` varchar(50) DEFAULT NULL,
+  `sessional_marks` int(11) DEFAULT 0,
+  `mid_marks` int(11) DEFAULT 0,
+  `final_marks` int(11) DEFAULT 0,
+  `subject_gpa` decimal(3,2) DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `student_result_marks`
+--
+
+INSERT INTO `student_result_marks` (`marks_id`, `student_course_id`, `student_result_id`, `total_marks`, `student_grade`, `status`, `student_semester`, `sessional_marks`, `mid_marks`, `final_marks`, `subject_gpa`) VALUES
+(1, 1, 2, 83, 'B+', 'Pass', '5', 17, 23, 43, 0.00),
+(2, 1, 2, 83, 'B+', 'Pass', '5', 19, 21, 43, 0.00),
+(3, 1, 2, 92, 'A-', 'Pass', '5', 19, 26, 47, 3.80),
+(4, 2, 3, 81, 'B+', 'Pass', '5', 14, 23, 44, 3.40),
+(5, 2, 3, 95, 'A+', 'Pass', '5', 18, 28, 49, 4.00),
+(6, 4, 4, 84, 'B+', 'Pass', '5', 18, 23, 43, 3.40),
+(7, 3, 5, 81, 'B+', 'Pass', '5', 13, 23, 45, 3.40);
 
 -- --------------------------------------------------------
 
@@ -425,7 +426,8 @@ CREATE TABLE `student_section` (
 INSERT INTO `student_section` (`student_id`, `section_id`) VALUES
 (2, 1),
 (3, 3),
-(4, 4);
+(4, 4),
+(5, 2);
 
 -- --------------------------------------------------------
 
@@ -555,7 +557,8 @@ INSERT INTO `users` (`user_id`, `email`, `password`, `role_id`) VALUES
 (3, 'ullahcentral123@gmail.com', 'scrypt:32768:8:1$7jPlgi083yfmCTVX$09d66e8cbbcb7df85dba9cc78052ab9d547244815938d89dcbcd01f00d58ff2a7be80bd3a4ad9bc57f84125a3affb624b32a0c0c8a32e85b628f3908fdd59e4c', 1),
 (4, 'sanacentral123@gmail.com', 'scrypt:32768:8:1$S7vfbzBO2aRNJpRd$6ffe5515c5085614610d0af9e13e005cfad46755406334ec6804562c60a3511112b3f61fe9f700d8b3a6a315ec1179c8d0377dc0f9bfab76cfd3bc2db693b951', 2),
 (5, 'huzaifacentral123@gmail.com', 'scrypt:32768:8:1$I9n0FGjNKaqHRaC4$3e9a48dd81365bda10cf83a4ab1e1eab8c15ac930da13bc1742efef4f4ea57274842f7ab41d824c2c8f135c5f214071ac911d9dd1a334ff553388ab2d0369575', 1),
-(6, 'hammadcentral123@gmail.com', 'scrypt:32768:8:1$jfSOWTiPsrWqazKQ$221c31ec18f224255ea2dff9eaf531a035cf704e27918fa7e4364a89d54eeae8af42701c759ba68cd5e7f49c9cf5bb690e8768725f11e63fc7b848f0f2e3de0f', 1);
+(6, 'hammadcentral123@gmail.com', 'scrypt:32768:8:1$jfSOWTiPsrWqazKQ$221c31ec18f224255ea2dff9eaf531a035cf704e27918fa7e4364a89d54eeae8af42701c759ba68cd5e7f49c9cf5bb690e8768725f11e63fc7b848f0f2e3de0f', 1),
+(7, 'mubeencentral123@gmail.com', 'scrypt:32768:8:1$ZhqrixLR5MGq8CS2$163df37b57801281972e50959c569da0d91ce77390944d9c2e81729f9a8feab0e9eaa3502ff59bdc825898746268da597de329eeebc9049ff365302bcfb74634', 1);
 
 -- --------------------------------------------------------
 
@@ -618,15 +621,6 @@ ALTER TABLE `fyp_groups`
   ADD PRIMARY KEY (`fyp_id`),
   ADD KEY `teacher_id` (`teacher_id`),
   ADD KEY `student_id` (`student_id`);
-
---
--- Indexes for table `fyp_messages`
---
-ALTER TABLE `fyp_messages`
-  ADD PRIMARY KEY (`message_id`),
-  ADD KEY `teacher_id` (`teacher_id`),
-  ADD KEY `fyp_id` (`fyp_id`),
-  ADD KEY `fk_msg_student` (`student_id`);
 
 --
 -- Indexes for table `notifications`
@@ -813,12 +807,6 @@ ALTER TABLE `fyp_groups`
   MODIFY `fyp_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
--- AUTO_INCREMENT for table `fyp_messages`
---
-ALTER TABLE `fyp_messages`
-  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
-
---
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
@@ -852,13 +840,13 @@ ALTER TABLE `semester_freeze_students`
 -- AUTO_INCREMENT for table `students`
 --
 ALTER TABLE `students`
-  MODIFY `student_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `student_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `student_course`
 --
 ALTER TABLE `student_course`
-  MODIFY `student_course_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `student_course_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `student_fail_subjects`
@@ -882,13 +870,13 @@ ALTER TABLE `student_improvement`
 -- AUTO_INCREMENT for table `student_results`
 --
 ALTER TABLE `student_results`
-  MODIFY `student_result_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `student_result_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `student_result_marks`
 --
 ALTER TABLE `student_result_marks`
-  MODIFY `marks_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `marks_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `student_submissions`
@@ -924,7 +912,7 @@ ALTER TABLE `teacher_course`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `users_role`
@@ -969,14 +957,6 @@ ALTER TABLE `course_schedule`
 ALTER TABLE `fyp_groups`
   ADD CONSTRAINT `fyp_groups_ibfk_1` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`teacher_id`),
   ADD CONSTRAINT `fyp_groups_ibfk_2` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`);
-
---
--- Constraints for table `fyp_messages`
---
-ALTER TABLE `fyp_messages`
-  ADD CONSTRAINT `fk_msg_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fyp_messages_ibfk_1` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`teacher_id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fyp_messages_ibfk_2` FOREIGN KEY (`fyp_id`) REFERENCES `fyp_groups` (`fyp_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `notifications`

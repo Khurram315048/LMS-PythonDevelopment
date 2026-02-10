@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 import MySQLdb.cursors
 from utils.auth import login_required
 from utils.db import mysql
@@ -370,3 +370,104 @@ def view_submissions(section_id, sub_type):
                            sub_type=sub_type, 
                            course_name=f"{course_name} ({section_name})", 
                            section_id=section_id)
+
+
+
+
+@teacher.route("/generate_result/<int:section_id>", methods=['GET', 'POST'])
+@login_required
+def generate_result(section_id):
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    
+    # 1. Get Class Details
+    cursor.execute('''
+        SELECT s.section_id, s.section_name, s.semester, c.course_name, c.course_id 
+        FROM sections s 
+        JOIN courses c ON s.course_id = c.course_id 
+        WHERE s.section_id = %s
+    ''', (section_id,))
+    class_details = cursor.fetchone()
+
+    if not class_details:
+        return redirect(url_for('teacher.teacher_dashboard'))
+
+    # --- REMOVED THE REDIRECT BLOCK THAT WAS PREVENTING THE PAGE FROM OPENING ---
+
+    if request.method == 'POST':
+        cursor.execute('SELECT student_id FROM student_section WHERE section_id = %s', (section_id,))
+        students_in_class = cursor.fetchall()
+
+        for stud in students_in_class:
+            sid = stud['student_id']
+            # Only process if data was actually sent for this student
+            if request.form.get(f'sessional_{sid}'):
+                sessional = int(request.form.get(f'sessional_{sid}', 0))
+                mids = int(request.form.get(f'mids_{sid}', 0))
+                final = int(request.form.get(f'final_{sid}', 0))
+                total = sessional + mids + final
+                
+                # Grading Logic
+                if total >= 95: grade, gpa = 'A+', 4.0
+                elif total >= 90: grade, gpa = 'A-', 3.8
+                elif total >= 85: grade, gpa = 'A', 3.6
+                elif total >= 80: grade, gpa = 'B+', 3.4
+                elif total >= 75: grade, gpa = 'B-', 3.2
+                elif total >= 70: grade, gpa = 'B', 3.0
+                elif total >= 65: grade, gpa = 'C+', 2.8
+                elif total >= 60: grade, gpa = 'C-', 2.6
+                elif total >= 55: grade, gpa = 'C', 2.4
+                elif total >= 50: grade, gpa = 'D', 2.3
+                else: grade, gpa = 'F', 0.0
+
+                current_status = 'Pass' if total >= 50 else 'Fail'
+                
+                cursor.execute('SELECT student_course_id FROM student_course WHERE student_id = %s AND course_id = %s', 
+                               (sid, class_details['course_id']))
+                sc_record = cursor.fetchone()
+                
+                if sc_record:
+                    # Get or Create parent result record
+                    cursor.execute('SELECT student_result_id FROM student_results WHERE student_id = %s AND student_semester = %s', 
+                                   (sid, class_details['semester']))
+                    res_parent = cursor.fetchone()
+                    
+                    if res_parent:
+                        res_id = res_parent['student_result_id']
+                    else:
+                        cursor.execute('INSERT INTO student_results (student_id, student_semester, result_status, overall_gpa) VALUES (%s, %s, %s,%s)', 
+                                       (sid, class_details['semester'], current_status,gpa))
+                        res_id = cursor.lastrowid
+
+                    # Insert or Update the specific marks
+                    cursor.execute('''
+                        INSERT INTO student_result_marks 
+                        (student_course_id, student_result_id, total_marks, student_grade, status, 
+                         student_semester, sessional_marks, mid_marks, final_marks, subject_gpa)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        ON DUPLICATE KEY UPDATE 
+                        total_marks=%s, student_grade=%s, status=%s, sessional_marks=%s, mid_marks=%s, final_marks=%s, subject_gpa=%s
+                    ''', (sc_record['student_course_id'], res_id, total, grade, current_status, class_details['semester'], sessional, mids, final, gpa,
+                          total, grade, current_status, sessional, mids, final, gpa))
+
+        mysql.connection.commit()
+        flash("Results have been updated successfully!", "success")
+        return redirect(url_for('teacher.teacher_dashboard'))
+
+    # 3. GET Request: This part correctly identifies which student already has marks
+    cursor.execute('''
+        SELECT 
+            s.student_id, s.first_name, s.last_name,
+            srm.marks_id AS has_result,
+            srm.student_grade,
+            srm.total_marks
+        FROM students s
+        JOIN student_section ss ON s.student_id = ss.student_id
+        JOIN student_course sc ON s.student_id = sc.student_id AND sc.course_id = %s
+        LEFT JOIN student_result_marks srm ON (sc.student_course_id = srm.student_course_id)
+        WHERE ss.section_id = %s
+    ''', (class_details['course_id'], section_id))
+    
+    students = cursor.fetchall()
+    cursor.close()
+
+    return render_template('generate_result.html', students=students, info=class_details)

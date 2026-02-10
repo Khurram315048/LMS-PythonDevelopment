@@ -303,29 +303,23 @@ class StudentModel:
     @staticmethod
     def get_student_results_with_marks(student_id):
         cursor = mysql.connection.cursor()
-        cursor.execute("SELECT * FROM student_results WHERE student_id = %s", (student_id,))
-        student_results = cursor.fetchall()
-        all_marks = []
-
-        for result in student_results:
-            student_result_id = result['student_result_id']
-            cursor.execute("SELECT * FROM student_result_marks WHERE student_result_id = %s", (student_result_id,))
-            marks_details = cursor.fetchall()
-
-            for mark in marks_details:
-                student_course_id = mark['student_course_id']
-                cursor.execute("SELECT course_id FROM student_course WHERE student_course_id = %s", (student_course_id,))
-                student_course = cursor.fetchone()
-
-                if student_course:
-                    course_id = student_course['course_id']
-                    cursor.execute("SELECT course_name FROM courses WHERE course_id = %s", (course_id,))
-                    course = cursor.fetchone()
-                    if course:
-                        mark['course_name'] = course['course_name']
-
-                mark['semester'] = result['student_semester']
-                all_marks.append(mark)
+        query = """
+            SELECT DISTINCT
+                sr.student_semester AS semester,
+                c.course_name,
+                c.credit_hours,
+                srm.total_marks,
+                srm.student_grade,
+                srm.subject_gpa,
+                srm.status
+            FROM student_results sr
+            JOIN student_result_marks srm ON sr.student_result_id = srm.student_result_id
+            JOIN student_course sc ON srm.student_course_id = sc.student_course_id
+            JOIN courses c ON sc.course_id = c.course_id
+            WHERE sr.student_id = %s
+        """
+        cursor.execute(query, (student_id,))
+        all_marks = cursor.fetchall()
         cursor.close()
         return all_marks
 
@@ -711,7 +705,7 @@ class StudentModel:
         cursor.execute(query, (teacher_id,))
         teacher = cursor.fetchone()
         cursor.close()
-        return teacher    
+        return teacher   
 
 
 
