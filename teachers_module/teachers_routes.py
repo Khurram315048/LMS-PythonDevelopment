@@ -378,8 +378,6 @@ def view_submissions(section_id, sub_type):
 @login_required
 def generate_result(section_id):
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    
-    # 1. Get Class Details
     cursor.execute('''
         SELECT s.section_id, s.section_name, s.semester, c.course_name, c.course_id 
         FROM sections s 
@@ -391,22 +389,20 @@ def generate_result(section_id):
     if not class_details:
         return redirect(url_for('teacher.teacher_dashboard'))
 
-    # --- REMOVED THE REDIRECT BLOCK THAT WAS PREVENTING THE PAGE FROM OPENING ---
-
     if request.method == 'POST':
         cursor.execute('SELECT student_id FROM student_section WHERE section_id = %s', (section_id,))
         students_in_class = cursor.fetchall()
 
         for stud in students_in_class:
             sid = stud['student_id']
-            # Only process if data was actually sent for this student
+            
             if request.form.get(f'sessional_{sid}'):
                 sessional = int(request.form.get(f'sessional_{sid}', 0))
                 mids = int(request.form.get(f'mids_{sid}', 0))
                 final = int(request.form.get(f'final_{sid}', 0))
                 total = sessional + mids + final
                 
-                # Grading Logic
+                
                 if total >= 95: grade, gpa = 'A+', 4.0
                 elif total >= 90: grade, gpa = 'A-', 3.8
                 elif total >= 85: grade, gpa = 'A', 3.6
@@ -426,7 +422,7 @@ def generate_result(section_id):
                 sc_record = cursor.fetchone()
                 
                 if sc_record:
-                    # Get or Create parent result record
+                    
                     cursor.execute('SELECT student_result_id FROM student_results WHERE student_id = %s AND student_semester = %s', 
                                    (sid, class_details['semester']))
                     res_parent = cursor.fetchone()
@@ -438,7 +434,6 @@ def generate_result(section_id):
                                        (sid, class_details['semester'], current_status,gpa))
                         res_id = cursor.lastrowid
 
-                    # Insert or Update the specific marks
                     cursor.execute('''
                         INSERT INTO student_result_marks 
                         (student_course_id, student_result_id, total_marks, student_grade, status, 
@@ -453,7 +448,7 @@ def generate_result(section_id):
         flash("Results have been updated successfully!", "success")
         return redirect(url_for('teacher.teacher_dashboard'))
 
-    # 3. GET Request: This part correctly identifies which student already has marks
+   
     cursor.execute('''
         SELECT 
             s.student_id, s.first_name, s.last_name,

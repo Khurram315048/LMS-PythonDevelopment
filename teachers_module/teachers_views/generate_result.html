@@ -27,7 +27,7 @@
                     <td>{{ info.course_name }}</td>
                     
                     {% if s.has_result %}
-                        <!-- Merging the 3 marks columns into one if result exists -->
+    
                         <td colspan="3" style="text-align: center; color: #28a745; font-weight: bold; background-color: #f8fff9; vertical-align: middle;">
                             <i class="fa-solid fa-circle-check"></i> Result Uploaded (Grade: {{ s.student_grade }})
                         </td>
@@ -63,14 +63,12 @@
 {% endblock %}
 
 {% block scripts %}
-<!-- 1. Include SweetAlert2 Library -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- 2. Include your custom JS file -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
 
 <script>
-    // 3. Handles the button click with Confirmation
+    
     function handleUpload() {
         if (typeof confirmResultSubmission === "function") {
             confirmResultSubmission('resultForm');
@@ -82,7 +80,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Get all flash messages from hidden elements
         const flashMessages = document.querySelectorAll('.flash-message');
         flashMessages.forEach(function(element) {
             const category = element.getAttribute('data-category');
