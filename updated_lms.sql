@@ -7,6 +7,10 @@
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
+DROP DATABASE IF EXISTS `lms`;
+CREATE DATABASE `lms` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `lms`;
+
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
