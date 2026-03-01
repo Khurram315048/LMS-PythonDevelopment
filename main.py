@@ -38,6 +38,7 @@ def main_view():
             return redirect(url_for('teacher.teacher_login'))
     return render_template('main_view.html')  
 
+
 @app.route('/user_signup', methods=['GET', 'POST'])
 def user_signup():
     if request.method=='POST':
@@ -83,6 +84,7 @@ def user_signup():
                 mysql.connection.commit()
                 return redirect(url_for('teacher.teacher_login'))
     return render_template('user_signup.html',error=None)
+
 
 
 @app.route('/reset_password',methods=['GET','POST'])
