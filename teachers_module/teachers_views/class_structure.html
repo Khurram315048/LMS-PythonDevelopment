@@ -16,9 +16,9 @@
             <th>Course Name</th>
             <th>Section</th>
             <th>Total Enroll</th>
-            <th>Upload Assignments</th>
-            <th>Upload Quizes</th>
-            <th>Upload Controls</th>
+            <th>View Assignments</th>
+            <th>View Quizes</th>
+            <th>Controls</th>
             <th>Generate Result</th>
         </tr>
     </thead>
@@ -36,22 +36,12 @@
                class="btn-open" style="background-color: #28a745; margin-bottom: 8px; display: block; text-align: center;">
                📥 View All
             </a>
-            <div style="border-top: 1px solid #ddd; padding-top: 5px; display: flex; flex-direction: column; gap: 2px;">
-                <a href="#" class="btn-open">Best</a>
-                <a href="#" class="btn-open">Average</a>
-                <a href="#" class="btn-open">Worst</a>
-            </div>
         </td>
         <td>
             <a href="{{ url_for('teacher.view_submissions', section_id=row.section_id, sub_type='quiz') }}" 
                class="btn-open" style="background-color: #28a745; margin-bottom: 8px; display: block; text-align: center;">
                📥 View All
             </a>
-            <div style="border-top: 1px solid #ddd; padding-top: 5px; display: flex; flex-direction: column; gap: 2px;">
-                <a href="#" class="btn-open">Best</a>
-                <a href="#" class="btn-open">Average</a>
-                <a href="#" class="btn-open">Worst</a>
-            </div>
         </td>
         <td>
             <div style="display: flex; flex-direction: column; gap: 5px;">

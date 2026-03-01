@@ -10,7 +10,7 @@ import os
 import re
 from datetime import timedelta
 
-app = Flask(__name__, template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates', 'layouts'))
+app = Flask(__name__, template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates'))
 app.config['FEE_UPLOAD_FOLDER']=FEE_UPLOAD_FOLDER
 app.config['TEMPLATES_AUTO_RELOAD']=TEMPLATES_AUTO_RELOAD
 app.config['MYSQL_HOST']=MYSQL_HOST

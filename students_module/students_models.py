@@ -1,4 +1,3 @@
-
 import MySQLdb.cursors
 from utils.db import mysql 
 
@@ -11,6 +10,7 @@ class UserModel:
         cursor.close()
         return user
 
+
     @staticmethod
     def create_user(email, password_hash):
         cursor = mysql.connection.cursor()
@@ -19,6 +19,7 @@ class UserModel:
         user_id = cursor.lastrowid
         cursor.close()
         return user_id
+
 
 class StudentModel:
     @staticmethod
@@ -29,6 +30,7 @@ class StudentModel:
         cursor.close()
         return student
 
+
     @staticmethod
     def get_student_by_id(student_id):
         cursor = mysql.connection.cursor()
@@ -37,6 +39,7 @@ class StudentModel:
         cursor.close()
         return student
 
+
     @staticmethod
     def get_student_name_by_user_id(user_id):
         cursor = mysql.connection.cursor()
@@ -44,6 +47,7 @@ class StudentModel:
         student_name = cursor.fetchone()
         cursor.close()
         return student_name
+
 
     @staticmethod
     def get_student_program_details(student_id):
@@ -58,6 +62,7 @@ class StudentModel:
         cursor.close()
         return None
 
+
     @staticmethod
     def get_enrolled_courses_by_student_id(student_id):
         cursor = mysql.connection.cursor()
@@ -65,6 +70,7 @@ class StudentModel:
         courses = cursor.fetchall()
         cursor.close()
         return courses
+
 
     @staticmethod
     def get_course_details_by_ids(course_ids):
@@ -81,6 +87,7 @@ class StudentModel:
         cursor.close()
         return course_data
 
+
     @staticmethod
     def get_teachers_by_course_ids(course_ids):
         if not course_ids:
@@ -95,6 +102,7 @@ class StudentModel:
         teacher_rows = cursor.fetchall()
         cursor.close()
         return teacher_rows
+
 
     @staticmethod
     def get_teacher_info_by_ids(teacher_ids):
@@ -112,6 +120,7 @@ class StudentModel:
         return teacher_data
 
     
+
     @staticmethod
     def get_course_schedule_by_course_ids(course_ids):
         if not course_ids:
@@ -133,6 +142,7 @@ class StudentModel:
         return schedule
 
 
+
     @staticmethod
     def get_course_schedule_for_enrolled_sections(course_ids, student_id):
         if not course_ids:
@@ -147,7 +157,6 @@ class StudentModel:
         JOIN student_section ss ON s.section_id = ss.section_id
         WHERE cs.course_id IN ({placeholders}) AND ss.student_id = %s
     """
-    
         params = list(course_ids)
         params.append(student_id)
     
@@ -155,6 +164,7 @@ class StudentModel:
         schedule = cursor.fetchall()
         cursor.close()
         return schedule
+
 
 
     @staticmethod
@@ -179,12 +189,14 @@ class StudentModel:
         cursor.close()
         return fee_records
 
+
     @staticmethod
     def insert_complaint_suggestion(title, description, user_id):
         cursor = mysql.connection.cursor()
         cursor.execute('INSERT INTO complaint_suggestion (title, description, user_id) VALUES (%s, %s, %s)', (title, description, user_id))
         mysql.connection.commit()
         cursor.close()
+
 
     @staticmethod
     def insert_submission(student_id, course_id, section_id, file_path, submission_type):
@@ -197,6 +209,7 @@ class StudentModel:
         cursor.execute(query, (student_id, course_id, section_id, file_path, submission_type))
         mysql.connection.commit()
         cursor.close()  
+
 
     @staticmethod
     def get_all_submissions(student_id):
@@ -213,6 +226,7 @@ class StudentModel:
         cursor.close()
         return submissions
 
+
     @staticmethod
     def get_student_submission_status(student_id):
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -225,6 +239,7 @@ class StudentModel:
         submissions = cursor.fetchall()
         cursor.close()
         return submissions     
+
 
     @staticmethod
     def upload_fee_voucher(student_id, program_id, month, fee_amount, front_path, back_path):
@@ -241,6 +256,8 @@ class StudentModel:
         mysql.connection.commit()
         cursor.close()
 
+
+
     @staticmethod
     def get_student_courses_for_attendance(student_id):
         cursor = mysql.connection.cursor()
@@ -254,6 +271,8 @@ class StudentModel:
         cursor.close()
         return courses
 
+
+
     @staticmethod
     def get_course_schedule_for_student_course(student_course_id):
         cursor = mysql.connection.cursor()
@@ -266,6 +285,8 @@ class StudentModel:
         schedule = cursor.fetchone()
         cursor.close()
         return schedule
+
+
 
     @staticmethod
     def get_attendance_summary(student_course_id):
@@ -287,6 +308,8 @@ class StudentModel:
         return total_lectures_row['total'] if total_lectures_row else 0, \
            attended_row['attended'] if attended_row else 0
 
+
+
     @staticmethod
     def get_attendance_status_details(student_course_id): 
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -299,6 +322,7 @@ class StudentModel:
         lecture_status = cursor.fetchall()
         cursor.close()
         return lecture_status
+
 
     @staticmethod
     def get_student_results_with_marks(student_id):
@@ -323,6 +347,7 @@ class StudentModel:
         cursor.close()
         return all_marks
 
+
     @staticmethod
     def get_improvement_subjects(student_id):
         cursor = mysql.connection.cursor()
@@ -335,6 +360,7 @@ class StudentModel:
         improvements = cursor.fetchall()
         cursor.close()
         return improvements
+
 
     @staticmethod
     def get_retake_subjects(student_id):
@@ -349,6 +375,7 @@ class StudentModel:
         cursor.close()
         return retakes
 
+
     @staticmethod
     def get_existing_improvement_request(student_id):
         cursor = mysql.connection.cursor()
@@ -357,6 +384,7 @@ class StudentModel:
         cursor.close()
         return existing
 
+
     @staticmethod
     def get_max_semester_passed(student_id):
         cursor = mysql.connection.cursor()
@@ -364,6 +392,7 @@ class StudentModel:
         res = cursor.fetchone()
         cursor.close()
         return int(res['max_sem']) if res and res['max_sem'] else 0
+
 
     @staticmethod
     def get_eligible_improvement_courses(student_id, max_semester):
@@ -387,12 +416,14 @@ class StudentModel:
         cursor.close()
         return courses
 
+
     @staticmethod
     def delete_improvement_subject(improvement_id):
         cursor = mysql.connection.cursor()
         cursor.execute("DELETE FROM student_improvement WHERE improvement_id = %s", (improvement_id,))
         mysql.connection.commit()
         cursor.close()
+
 
     @staticmethod
     def add_improvement_subject(student_id, course_id):
@@ -404,6 +435,8 @@ class StudentModel:
         mysql.connection.commit()
         cursor.close()
 
+
+
     @staticmethod
     def add_notification(sender_id, sender_role, receiver_id, receiver_role, title, description, related_course_id, status):
         cursor = mysql.connection.cursor()
@@ -414,6 +447,8 @@ class StudentModel:
         mysql.connection.commit()
         cursor.close()
 
+
+
     @staticmethod
     def get_existing_retake_request(student_id):
         cursor = mysql.connection.cursor()
@@ -421,6 +456,8 @@ class StudentModel:
         existing = cursor.fetchone()
         cursor.close()
         return existing
+
+
 
     @staticmethod
     def get_eligible_fail_subjects(student_id, max_semester):
@@ -446,6 +483,7 @@ class StudentModel:
         cursor.close()
         return courses
 
+
     @staticmethod
     def add_fail_subject(student_id, course_id):
         cursor = mysql.connection.cursor()
@@ -456,12 +494,14 @@ class StudentModel:
         mysql.connection.commit()
         cursor.close()
 
+
     @staticmethod
     def delete_fail_subject(fail_id, student_id):
         cursor = mysql.connection.cursor()
         cursor.execute("DELETE FROM student_fail_subjects WHERE student_fail_id = %s AND student_id = %s", (fail_id, student_id))
         mysql.connection.commit()
         cursor.close()
+
 
     @staticmethod
     def get_active_semester_freeze_request(student_id):
@@ -475,6 +515,7 @@ class StudentModel:
         request = cursor.fetchone()
         cursor.close()
         return request
+
 
     @staticmethod
     def get_last_recorded_semester(student_id):
@@ -490,6 +531,7 @@ class StudentModel:
         result = cursor.fetchone()
         cursor.close()
         return result['student_semester'] if result else None
+
 
     @staticmethod
     def add_semester_freeze_request(student_id, semester, reason):
@@ -590,6 +632,7 @@ class StudentModel:
         cursor.close()
         return True
 
+
     @staticmethod
     def delete_summer_subject(student_id, course_id, summer_semester_id):
         cursor = mysql.connection.cursor()
@@ -598,6 +641,7 @@ class StudentModel:
         mysql.connection.commit()
         cursor.close()
         return True
+
 
     @staticmethod
     def get_selected_summer_subjects(student_id, summer_semester_id):
@@ -613,6 +657,7 @@ class StudentModel:
         cursor.close()
         return selected
     
+
     @staticmethod
     def create_notification(sender_id, sender_role, receiver_role, title, description, related_course_id, status='Pending', receiver_id=None):
         cursor = mysql.connection.cursor()
@@ -630,6 +675,7 @@ class StudentModel:
 
         cursor.close()
 
+
     @staticmethod
     def get_fyp_project(student_id):
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -645,6 +691,7 @@ class StudentModel:
         cursor.close()
         return fyp
 
+
     @staticmethod
     def insert_fyp_proposal(student_id, title, description, teacher_id, filename):
         cursor = mysql.connection.cursor()
@@ -654,6 +701,8 @@ class StudentModel:
         cursor.execute(query, (title, description, teacher_id, student_id, filename))
         mysql.connection.commit()
         cursor.close()    
+
+
 
     @staticmethod
     def get_fyp_messages(fyp_id):
@@ -667,6 +716,8 @@ class StudentModel:
         messages = cursor.fetchall()
         cursor.close()
         return messages
+
+
 
     @staticmethod
     def insert_fyp_message(fyp_id, student_id, role, message_text):
@@ -685,6 +736,8 @@ class StudentModel:
             
         cursor.close()
 
+
+
     @staticmethod
     def update_fyp_data(student_id, title, filename=None):
         cursor = mysql.connection.cursor()
@@ -697,6 +750,8 @@ class StudentModel:
         
         mysql.connection.commit()
         cursor.close()    
+
+
 
     @staticmethod
     def get_teacher_full_details(teacher_id):

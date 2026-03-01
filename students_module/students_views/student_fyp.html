@@ -162,7 +162,6 @@
                     </div>
                 </div>
                 {% else %}
-                <!-- PENDING / REJECTED STATUS -->
                 <div class="text-center py-4">
                     <i class="fa-solid fa-clock-rotate-left fa-3x text-warning mb-3"></i>
                     <h4>Proposal Status: <span class="text-primary">{{ fyp.status }}</span></h4>
@@ -179,7 +178,6 @@
     </div>
 </div>
 
-<!-- MODAL: TEACHER/SUPERVISOR PROFILE -->
 <div class="modal fade" id="supervisorProfileModal" tabindex="-1" aria-labelledby="profileModalLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -191,7 +189,6 @@
                     aria-label="Close"></button>
             </div>
             <div class="modal-body text-center p-4">
-                <!-- Profile Picture Container -->
                 <div id="supervisor-pic-container" class="mb-3">
                     <div class="bg-secondary rounded-circle mx-auto d-flex align-items-center justify-content-center shadow"
                         style="width: 120px; height: 120px; border: 4px solid #fff;">
@@ -226,7 +223,7 @@
     </div>
 </div>
 
-<!-- MODAL: UPDATE FYP PROJECT -->
+
 <div class="modal fade" id="updateFypModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -254,7 +251,8 @@
     </div>
 </div>
 
-<!-- MODAL: CHAT LOG -->
+
+
 <div class="modal fade" id="chatModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -296,13 +294,12 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Auto-scroll chat to bottom
         var chatWindow = document.getElementById("full-chat-window");
         if (chatWindow) {
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
-        // Handle supervisor profile modal
+       
         const profileLinks = document.querySelectorAll('.view-supervisor-profile');
         const modalElement = document.getElementById('supervisorProfileModal');
         const profileModal = new bootstrap.Modal(modalElement);

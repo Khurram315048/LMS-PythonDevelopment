@@ -15,15 +15,14 @@
             </tr>
         </thead>
         <tbody>
-           <!-- Inside your loop in my_submissions.html -->
-{% for s in schedule %}
-<tr>
-    <td><strong>{{ s.course_name }}</strong></td>
+           
+                {% for s in schedule %}
+            <tr>
+                <td><strong>{{ s.course_name }}</strong></td>
     
-    <!-- ASSIGNMENT COLUMN -->
-    <td>
-        {% if s.assignments_enabled == 1 %}
-            {% if s.course_id|int in uploaded_assignments %}
+            <td>
+                {% if s.assignments_enabled == 1 %}
+                {% if s.course_id|int in uploaded_assignments %}
                 {% set mark = assignment_marks.get(s.course_id|int) %}
                 {% set total = assignment_totals.get(s.course_id|int) %}
                 
@@ -49,7 +48,6 @@
         {% endif %}
     </td>
 
-    <!-- QUIZ COLUMN -->
     <td>
         {% if s.quizzes_enabled == 1 %}
             {% if s.course_id|int in uploaded_quizzes %}

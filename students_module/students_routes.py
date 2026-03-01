@@ -6,7 +6,8 @@ from students_module.students_models import UserModel, StudentModel, Notificatio
 import os
 from datetime import datetime
 
-student = Blueprint('student', __name__, template_folder='students_views')
+student=Blueprint('student', __name__, template_folder='students_views')
+
 
 @student.route('/student_login', methods=['GET', 'POST'])
 def student_login():
@@ -52,6 +53,7 @@ def student_profile():
     show_notification = request.method == 'POST' and 'edit_request' in request.form
     return render_template('student_profile.html', student=student_obj, program=program, show_notification=show_notification)
 
+
 @student.route('/student_dashboard', methods=['GET', 'POST'])
 @login_required
 def student_dashboard():
@@ -85,6 +87,7 @@ def student_dashboard():
         'student_dashboard.html', schedule=schedule, teacher=teacher_info, teacher_ids=teacher_ids_by_course,
          uploaded_assignments=uploaded_assignments,uploaded_quizzes=uploaded_quizzes)
 
+
 @student.route('/student_fee', methods=['GET', 'POST'])
 @login_required
 def student_fee():
@@ -94,6 +97,8 @@ def student_fee():
     student_id = session['student_id']
     fee_records = StudentModel.get_student_fee_records(student_id)
     return render_template("student_fee.html", fee_records=fee_records)
+
+
 
 @student.route('/complaint_suggestion', methods=['GET', 'POST'])
 @login_required
@@ -105,6 +110,8 @@ def complaint_suggestion():
         StudentModel.insert_complaint_suggestion(title, description, user_id)
         return redirect(url_for('student.student_dashboard'))
     return render_template('complaint_suggestion.html')
+
+
 
 @student.route('/upload_fee', methods=['GET', 'POST'])
 @login_required
@@ -133,6 +140,8 @@ def upload_fee():
             )
             return redirect(url_for('student.student_fee'))
     return render_template('upload_fee.html')
+
+
 
 @student.route('/notifications', methods=['GET', 'POST'])
 @login_required
@@ -202,6 +211,7 @@ def view_grades():
         all_marks=all_marks
     )
 
+
 @student.route('/course_registeration')
 @login_required
 def course_registeration():
@@ -213,6 +223,7 @@ def course_registeration():
     selected = improvements + retakes
     student = StudentModel.get_student_by_id(student_id)
     return render_template('course_registeration.html', student=student, selected=selected)
+
 
 @student.route('/improvement_subject')
 @login_required
@@ -231,12 +242,16 @@ def improvement_subject():
     courses = StudentModel.get_eligible_improvement_courses(student_id, max_semester)
     return render_template('improvement_subject.html', courses=courses)
 
+
+
 @student.route('/delete_improvement/<int:improvement_id>', methods=['POST'])
 @login_required
 def delete_improvement(improvement_id):
     StudentModel.delete_improvement_subject(improvement_id)
     flash("Improvement subject removed successfully. You can now select a new one.", "success")
     return redirect(url_for('student.course_registeration'))
+
+
 
 @student.route('/student/select_improvement/<int:course_id>', methods=['POST'])
 @login_required
@@ -254,10 +269,14 @@ def select_improvement(course_id):
         StudentModel.add_notification(user_id, 'student', '01', 'coordinator', title, description, cid, 'pending')
     return redirect(url_for('student.course_registeration'))
 
+
+
 @student.route('/help_desk', methods=['GET', 'POST'])
 @login_required
 def help_desk():
     return render_template('help_desk.html')
+
+
 
 @student.route('/fail_subjects')
 @login_required
@@ -294,6 +313,8 @@ def select_fail(course_id):
         StudentModel.add_notification(user_id, 'student', '01', 'coordinator', title, description, cid, 'pending')
     return redirect(url_for('student.course_registeration'))
 
+
+
 @student.route('/delete_fail/<int:fail_id>', methods=['POST'])
 @login_required
 def delete_fail(fail_id):
@@ -301,6 +322,8 @@ def delete_fail(fail_id):
     StudentModel.delete_fail_subject(fail_id, student_id)
     flash("Selected retake subject removed successfully. You can now select a new one.", "success")
     return redirect(url_for('student.course_registeration'))
+
+
 
 @student.route('/semester_freeze', methods=['GET', 'POST'])
 @login_required
@@ -461,6 +484,7 @@ def submit_fyp():
     return redirect(url_for('student.student_fyp'))
 
 
+
 @student.route('/send_fyp_message/<int:fyp_id>', methods=['POST'])
 @login_required
 def send_fyp_message(fyp_id):
@@ -474,6 +498,7 @@ def send_fyp_message(fyp_id):
         StudentModel.insert_fyp_message(fyp_id, student_id, 'student', message_text)
         
     return redirect(url_for('student.student_fyp'))
+
 
 
 @student.route('/update_fyp', methods=['POST'])
@@ -499,6 +524,7 @@ def update_fyp():
     StudentModel.update_fyp_data(student_id, title, db_file_path)
     flash('FYP Project updated successfully!', 'success')
     return redirect(url_for('student.student_fyp'))
+
 
 
 @student.route('/upload_submission', methods=['POST'])
@@ -531,6 +557,7 @@ def upload_submission():
     return redirect(url_for('student.my_submissions'))
 
 
+
 @student.route('/my_submissions')
 @login_required
 def my_submissions():
@@ -549,12 +576,21 @@ def my_submissions():
 
     submissions = StudentModel.get_student_submission_status(student_id)
     
+    assignment_marks = {}
+    quiz_marks = {}
+    assignment_totals = {}
+    quiz_totals = {}
+
+    for sub in submissions:
+        cid = int(sub['course_id'])
     
-    assignment_marks = {int(sub['course_id']): sub['marks'] for sub in submissions if sub['submission_type'] == 'assignment'}
-    quiz_marks = {int(sub['course_id']): sub['marks'] for sub in submissions if sub['submission_type'] == 'quiz'}
-    
-    assignment_totals = {int(sub['course_id']): sub['total_marks'] for sub in submissions if sub['submission_type'] == 'assignment'}
-    quiz_totals = {int(sub['course_id']): sub['total_marks'] for sub in submissions if sub['submission_type'] == 'quiz'}
+        if sub['submission_type'] == 'assignment':
+            assignment_marks[cid] = sub['marks']
+            assignment_totals[cid] = sub['total_marks']
+        elif sub['submission_type'] == 'quiz':
+            quiz_marks[cid] = sub['marks']
+            quiz_totals[cid] = sub['total_marks']
+
 
     uploaded_assignments = list(assignment_marks.keys())
     uploaded_quizzes = list(quiz_marks.keys())

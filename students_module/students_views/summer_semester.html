@@ -22,12 +22,10 @@
     <div class="actions-card">
       <div class="button-row">
         {% if can_register %}
-            <!-- Button Active: Failed subjects exist and not all are selected -->
             <form action="{{ url_for('student.summer_subjects') }}" method="GET">
                 <button class="btn-yellow">Add Subject (For Summer Intake)</button>
             </form>
         {% else %}
-            <!-- Button Disabled: Logic to show WHY it is disabled -->
             <button class="btn-yellow" style="background-color: grey; cursor: not-allowed;" disabled>
                 {% if failed_count == 0 %}
                     No Eligible Failed Subjects Found
