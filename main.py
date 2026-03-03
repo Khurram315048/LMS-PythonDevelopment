@@ -5,6 +5,8 @@ from utils.db import mysql
 from utils.auth import login_required
 from students_module.students_routes import student
 from teachers_module.teachers_routes import teacher
+from admin.admin_routes import admin
+
 from config import *
 import os
 import re
@@ -26,6 +28,8 @@ mysql.init_app(app)
 
 app.register_blueprint(student)
 app.register_blueprint(teacher)
+app.register_blueprint(admin)
+
 
 EMAIL_PATTERN=r'^[a-zA-Z0-9._%+-]+@gmail\.com$'
 
@@ -36,6 +40,9 @@ def main_view():
             return redirect(url_for('student.student_login'))
         elif 'teacher' in request.form:
             return redirect(url_for('teacher.teacher_login'))
+        elif 'admin' in request.form:
+            return redirect(url_for('admin.admin_login'))
+
     return render_template('main_view.html')  
 
 
@@ -61,6 +68,8 @@ def user_signup():
                 role_id=1
             elif user_type=='teacher':
                 role_id=2
+            elif user_type=='admin':
+                role_id=3    
             else:
                 role_id=None
             cursor.execute(
@@ -83,6 +92,7 @@ def user_signup():
                 )
                 mysql.connection.commit()
                 return redirect(url_for('teacher.teacher_login'))
+            
     return render_template('user_signup.html',error=None)
 
 

@@ -1,0 +1,60 @@
+/* Sidebar Submenu Styling */
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Parent LI needs to be relative */
+.has-submenu {
+    position: relative;
+}
+
+/* Arrow styling */
+.arrow {
+    font-size: 0.7rem;
+    margin-left: auto;
+    transition: transform 0.3s ease;
+}
+
+/* Hide Submenu by default */
+.submenu {
+    max-height: 0;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.1); /* Slightly darker background */
+    transition: max-height 0.4s ease-out;
+    list-style: none;
+    padding-left: 0;
+}
+
+/* Style for Submenu Links */
+.submenu li a {
+    padding: 10px 10px 10px 45px !important; /* Indent sub-items */
+    font-size: 0.9rem;
+    display: block;
+    color: #ddd;
+    text-decoration: none;
+    border-bottom: none !important;
+}
+
+.submenu li a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+/* Show Submenu on Hover */
+.has-submenu:hover .submenu {
+    max-height: 300px; /* Adjust based on number of items */
+}
+
+/* Rotate arrow on hover */
+.has-submenu:hover .arrow {
+    transform: rotate(180deg);
+}
+
+/* Sidebar item layout fix to keep arrow at the right */
+.sidebar ul li a {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}

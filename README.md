@@ -2,12 +2,20 @@
 ```
 LMS
 ├─ admin
+│  ├─ admin_models.py
+│  ├─ admin_routes.py
+│  └─ admin_views
+│     ├─ admin_dashboard.html
+│     ├─ admin_login.html
+│     └─ admin_profile.html
 ├─ config.py
 ├─ main.py
 ├─ models.py
+├─ README.md
 ├─ requirements.txt
 ├─ static
 │  ├─ css
+│  │  ├─ admin_css
 │  │  ├─ base_style.css
 │  │  ├─ global_style.css
 │  │  ├─ help_desk.css
@@ -73,9 +81,6 @@ LMS
 │  │  ├─ upload_fee.html
 │  │  ├─ view_attendence.html
 │  │  └─ view_grades.html
-│  ├─ templates
-│  │  └─ layouts
-│  │     └─ student_base.html
 │  └─ __init__.py
 ├─ teachers_module
 │  ├─ teachers_models.py
@@ -93,6 +98,7 @@ LMS
 │  └─ __init__.py
 ├─ templates
 │  ├─ layouts
+│  │  ├─ admin_base.html
 │  │  ├─ student_base.html
 │  │  └─ teacher_base.html
 │  ├─ main_view.html
