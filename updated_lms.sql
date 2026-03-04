@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Mar 03, 2026 at 10:00 AM
+-- Generation Time: Mar 04, 2026 at 03:37 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -67,7 +67,9 @@ INSERT INTO `attendance` (`attendance_id`, `student_course_id`, `course_schedule
 (2, 3, 4, '2025-12-31', 'Present', 4),
 (3, 2, 3, '2026-02-04', 'Present', 3),
 (4, 2, 3, '2026-02-04', 'Present', 3),
-(5, 3, 4, '2026-02-04', 'Present', 4);
+(5, 3, 4, '2026-02-04', 'Present', 4),
+(6, 2, 3, '2026-03-04', 'Absent', 3),
+(7, 3, 4, '2026-03-04', 'Present', 4);
 
 -- --------------------------------------------------------
 
@@ -80,8 +82,19 @@ CREATE TABLE `complaint_suggestion` (
   `title` varchar(100) DEFAULT NULL,
   `description` text DEFAULT NULL,
   `iamge_name` varchar(255) DEFAULT NULL,
-  `user_id` int(11) DEFAULT NULL
+  `user_id` int(11) DEFAULT NULL,
+  `is_status` varchar(50) NOT NULL DEFAULT 'Pending',
+  `is_deleted` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `complaint_suggestion`
+--
+
+INSERT INTO `complaint_suggestion` (`complt_sugst_id`, `title`, `description`, `iamge_name`, `user_id`, `is_status`, `is_deleted`) VALUES
+(1, 'Result', 'check my result', NULL, 3, 'Solved', 0),
+(2, 'Finance_Department', 'Give my salary\r\n', NULL, 4, 'Pending', 0),
+(3, 'Exam_Department', 'Where is my shedule??', NULL, 3, 'Pending', 0);
 
 -- --------------------------------------------------------
 
@@ -267,15 +280,17 @@ CREATE TABLE `semester` (
   `year` year(4) NOT NULL,
   `start_date` date DEFAULT NULL,
   `end_date` date DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `is_deleted` int(11) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `semester`
 --
 
-INSERT INTO `semester` (`semester_id`, `name`, `year`, `start_date`, `end_date`, `created_at`) VALUES
-(1, 'Fall', '2023', '2025-10-01', '2025-12-01', '2025-12-30 09:40:53');
+INSERT INTO `semester` (`semester_id`, `name`, `year`, `start_date`, `end_date`, `created_at`, `is_deleted`) VALUES
+(1, 'Fall', '2026', '2026-04-03', '2026-06-03', '2026-03-04 11:09:11', 0),
+(2, 'Spring', '2026', '2026-03-04', '2026-04-03', '2026-03-04 11:02:43', 1);
 
 -- --------------------------------------------------------
 
@@ -308,18 +323,21 @@ CREATE TABLE `students` (
   `last_qualification` varchar(100) DEFAULT NULL,
   `program_id` int(11) NOT NULL,
   `admission_session` varchar(50) DEFAULT NULL,
-  `admission_date` date DEFAULT NULL
+  `admission_date` date DEFAULT NULL,
+  `is_deleted` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `students`
 --
 
-INSERT INTO `students` (`student_id`, `user_id`, `first_name`, `last_name`, `contact`, `email`, `last_qualification`, `program_id`, `admission_session`, `admission_date`) VALUES
-(2, 3, 'Umair', 'Ullah', '923150484043', 'ullahcentral123@gmail.com', 'FSC-PreMedical', 1, 'Fall-2023', '2023-10-01'),
-(3, 5, 'Muhammad', 'Huzaifa', '923047698099', 'huzaifacentral123@gmail.com', 'ICS', 1, 'Fall-2023', '2025-12-31'),
-(4, 6, 'Muhammad', 'Hammad', '923047698098', 'hammadcentral123@gmail.com', 'FSC-PreMedical', 1, 'Fall-2023', '2025-12-31'),
-(5, 7, 'Muhammad', 'Mubeen', '923047698091', 'mubeencentral123@gmail.com', 'FSC-PreMedical', 1, 'Fall-2023', '2026-02-10');
+INSERT INTO `students` (`student_id`, `user_id`, `first_name`, `last_name`, `contact`, `email`, `last_qualification`, `program_id`, `admission_session`, `admission_date`, `is_deleted`) VALUES
+(2, 3, 'Umair', 'Ullah', '923150484043', 'ullahcentral123@gmail.com', 'FSC-PreMedical', 1, 'Fall-2023', '2023-10-01', 0),
+(3, 5, 'Muhammad', 'Huzaifa', '923047698099', 'huzaifacentral123@gmail.com', 'ICS', 1, 'Fall-2023', '2025-12-31', 0),
+(4, 6, 'Muhammad', 'Hammad', '923047698098', 'hammadcentral123@gmail.com', 'FSC-PreMedical', 1, 'Fall-2023', '2025-12-31', 0),
+(5, 7, 'Mubeen', 'khurram', '923057698092', 'mubeenmuzaffar123@gmail.com', 'ICS', 3, 'Fall-2026', '2026-03-04', 0),
+(6, 9, 'Haris', 'Rizwan', '03047698099', 'hariscentral123@gmail.com', 'Intermediate', 4, 'Spring 2026', '2026-03-04', 1),
+(7, 10, 'Aiman', 'Rizwan', '923047698099', 'aiman123@gmail.com', 'FSC-Engrineering', 3, 'Spring 2026', '2026-04-03', 0);
 
 -- --------------------------------------------------------
 
@@ -553,10 +571,10 @@ CREATE TABLE `system_settings` (
 --
 
 INSERT INTO `system_settings` (`setting_key`, `setting_value`, `description`) VALUES
-('current_term', '0', 'Fall 2026'),
+('current_term', '1', 'Fall 2026'),
 ('is_admission_open', '0', 'Controls if the signup/admission page is accessible'),
 ('is_course_reg_open', '0', 'Controls if students can register for new courses'),
-('is_summer_app_open', '0', 'Controls if summer semester applications are enabled');
+('is_summer_app_open', '1', 'Controls if summer semester applications are enabled');
 
 -- --------------------------------------------------------
 
@@ -612,22 +630,25 @@ CREATE TABLE `users` (
   `user_id` int(11) NOT NULL,
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `role_id` int(11) NOT NULL
+  `role_id` int(11) NOT NULL,
+  `is_deleted` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`user_id`, `email`, `password`, `role_id`) VALUES
-(1, 'teacher@gmail.com', '12345', 1),
-(2, 'student@gmail.com', '54321', 2),
-(3, 'ullahcentral123@gmail.com', 'scrypt:32768:8:1$7jPlgi083yfmCTVX$09d66e8cbbcb7df85dba9cc78052ab9d547244815938d89dcbcd01f00d58ff2a7be80bd3a4ad9bc57f84125a3affb624b32a0c0c8a32e85b628f3908fdd59e4c', 1),
-(4, 'sanacentral123@gmail.com', 'scrypt:32768:8:1$S7vfbzBO2aRNJpRd$6ffe5515c5085614610d0af9e13e005cfad46755406334ec6804562c60a3511112b3f61fe9f700d8b3a6a315ec1179c8d0377dc0f9bfab76cfd3bc2db693b951', 2),
-(5, 'huzaifacentral123@gmail.com', 'scrypt:32768:8:1$I9n0FGjNKaqHRaC4$3e9a48dd81365bda10cf83a4ab1e1eab8c15ac930da13bc1742efef4f4ea57274842f7ab41d824c2c8f135c5f214071ac911d9dd1a334ff553388ab2d0369575', 1),
-(6, 'hammadcentral123@gmail.com', 'scrypt:32768:8:1$jfSOWTiPsrWqazKQ$221c31ec18f224255ea2dff9eaf531a035cf704e27918fa7e4364a89d54eeae8af42701c759ba68cd5e7f49c9cf5bb690e8768725f11e63fc7b848f0f2e3de0f', 1),
-(7, 'mubeencentral123@gmail.com', 'scrypt:32768:8:1$ZhqrixLR5MGq8CS2$163df37b57801281972e50959c569da0d91ce77390944d9c2e81729f9a8feab0e9eaa3502ff59bdc825898746268da597de329eeebc9049ff365302bcfb74634', 1),
-(8, 'saleemkhurram420@gmail.com', 'scrypt:32768:8:1$skIzf7LpmeXDV7We$46816137a770b3c6ca5f90f7a3c5e03d772807aada70e450473f15803ebf2c5793b04ca86e78101e5da1272c80919b4e8a49d2540aabc7bd51e84d68b91e5e70', 3);
+INSERT INTO `users` (`user_id`, `email`, `password`, `role_id`, `is_deleted`) VALUES
+(1, 'teacher@gmail.com', '12345', 1, 0),
+(2, 'student@gmail.com', '54321', 2, 0),
+(3, 'ullahcentral123@gmail.com', 'scrypt:32768:8:1$7jPlgi083yfmCTVX$09d66e8cbbcb7df85dba9cc78052ab9d547244815938d89dcbcd01f00d58ff2a7be80bd3a4ad9bc57f84125a3affb624b32a0c0c8a32e85b628f3908fdd59e4c', 1, 0),
+(4, 'sanacentral123@gmail.com', 'scrypt:32768:8:1$S7vfbzBO2aRNJpRd$6ffe5515c5085614610d0af9e13e005cfad46755406334ec6804562c60a3511112b3f61fe9f700d8b3a6a315ec1179c8d0377dc0f9bfab76cfd3bc2db693b951', 2, 0),
+(5, 'huzaifacentral123@gmail.com', 'scrypt:32768:8:1$I9n0FGjNKaqHRaC4$3e9a48dd81365bda10cf83a4ab1e1eab8c15ac930da13bc1742efef4f4ea57274842f7ab41d824c2c8f135c5f214071ac911d9dd1a334ff553388ab2d0369575', 1, 0),
+(6, 'hammadcentral123@gmail.com', 'scrypt:32768:8:1$jfSOWTiPsrWqazKQ$221c31ec18f224255ea2dff9eaf531a035cf704e27918fa7e4364a89d54eeae8af42701c759ba68cd5e7f49c9cf5bb690e8768725f11e63fc7b848f0f2e3de0f', 1, 0),
+(7, 'mubeenmuzaffar123@gmail.com', 'scrypt:32768:8:1$ZhqrixLR5MGq8CS2$163df37b57801281972e50959c569da0d91ce77390944d9c2e81729f9a8feab0e9eaa3502ff59bdc825898746268da597de329eeebc9049ff365302bcfb74634', 1, 0),
+(8, 'saleemkhurram420@gmail.com', 'scrypt:32768:8:1$skIzf7LpmeXDV7We$46816137a770b3c6ca5f90f7a3c5e03d772807aada70e450473f15803ebf2c5793b04ca86e78101e5da1272c80919b4e8a49d2540aabc7bd51e84d68b91e5e70', 3, 0),
+(9, 'hariscentral123@gmail.com', 'scrypt:32768:8:1$R3WyGmnp0WVq4Yr6$3f666a241ec267a81464d1b8ba5efc3937e99b14d0970339055853ed23fb6c024978199950cd6c93e3d97d00d8999db3d286b43a1bf47b30c66cc8f09b55471e', 2, 0),
+(10, 'aiman123@gmail.com', 'scrypt:32768:8:1$5K9YM4nseB8f0CJ6$2b429fd8fcb38a2d5611110452b2f1929b785ce2923b3885fd6efa75e0740f70fa0df8f057f47292ae1ea1dcb3d6b5c1cb370e7526ae69a64a1f8e7eab00ddbb', 2, 0);
 
 -- --------------------------------------------------------
 
@@ -877,13 +898,13 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `attendance_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `attendance_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `complaint_suggestion`
 --
 ALTER TABLE `complaint_suggestion`
-  MODIFY `complt_sugst_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `complt_sugst_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `courses`
@@ -931,7 +952,7 @@ ALTER TABLE `sections`
 -- AUTO_INCREMENT for table `semester`
 --
 ALTER TABLE `semester`
-  MODIFY `semester_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `semester_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `semester_freeze_students`
@@ -943,7 +964,7 @@ ALTER TABLE `semester_freeze_students`
 -- AUTO_INCREMENT for table `students`
 --
 ALTER TABLE `students`
-  MODIFY `student_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `student_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `student_course`
@@ -1015,7 +1036,7 @@ ALTER TABLE `teacher_course`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `users_role`
