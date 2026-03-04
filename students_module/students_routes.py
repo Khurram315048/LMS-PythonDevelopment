@@ -112,6 +112,13 @@ def complaint_suggestion():
     return render_template('complaint_suggestion.html')
 
 
+@student.route('/notifications', methods=['GET', 'POST'])
+@login_required
+def notifications():
+    user_id=session['user_id']
+    complaint_status=StudentModel.get_complaint_status(user_id)
+    return render_template('notifications.html',complaint_status=complaint_status)
+
 
 @student.route('/upload_fee', methods=['GET', 'POST'])
 @login_required
@@ -142,27 +149,6 @@ def upload_fee():
     return render_template('upload_fee.html')
 
 
-
-@student.route('/notifications', methods=['GET', 'POST'])
-@login_required
-def notifications():
-    student_id = session.get('student_id')
-    user_id = session.get('user_id')
-    if request.method == 'POST':
-        title = request.form['title']
-        description = request.form['description']
-        related_course_id = request.form.get('related_course_id')
-        NotificationModel.create_notification(
-            sender_id=user_id,
-            sender_role='student',
-            receiver_role='teacher',
-            title=title,
-            description=description,
-            related_course_id=related_course_id,
-            status='Pending'
-        )
-    notifications = NotificationModel.get_notifications_for_user(user_id, student_id)
-    return render_template('notifications.html', notifications=notifications)
 
 
 @student.route('/view_attendence', methods=['GET', 'POST'])

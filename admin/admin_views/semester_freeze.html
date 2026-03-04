@@ -1,0 +1,62 @@
+{% extends "admin_base.html" %}
+{% block title %}Semester Freeze{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="fa-solid fa-snowflake"></i> Semester Freeze Requests</h2>
+</div>
+<div class="card">
+    <div class="card-header">
+        <h4>Pending Freeze Requests</h4>
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Student</th>
+                    <th>Student ID</th>
+                    <th>Semester</th>
+                    <th>Reason</th>
+                    <th>Applied Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in freeze_requests %}
+                <tr>
+                    <td>{{ req.freeze_id }}</td>
+                    <td>{{ req.first_name }} {{ req.last_name }}</td>
+                    <td>{{ req.student_id }}</td>
+                    <td>{{ req.semester }}</td>
+                    <td>{{ req.reason }}</td>
+                    <td>{{ req.applied_date }}</td>
+                    <td><span class="badge bg-warning text-dark">{{ req.status }}</span></td>
+                    <td>
+                        <form method="POST" action="#" style="display:inline;">
+                            <input type="hidden" name="freeze_id" value="{{ req.freeze_id }}">
+                            <input type="hidden" name="action" value="approve">
+                            <button type="submit" class="btn btn-sm btn-success">
+                                <i class="fa-solid fa-check"></i> Approve
+                            </button>
+                        </form>
+                        <form method="POST" action="#" style="display:inline;">
+                            <input type="hidden" name="freeze_id" value="{{ req.freeze_id }}">
+                            <input type="hidden" name="action" value="reject">
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                <i class="fa-solid fa-xmark"></i> Reject
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not freeze_requests %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted">No freeze requests found.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

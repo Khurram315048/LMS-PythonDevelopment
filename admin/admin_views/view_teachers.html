@@ -1,0 +1,144 @@
+{% extends "admin_base.html" %}
+{% block title %}View Teachers{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="fa-solid fa-chalkboard-user"></i> View Teachers</h2>
+</div>
+<div class="card mb-4">
+    <div class="card-header">
+        <h4>All Teachers</h4>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTeacherModal">
+            <i class="fa-solid fa-plus"></i> Add Teacher
+        </button>
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Contact</th>
+                    <th>Qualification</th>
+                    <th>Joining Date</th>
+                    <th>Courses</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for teacher in teachers %}
+                <tr>
+                    <td>{{ teacher.teacher_id }}</td>
+                    <td>{{ teacher.first_name }} {{ teacher.last_name }}</td>
+                    <td>{{ teacher.email }}</td>
+                    <td>{{ teacher.contact_num }}</td>
+                    <td>{{ teacher.qualification }}</td>
+                    <td>{{ teacher.joining_date }}</td>
+                    <td>
+                        {% for course in teacher.courses %}
+                            <span class="badge bg-secondary">{{ course.course_name }}</span>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editTeacherModal{{ teacher.teacher_id }}">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <form method="POST" action="#" style="display:inline;">
+                            <input type="hidden" name="teacher_id" value="{{ teacher.teacher_id }}">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this teacher?')">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+
+                <div class="modal fade" id="editTeacherModal{{ teacher.teacher_id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Edit Teacher</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form method="POST" action="#">
+                                    <input type="hidden" name="teacher_id" value="{{ teacher.teacher_id }}">
+                                    <div class="mb-3">
+                                        <label class="form-label">First Name</label>
+                                        <input type="text" class="form-control" name="first_name" value="{{ teacher.first_name }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Last Name</label>
+                                        <input type="text" class="form-control" name="last_name" value="{{ teacher.last_name }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-control" name="email" value="{{ teacher.email }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Contact</label>
+                                        <input type="text" class="form-control" name="contact_num" value="{{ teacher.contact_num }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Qualification</label>
+                                        <input type="text" class="form-control" name="qualification" value="{{ teacher.qualification }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Joining Date</label>
+                                        <input type="date" class="form-control" name="joining_date" value="{{ teacher.joining_date }}">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Update</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="addTeacherModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Teacher</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="#">
+                    <div class="mb-3">
+                        <label class="form-label">First Name</label>
+                        <input type="text" class="form-control" name="first_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" class="form-control" name="last_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control" name="password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contact</label>
+                        <input type="text" class="form-control" name="contact_num" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Qualification</label>
+                        <input type="text" class="form-control" name="qualification">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Joining Date</label>
+                        <input type="date" class="form-control" name="joining_date">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Teacher</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

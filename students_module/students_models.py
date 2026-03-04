@@ -197,6 +197,15 @@ class StudentModel:
         mysql.connection.commit()
         cursor.close()
 
+    @staticmethod
+    def get_complaint_status(user_id):
+        cursor=mysql.connection.cursor()
+        cursor.execute('SELECT * FROM complaint_suggestion WHERE user_id=%s',(user_id,))
+        status=cursor.fetchall()
+        cursor.close()
+        return status
+            
+
 
     @staticmethod
     def insert_submission(student_id, course_id, section_id, file_path, submission_type):
@@ -251,7 +260,7 @@ class StudentModel:
             VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
         ''', (
             student_id, program_id, month, fee_amount,
-            front_path, back_path, 'Paid'
+            front_path, back_path, 'Pending'
         ))
         mysql.connection.commit()
         cursor.close()

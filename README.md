@@ -6,8 +6,28 @@ LMS
 │  ├─ admin_routes.py
 │  └─ admin_views
 │     ├─ admin_dashboard.html
+│     ├─ admin_edit.html
 │     ├─ admin_login.html
-│     └─ admin_profile.html
+│     ├─ admin_profile.html
+│     ├─ assign_classes.html
+│     ├─ class_timetable.html
+│     ├─ complaints.html
+│     ├─ course_registration.html
+│     ├─ exam_dates.html
+│     ├─ fee_management.html
+│     ├─ fyp_evaluations.html
+│     ├─ fyp_proposals.html
+│     ├─ help_desk.html
+│     ├─ manage_attendance.html
+│     ├─ manage_grades.html
+│     ├─ notifications.html
+│     ├─ register_student.html
+│     ├─ semester_freeze.html
+│     ├─ summer_semester.html
+│     ├─ system_controls.html
+│     ├─ system_settings.html
+│     ├─ teacher_attendance.html
+│     └─ view_teachers.html
 ├─ config.py
 ├─ main.py
 ├─ models.py
@@ -16,6 +36,8 @@ LMS
 ├─ static
 │  ├─ css
 │  │  ├─ admin_css
+│  │  │  ├─ dashboard.css
+│  │  │  └─ sidebar.css
 │  │  ├─ base_style.css
 │  │  ├─ global_style.css
 │  │  ├─ help_desk.css

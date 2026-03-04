@@ -3,13 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Feb 10, 2026 at 02:17 PM
+-- Generation Time: Mar 03, 2026 at 10:00 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
-
-DROP DATABASE IF EXISTS `lms`;
-CREATE DATABASE `lms` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `lms`;
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,6 +20,28 @@ SET time_zone = "+00:00";
 --
 -- Database: `lms`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `admins`
+--
+
+CREATE TABLE `admins` (
+  `admin_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `first_name` varchar(50) DEFAULT NULL,
+  `last_name` varchar(50) DEFAULT NULL,
+  `contact` varchar(100) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `admins`
+--
+
+INSERT INTO `admins` (`admin_id`, `user_id`, `first_name`, `last_name`, `contact`, `email`) VALUES
+(1, 8, 'Muhammad', 'Khuraam', '923047698099', 'saleemkhurram420@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -149,6 +167,30 @@ INSERT INTO `fyp_groups` (`fyp_id`, `project_title`, `description`, `teacher_id`
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `fyp_messages`
+--
+
+CREATE TABLE `fyp_messages` (
+  `message_id` int(11) NOT NULL,
+  `fyp_id` int(11) NOT NULL,
+  `teacher_id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `sender_role` enum('teacher','student') NOT NULL,
+  `message` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `fyp_messages`
+--
+
+INSERT INTO `fyp_messages` (`message_id`, `fyp_id`, `teacher_id`, `student_id`, `sender_role`, `message`, `created_at`) VALUES
+(1, 1, 1, 2, 'teacher', 'hy', '2026-02-24 11:21:54'),
+(2, 2, 1, 3, 'teacher', 'hy', '2026-02-24 11:22:04');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `notifications`
 --
 
@@ -211,7 +253,7 @@ INSERT INTO `sections` (`section_id`, `course_id`, `section_name`, `program_id`,
 (1, 1, 'Blue', 1, 5, 1, 1),
 (2, 1, 'Green', 1, 5, 1, 1),
 (3, 1, 'Red', 1, 5, 1, 1),
-(4, 1, 'Orange', 1, 5, 1, 1);
+(4, 1, 'Orange', 1, 5, 0, 1);
 
 -- --------------------------------------------------------
 
@@ -339,7 +381,7 @@ CREATE TABLE `student_fees` (
 
 INSERT INTO `student_fees` (`student_fees_id`, `fee_amount`, `fee_status`, `update_date`, `voucher_front_pic`, `voucher_back_pic`, `program_id`, `fee_month`, `student_id`) VALUES
 (1, 18708.00, 'paid', '2025-12-31 09:10:20', 'uploads/students_uploads/voucher_pics/student_4_front_contact.PNG', 'uploads/students_uploads/voucher_pics/student_4_back_prj.PNG', 1, 'December', 4),
-(2, 68102.00, 'paid', '2026-02-04 06:54:59', 'uploads/students_uploads/voucher_pics/student_2_front_dep_view.PNG', 'uploads/students_uploads/voucher_pics/student_2_back_students_view.PNG', 1, 'January', 2);
+(2, 68102.00, 'due', '2026-03-02 11:44:13', 'uploads/students_uploads/voucher_pics/student_2_front_dep_view.PNG', 'uploads/students_uploads/voucher_pics/student_2_back_students_view.PNG', 1, 'January', 2);
 
 -- --------------------------------------------------------
 
@@ -497,6 +539,28 @@ CREATE TABLE `summer_semesters` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `system_settings`
+--
+
+CREATE TABLE `system_settings` (
+  `setting_key` varchar(50) NOT NULL,
+  `setting_value` varchar(255) DEFAULT NULL,
+  `description` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `system_settings`
+--
+
+INSERT INTO `system_settings` (`setting_key`, `setting_value`, `description`) VALUES
+('current_term', '0', 'Fall 2026'),
+('is_admission_open', '0', 'Controls if the signup/admission page is accessible'),
+('is_course_reg_open', '0', 'Controls if students can register for new courses'),
+('is_summer_app_open', '0', 'Controls if summer semester applications are enabled');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `teachers`
 --
 
@@ -562,7 +626,8 @@ INSERT INTO `users` (`user_id`, `email`, `password`, `role_id`) VALUES
 (4, 'sanacentral123@gmail.com', 'scrypt:32768:8:1$S7vfbzBO2aRNJpRd$6ffe5515c5085614610d0af9e13e005cfad46755406334ec6804562c60a3511112b3f61fe9f700d8b3a6a315ec1179c8d0377dc0f9bfab76cfd3bc2db693b951', 2),
 (5, 'huzaifacentral123@gmail.com', 'scrypt:32768:8:1$I9n0FGjNKaqHRaC4$3e9a48dd81365bda10cf83a4ab1e1eab8c15ac930da13bc1742efef4f4ea57274842f7ab41d824c2c8f135c5f214071ac911d9dd1a334ff553388ab2d0369575', 1),
 (6, 'hammadcentral123@gmail.com', 'scrypt:32768:8:1$jfSOWTiPsrWqazKQ$221c31ec18f224255ea2dff9eaf531a035cf704e27918fa7e4364a89d54eeae8af42701c759ba68cd5e7f49c9cf5bb690e8768725f11e63fc7b848f0f2e3de0f', 1),
-(7, 'mubeencentral123@gmail.com', 'scrypt:32768:8:1$ZhqrixLR5MGq8CS2$163df37b57801281972e50959c569da0d91ce77390944d9c2e81729f9a8feab0e9eaa3502ff59bdc825898746268da597de329eeebc9049ff365302bcfb74634', 1);
+(7, 'mubeencentral123@gmail.com', 'scrypt:32768:8:1$ZhqrixLR5MGq8CS2$163df37b57801281972e50959c569da0d91ce77390944d9c2e81729f9a8feab0e9eaa3502ff59bdc825898746268da597de329eeebc9049ff365302bcfb74634', 1),
+(8, 'saleemkhurram420@gmail.com', 'scrypt:32768:8:1$skIzf7LpmeXDV7We$46816137a770b3c6ca5f90f7a3c5e03d772807aada70e450473f15803ebf2c5793b04ca86e78101e5da1272c80919b4e8a49d2540aabc7bd51e84d68b91e5e70', 3);
 
 -- --------------------------------------------------------
 
@@ -580,12 +645,21 @@ CREATE TABLE `users_role` (
 --
 
 INSERT INTO `users_role` (`role_id`, `role_type`) VALUES
+(3, 'admin'),
 (2, 'student'),
 (1, 'teacher');
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `admins`
+--
+ALTER TABLE `admins`
+  ADD PRIMARY KEY (`admin_id`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- Indexes for table `attendance`
@@ -625,6 +699,13 @@ ALTER TABLE `fyp_groups`
   ADD PRIMARY KEY (`fyp_id`),
   ADD KEY `teacher_id` (`teacher_id`),
   ADD KEY `student_id` (`student_id`);
+
+--
+-- Indexes for table `fyp_messages`
+--
+ALTER TABLE `fyp_messages`
+  ADD PRIMARY KEY (`message_id`),
+  ADD KEY `fyp_id` (`fyp_id`);
 
 --
 -- Indexes for table `notifications`
@@ -747,6 +828,12 @@ ALTER TABLE `summer_semesters`
   ADD KEY `previous_semester_id` (`previous_semester_id`);
 
 --
+-- Indexes for table `system_settings`
+--
+ALTER TABLE `system_settings`
+  ADD PRIMARY KEY (`setting_key`);
+
+--
 -- Indexes for table `teachers`
 --
 ALTER TABLE `teachers`
@@ -781,6 +868,12 @@ ALTER TABLE `users_role`
 --
 
 --
+-- AUTO_INCREMENT for table `admins`
+--
+ALTER TABLE `admins`
+  MODIFY `admin_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
@@ -809,6 +902,12 @@ ALTER TABLE `course_schedule`
 --
 ALTER TABLE `fyp_groups`
   MODIFY `fyp_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `fyp_messages`
+--
+ALTER TABLE `fyp_messages`
+  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -916,17 +1015,23 @@ ALTER TABLE `teacher_course`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `users_role`
 --
 ALTER TABLE `users_role`
-  MODIFY `role_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `role_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `admins`
+--
+ALTER TABLE `admins`
+  ADD CONSTRAINT `admins_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `attendance`
@@ -961,6 +1066,12 @@ ALTER TABLE `course_schedule`
 ALTER TABLE `fyp_groups`
   ADD CONSTRAINT `fyp_groups_ibfk_1` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`teacher_id`),
   ADD CONSTRAINT `fyp_groups_ibfk_2` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`);
+
+--
+-- Constraints for table `fyp_messages`
+--
+ALTER TABLE `fyp_messages`
+  ADD CONSTRAINT `fyp_messages_ibfk_1` FOREIGN KEY (`fyp_id`) REFERENCES `fyp_groups` (`fyp_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `notifications`

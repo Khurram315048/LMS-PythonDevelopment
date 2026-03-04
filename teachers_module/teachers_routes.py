@@ -249,4 +249,16 @@ def toggle_upload(section_id, upload_type):
     
     TeacherModel.toggle_upload_status(section_id, upload_type)
     flash(f"{upload_type.capitalize()} status updated.", "success")
-    return redirect(url_for('teacher.class_structure', section_id=section_id))                            
+    return redirect(url_for('teacher.class_structure', section_id=section_id))  
+
+
+@teacher.route('/complaint_suggestion', methods=['GET', 'POST'])
+@login_required
+def complaint_suggestion():
+    if request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        user_id = session['user_id']
+        TeacherModel.insert_complaint_suggestion(title, description, user_id)
+        return redirect(url_for('teacher.teacher_dashboard'))
+    return render_template('complaint_suggestion.html')    

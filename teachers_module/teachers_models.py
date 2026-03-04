@@ -233,3 +233,10 @@ class TeacherModel:
               data['total'], data['grade'], data['status'], data['sessional'], data['mids'], data['final'], data['gpa']))
         mysql.connection.commit()
         cursor.close()
+
+    @staticmethod
+    def insert_complaint_suggestion(title, description, user_id):
+        cursor = mysql.connection.cursor()
+        cursor.execute('INSERT INTO complaint_suggestion (title, description, user_id) VALUES (%s, %s, %s)', (title, description, user_id))
+        mysql.connection.commit()
+        cursor.close()    

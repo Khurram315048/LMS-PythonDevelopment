@@ -46,6 +46,8 @@ def main_view():
     return render_template('main_view.html')  
 
 
+
+
 @app.route('/user_signup', methods=['GET', 'POST'])
 def user_signup():
     if request.method=='POST':

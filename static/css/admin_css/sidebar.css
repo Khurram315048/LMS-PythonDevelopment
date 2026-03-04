@@ -1,60 +1,81 @@
-/* Sidebar Submenu Styling */
 .sidebar ul {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-/* Parent LI needs to be relative */
-.has-submenu {
+.sidebar .has-submenu {
     position: relative;
 }
 
-/* Arrow styling */
-.arrow {
-    font-size: 0.7rem;
-    margin-left: auto;
-    transition: transform 0.3s ease;
+.sidebar .has-submenu > a {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 8px;
 }
 
-/* Hide Submenu by default */
-.submenu {
+.sidebar .has-submenu > a span {
+    flex: 1;
+}
+
+.sidebar .has-submenu > a .sidebar-arrow {
+    font-size: 0.75rem;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+    pointer-events: none;
+    margin-left: 0;
+}
+
+.sidebar .submenu {
     max-height: 0;
     overflow: hidden;
-    background-color: rgba(0, 0, 0, 0.1); /* Slightly darker background */
-    transition: max-height 0.4s ease-out;
+    background-color: rgba(0, 0, 0, 0.2);
+    transition: max-height 0.3s ease-in-out;
     list-style: none;
     padding-left: 0;
+    width: 100%;
 }
 
-/* Style for Submenu Links */
-.submenu li a {
-    padding: 10px 10px 10px 45px !important; /* Indent sub-items */
-    font-size: 0.9rem;
-    display: block;
-    color: #ddd;
+.sidebar .submenu li {
+    width: 100%;
+}
+
+.sidebar .submenu li a {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px 9px 20px !important;
+    font-size: 0.85rem;
+    color: #cbd5e0;
     text-decoration: none;
-    border-bottom: none !important;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.submenu li a:hover {
+.sidebar .submenu li a:hover {
     background-color: rgba(255, 255, 255, 0.1);
     color: #fff;
 }
 
-/* Show Submenu on Hover */
-.has-submenu:hover .submenu {
-    max-height: 300px; /* Adjust based on number of items */
+.sidebar .submenu li a i {
+    width: 16px;
+    text-align: center;
+    font-size: 0.8rem;
+    flex-shrink: 0;
 }
 
-/* Rotate arrow on hover */
-.has-submenu:hover .arrow {
+.sidebar .has-submenu:hover .submenu {
+    max-height: 500px;
+}
+
+.sidebar .has-submenu:hover > a .sidebar-arrow {
     transform: rotate(180deg);
 }
 
-/* Sidebar item layout fix to keep arrow at the right */
-.sidebar ul li a {
-    display: flex;
-    align-items: center;
-    width: 100%;
+.sidebar li a i:first-child {
+    width: 20px;
+    text-align: center;
+    margin-right: 10px;
+    flex-shrink: 0;
 }

@@ -4,7 +4,6 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Header */
 .dash-header {
     margin-bottom: 30px;
 }
@@ -14,7 +13,6 @@
     margin: 0;
 }
 
-/* Stats Cards */
 .stats-container {
     display: flex;
     gap: 20px;
@@ -25,7 +23,7 @@
 .stat-card {
     background: white;
     flex: 1;
-    min-width: 200px;
+    min-width: 160px;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -36,7 +34,7 @@
 .stat-card h3 {
     margin: 0;
     color: #7f8c8d;
-    font-size: 14px;
+    font-size: 13px;
     text-transform: uppercase;
 }
 
@@ -48,39 +46,101 @@
     margin-top: 10px;
 }
 
-/* System Controls Area */
-.control-panel {
-    background: white;
-    padding: 25px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+.dash-section-title {
+    margin-bottom: 16px;
 }
 
-.control-panel h3 {
+.dash-section-title h4 {
     color: #2c3e50;
-    margin-top: 0;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-}
-
-.control-row {
+    font-size: 1rem;
+    font-weight: 600;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 15px 0;
-    border-bottom: 1px solid #f9f9f9;
+    gap: 8px;
+    margin: 0;
 }
 
-/* Dummy Interactive Buttons */
-.status-btn {
-    padding: 8px 20px;
-    border-radius: 20px;
-    border: none;
+.dash-section-title h4 i {
+    color: #e67e22;
+}
+
+.pending-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+}
+
+.pending-card {
+    background: white;
+    border-radius: 10px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-left: 4px solid #3498db;
+}
+
+.pending-card:nth-child(1) { border-left-color: #1abc9c; }
+.pending-card:nth-child(2) { border-left-color: #e67e22; }
+.pending-card:nth-child(3) { border-left-color: #9b59b6; }
+.pending-card:nth-child(4) { border-left-color: #e74c3c; }
+.pending-card:nth-child(5) { border-left-color: #3498db; }
+.pending-card:nth-child(6) { border-left-color: #f39c12; }
+
+.pending-card-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.pending-card-left > i {
+    font-size: 1.4rem;
+    color: #7f8c8d;
+    width: 24px;
+    text-align: center;
+}
+
+.pending-label {
+    display: block;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.9rem;
+}
+
+.pending-sub {
+    display: block;
+    font-size: 0.78rem;
+    color: #95a5a6;
+    margin-top: 2px;
+}
+
+.pending-card-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.pending-count {
+    font-size: 1.6rem;
     font-weight: bold;
-    cursor: pointer;
+    color: #2c3e50;
+    line-height: 1;
 }
 
-.btn-on { background: #2ecc71; color: white; }
-.btn-off { background: #e74c3c; color: white; }
+.pending-link {
+    font-size: 0.78rem;
+    color: #3498db;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
 
-.status-btn:hover { opacity: 0.8; }
+.pending-link:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}

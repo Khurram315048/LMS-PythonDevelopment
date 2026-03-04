@@ -1,0 +1,86 @@
+{% extends "admin_base.html" %}
+{% block title %}Maintain Attendance{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="fa-solid fa-calendar-check"></i> Maintain Attendance</h2>
+</div>
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" action="#" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Course</label>
+                <select class="form-select" name="course_id">
+                    <option value="">All Courses</option>
+                    {% for course in courses %}
+                    <option value="{{ course.course_id }}" {% if selected_course == course.course_id %}selected{% endif %}>{{ course.course_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Section</label>
+                <select class="form-select" name="section_id">
+                    <option value="">All Sections</option>
+                    {% for section in sections %}
+                    <option value="{{ section.section_id }}" {% if selected_section == section.section_id %}selected{% endif %}>{{ section.section_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Date</label>
+                <input type="date" class="form-control" name="date" value="{{ selected_date }}">
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header">
+        <h4>Attendance Records</h4>
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Student Name</th>
+                    <th>Course</th>
+                    <th>Section</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in attendance %}
+                <tr>
+                    <td>{{ record.attendance_id }}</td>
+                    <td>{{ record.first_name }} {{ record.last_name }}</td>
+                    <td>{{ record.course_name }}</td>
+                    <td>{{ record.section_name }}</td>
+                    <td>{{ record.attendance_date }}</td>
+                    <td>
+                        {% if record.attendance_status == 'Present' %}
+                            <span class="badge bg-success">Present</span>
+                        {% else %}
+                            <span class="badge bg-danger">Absent</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="POST" action="#" style="display:inline;">
+                            <input type="hidden" name="attendance_id" value="{{ record.attendance_id }}">
+                            <select name="attendance_status" class="form-select form-select-sm d-inline w-auto">
+                                <option value="Present" {% if record.attendance_status == 'Present' %}selected{% endif %}>Present</option>
+                                <option value="Absent" {% if record.attendance_status == 'Absent' %}selected{% endif %}>Absent</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

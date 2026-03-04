@@ -21,18 +21,22 @@
                 <th>#</th>
                 <th>Title</th>
                 <th>Description</th>
-                <th>Date</th>
                 <th>Status</th>
             </tr>
         </thead>
         <tbody id="notificationTable">
-            {% for notification in notifications %}
+            {% for notification in complaint_status %}
             <tr>
                 <td>{{ loop.index }}</td>
                 <td>{{ notification.title }}</td>
                 <td>{{ notification.description }}</td>
-                <td>{{ notification.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                <td>{{ notification.status }}</td>
+                <td>
+                    {% if notification.is_status == 'Solved' %}
+                        <span class="badge bg-success">Solved</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    {% endif %}
+                </td>
             </tr>
             {% endfor %}
         </tbody>
