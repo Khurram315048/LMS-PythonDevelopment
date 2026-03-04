@@ -566,3 +566,110 @@ tr:hover {
 }
 
 .btn-cancel:hover { background-color: #5a6268; color: white !important; }
+
+
+.att-wrapper {
+    padding: 24px;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.att-wrapper h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #1a1a2e;
+}
+
+.att-table-container {
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.att-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 900px;
+    font-size: 0.82rem;
+}
+
+.att-table thead tr {
+    background-color: #1a1a2e;
+    color: white;
+}
+
+.att-table thead th {
+    padding: 12px 14px;
+    text-align: left;
+    white-space: nowrap;
+    font-weight: 600;
+    border: 1px solid #2d2d4e;
+}
+
+.att-table thead th.lec-header {
+    text-align: center;
+    min-width: 90px;
+}
+
+.att-table tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    background: #fff;
+}
+
+.att-table tbody tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+.att-table tbody td {
+    padding: 10px 14px;
+    vertical-align: middle;
+    border: 1px solid #e0e0e0;
+    white-space: nowrap;
+}
+
+.count-cell {
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+}
+
+.lec-cell {
+    text-align: center;
+    padding: 6px 4px !important;
+}
+
+.lec-badge {
+    display: inline-block;
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    width: 80px;
+    text-align: center;
+}
+
+.lec-badge.present {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.lec-badge.absent {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.lec-date {
+    display: block;
+    font-size: 0.68rem;
+    color: #777;
+    margin-top: 2px;
+}
+
+.empty-lec {
+    color: #ccc;
+    font-size: 0.75rem;
+}
+
+.perc-low { color: #e74c3c; font-weight: 700; }
+.perc-mid { color: #e67e22; font-weight: 700; }
+.perc-high { color: #27ae60; font-weight: 700; }

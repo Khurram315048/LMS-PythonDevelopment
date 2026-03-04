@@ -44,13 +44,13 @@
                     <a href="#"><i class="fa-solid fa-gear"></i> <span>System Management</span> <i class="fa-solid fa-chevron-down sidebar-arrow"></i></a>
                     <ul class="submenu">
                         <li><a href="{{url_for('admin.system_settings')}}"><i class="fa-solid fa-toggle-on"></i> Settings</a></li>
-                        <li><a href="system_controls.html"><i class="fa-solid fa-sliders"></i> Controls</a></li>
+                        <li><a href="{{url_for('admin.system_controls')}}"><i class="fa-solid fa-sliders"></i> Controls</a></li>
                     </ul>
                 </li>
                 <li class="has-submenu">
                     <a href="#"><i class="fa-solid fa-user-graduate"></i> <span>Student Management</span> <i class="fa-solid fa-chevron-down sidebar-arrow"></i></a>
                     <ul class="submenu">
-                        <li><a href="register_student.html"><i class="fa-solid fa-user-plus"></i> Register Student</a></li>
+                        <li><a href="{{url_for('admin.register_student')}}"><i class="fa-solid fa-user-plus"></i> Register Student</a></li>
                         <li><a href="manage_attendance.html"><i class="fa-solid fa-calendar-check"></i> Maintain Attendance</a></li>
                         <li><a href="manage_grades.html"><i class="fa-solid fa-graduation-cap"></i> Maintain Grades</a></li>
                         <li><a href="fee_management.html"><i class="fa-solid fa-dollar-sign"></i> Fee Management</a></li>

@@ -1,55 +1,71 @@
 {% extends "layouts/student_base.html" %}
-
 {% block title %}Attendance Summary{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="dashboard-content">
-        <h1 class="headings">Attendance Dashboard</h1>
-        <table class="table">
+
+<div class="att-wrapper">
+    <h1>Attendance Dashboard</h1>
+
+    {% if attendance_report %}
+    {% set max_lec=namespace(val=0) %}
+    {% for item in attendance_report %}
+        {% if item.total_lectures > max_lec.val %}
+            {% set max_lec.val=item.total_lectures %}
+        {% endif %}
+    {% endfor %}
+
+    <div class="att-table-container">
+        <table class="att-table">
             <thead>
                 <tr>
                     <th>Subject Name</th>
-                    <th>Credit Hours</th>
-                    <th>Lectures (Attended/Total)</th>
-                    <th>Percentage</th>
-                    <th>Detailed History</th>   
+                    <th>Teacher Name</th>
+                    <th>Count / %</th>
+                    {% for i in range(1, max_lec.val + 1) %}
+                    <th class="lec-header">Lecture # {{ i }}</th>
+                    {% endfor %}
                 </tr>
             </thead>
             <tbody>
                 {% for item in attendance_report %}
                 <tr>
-                    <td>{{ item.course_name }}</td>
-                    <td>{{ item.credit_hours }}</td>
-                    <td>{{ item.attended_lectures }} / {{ item.total_lectures }}</td>
-                    <td>
-                        <strong style="color: blue">
-                            {{ item.percentage }}%
-                        </strong>
+                    <td><strong>{{ item.course_name }}</strong></td>
+                    <td>{{ item.teacher_name if item.teacher_name else '—' }}</td>
+                    <td class="count-cell">
+                        {{ item.attended_lectures }}/{{ item.total_lectures }}
+                        {% if item.total_lectures > 0 %}
+                            {% set perc=item.percentage %}
+                            &nbsp;
+                            {% if perc < 75 %}
+                                <span class="perc-low">({{ perc }}%)</span>
+                            {% elif perc < 90 %}
+                                <span class="perc-mid">({{ perc }}%)</span>
+                            {% else %}
+                                <span class="perc-high">({{ perc }}%)</span>
+                            {% endif %}
+                        {% endif %}
                     </td>
-                    <td>
-                        <div style="max-height: 100px; overflow-y: auto; font-size: 0.8em;">
-                        {% for lecture in item.lecture_status %}
-                            <div>
-                                {% if lecture.attendance_status == 'Absent' %}
-                                    <span style="color:red"> Absent</span> ({{ lecture.attendance_date }})
-                                    <form action="#" method="POST" style="display:inline">
-                                        <input type="hidden" name="date" value="{{ lecture.attendance_date }}">
-                                        <button type="submit" style="font-size: 10px; padding: 2px;">Dispute</button>
-                                    </form>
-                                {% else %}
-                                    <span style="color:green"> Present</span> ({{ lecture.attendance_date }})
-                                {% endif %}
-                            </div>
+                    {% for lecture in item.lecture_status %}
+                    <td class="lec-cell">
+                        {% if lecture.attendance_status == 'Present' %}
+                            <span class="lec-badge present">Present</span>
                         {% else %}
-                            No lectures recorded yet.
-                        {% endfor %}
-                        </div>
+                            <span class="lec-badge absent">Absent</span>
+                        {% endif %}
+                        <span class="lec-date">{{ lecture.attendance_date }}</span>
                     </td>
+                    {% endfor %}
+                    {% for i in range(item.total_lectures, max_lec.val) %}
+                    <td class="lec-cell"><span class="empty-lec">—</span></td>
+                    {% endfor %}
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
+    {% else %}
+    <div class="alert alert-info">No attendance records found.</div>
+    {% endif %}
 </div>
 {% endblock %}

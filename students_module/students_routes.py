@@ -4,6 +4,7 @@ from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
 from students_module.students_models import UserModel, StudentModel, NotificationModel
 import os
+from utils.db import mysql 
 from datetime import datetime
 
 student=Blueprint('student', __name__, template_folder='students_views')
@@ -154,35 +155,41 @@ def upload_fee():
 @student.route('/view_attendence', methods=['GET', 'POST'])
 @login_required
 def view_attendence():
-    student_id = session.get('student_id')
+    cursor=mysql.connection.cursor()
+    student_id=session.get('student_id')
     if not student_id:
         flash("Student not logged in.", "danger")
         return redirect(url_for('student.student_login'))
 
-   
-    enrolled_courses = StudentModel.get_student_courses_for_attendance(student_id)
-    attendance_report = []
-
+    enrolled_courses=StudentModel.get_student_courses_for_attendance(student_id)
+    attendance_report=[]
     for course in enrolled_courses:
-        sc_id = course['student_course_id']
-        total_lectures, attended = StudentModel.get_attendance_summary(sc_id)
-        history = StudentModel.get_attendance_status_details(sc_id)
-        perc = (attended / total_lectures * 100) if total_lectures > 0 else 0
+        sc_id=course['student_course_id']
+        total_lectures, attended=StudentModel.get_attendance_summary(sc_id)
+        history=StudentModel.get_attendance_status_details(sc_id)
+        perc=(attended / total_lectures * 100) if total_lectures > 0 else 0
+        cursor.execute('''
+            SELECT CONCAT(t.first_name, ' ', t.last_name) AS teacher_name
+            FROM teacher_course tc
+            JOIN teachers t ON tc.teacher_id = t.teacher_id
+            JOIN student_course sc ON sc.course_id = tc.course_id
+            WHERE sc.student_course_id = %s
+            LIMIT 1
+        ''', (sc_id,))
+        teacher=cursor.fetchone()
 
         attendance_report.append({
             'course_name': course['course_name'],
             'credit_hours': course['credit_hours'],
             'total_lectures': total_lectures,
             'attended_lectures': attended,
-            'percentage': round(perc, 2),
-            'lecture_status': history
+            'percentage': round(perc, 1),
+            'lecture_status': history,
+            'teacher_name': teacher['teacher_name'] if teacher else '—'
         })
 
-    return render_template(
-        'view_attendence.html',
-        attendance_report=attendance_report
-    )
-
+    cursor.close()
+    return render_template('view_attendence.html',attendance_report=attendance_report)
     
 
 @student.route('/view_grades', methods=['GET', 'POST'])
