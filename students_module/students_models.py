@@ -66,7 +66,7 @@ class StudentModel:
     @staticmethod
     def get_enrolled_courses_by_student_id(student_id):
         cursor = mysql.connection.cursor()
-        cursor.execute('SELECT course_id FROM student_course WHERE student_id = %s', (student_id,))
+        cursor.execute('SELECT course_id FROM student_course WHERE student_id=%s AND is_deleted=%s', (student_id,0,))
         courses = cursor.fetchall()
         cursor.close()
         return courses
@@ -514,10 +514,10 @@ class StudentModel:
 
     @staticmethod
     def get_active_semester_freeze_request(student_id):
-        cursor = mysql.connection.cursor()
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute("""
             SELECT * FROM semester_freeze_students
-            WHERE student_id = %s AND status = 'Pending'
+            WHERE student_id = %s
             ORDER BY applied_date DESC
             LIMIT 1
         """, (student_id,))
@@ -586,14 +586,14 @@ class StudentModel:
 
     @staticmethod
     def get_latest_summer_semester():
-        cursor = mysql.connection.cursor()
+        cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute("""
             SELECT *
             FROM summer_semesters
-            ORDER BY summer_semesters_id DESC
+            ORDER BY summer_semesters_id ASC
             LIMIT 1
         """)
-        semester = cursor.fetchone()
+        semester=cursor.fetchone()
         cursor.close()
         return semester  
 

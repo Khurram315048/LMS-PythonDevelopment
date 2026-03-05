@@ -12,12 +12,22 @@
       {% endif %}
     </div>
 
+    {% if latest_summer %}
     <div class="subject-card">
-      <h4>Application's Flow</h4>
-      <div class="subject-list">
-        <p>Summer Semester Registration (Recent Failures Only)</p>
-      </div>
+        <h4>Active Summer Semester</h4>
+        <div class="subject-list">
+            <p><strong>{{ latest_summer.name }} {{ latest_summer.year }}</strong></p>
+            <p>{{ latest_summer.start_date }} → {{ latest_summer.end_date }}</p>
+            <p>Status:
+                {% if latest_summer.status == 'Open' %}
+                    <span style="color:green;">{{ latest_summer.status }}</span>
+                {% else %}
+                    <span style="color:red;">{{ latest_summer.status }}</span>
+                {% endif %}
+            </p>
+        </div>
     </div>
+    {% endif %}
     
     <div class="actions-card">
       <div class="button-row">

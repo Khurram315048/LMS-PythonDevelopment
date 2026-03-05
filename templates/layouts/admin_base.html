@@ -51,12 +51,12 @@
                     <a href="#"><i class="fa-solid fa-user-graduate"></i> <span>Student Management</span> <i class="fa-solid fa-chevron-down sidebar-arrow"></i></a>
                     <ul class="submenu">
                         <li><a href="{{url_for('admin.register_student')}}"><i class="fa-solid fa-user-plus"></i> Register Student</a></li>
-                        <li><a href="manage_attendance.html"><i class="fa-solid fa-calendar-check"></i> Maintain Attendance</a></li>
-                        <li><a href="manage_grades.html"><i class="fa-solid fa-graduation-cap"></i> Maintain Grades</a></li>
-                        <li><a href="fee_management.html"><i class="fa-solid fa-dollar-sign"></i> Fee Management</a></li>
-                        <li><a href="course_registration.html"><i class="fa-solid fa-book-open"></i> Course Registration</a></li>
-                        <li><a href="semester_freeze.html"><i class="fa-solid fa-snowflake"></i> Semester Freeze</a></li>
-                        <li><a href="summer_semester.html"><i class="fa-solid fa-sun"></i> Summer Semester</a></li>
+                        <li><a href="{{url_for('admin.manage_attendance')}}"><i class="fa-solid fa-calendar-check"></i> Maintain Attendance</a></li>
+                        <li><a href="{{url_for('admin.manage_grades')}}"><i class="fa-solid fa-graduation-cap"></i> Maintain Grades</a></li>
+                        <li><a href="{{url_for('admin.fee_management')}}"><i class="fa-solid fa-dollar-sign"></i> Fee Management</a></li>
+                        <li><a href="{{url_for('admin.course_registration')}}"><i class="fa-solid fa-book-open"></i> Course Registration</a></li>
+                        <li><a href="{{url_for('admin.stSemester_freeze')}}"><i class="fa-solid fa-snowflake"></i> Semester Freeze</a></li>
+                        <li><a href="{{url_for('admin.stSummer_semester')}}"><i class="fa-solid fa-sun"></i> Summer Semester</a></li>
                     </ul>
                 </li>
                 <li class="has-submenu">

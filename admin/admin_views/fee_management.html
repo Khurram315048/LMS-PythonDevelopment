@@ -1,18 +1,21 @@
-{% extends "admin_base.html" %}
+{% extends "layouts/admin_base.html" %}
 {% block title %}Fee Management{% endblock %}
 {% block content %}
 <div class="page-header">
     <h2><i class="fa-solid fa-dollar-sign"></i> Fee Management</h2>
 </div>
+
 <div class="card mb-3">
     <div class="card-body">
-        <form method="GET" action="#" class="row g-3">
+        <form method="GET" action="{{ url_for('admin.fee_management') }}" class="row g-3">
             <div class="col-md-3">
                 <label class="form-label">Program</label>
                 <select class="form-select" name="program_id">
                     <option value="">All Programs</option>
                     {% for program in programs %}
-                    <option value="{{ program.program_id }}" {% if selected_program == program.program_id %}selected{% endif %}>{{ program.program_name }}</option>
+                    <option value="{{ program.program_id }}" {% if selected_program == program.program_id %}selected{% endif %}>
+                        {{ program.program_name }}
+                    </option>
                     {% endfor %}
                 </select>
             </div>
@@ -34,12 +37,16 @@
         </form>
     </div>
 </div>
+
 <div class="card">
-    <div class="card-header">
-        <h4>Fee Records</h4>
-        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addFeeModal">
-            <i class="fa-solid fa-plus"></i> Add Fee Record
-        </button>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">Fee Records</h4>
+        <div class="d-flex gap-2">
+            <input type="text" id="searchInput" class="form-control w-auto" placeholder="Search...">
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addFeeModal">
+                <i class="fa-solid fa-plus"></i> Add Fee Record
+            </button>
+        </div>
     </div>
     <div class="card-body">
         <table class="table table-bordered table-hover">
@@ -56,7 +63,7 @@
                     <th>Action</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="feeBody">
                 {% for fee in fees %}
                 <tr>
                     <td>{{ fee.student_fees_id }}</td>
@@ -74,14 +81,17 @@
                     <td>{{ fee.update_date }}</td>
                     <td>
                         {% if fee.voucher_front_pic %}
-                            <a href="{{ fee.voucher_front_pic }}" target="_blank" class="btn btn-sm btn-info">Front</a>
+                            <a href="{{ url_for('static', filename=fee.voucher_front_pic) }}" target="_blank" class="btn btn-sm btn-info">Front</a>
                         {% endif %}
                         {% if fee.voucher_back_pic %}
-                            <a href="{{ fee.voucher_back_pic }}" target="_blank" class="btn btn-sm btn-secondary">Back</a>
+                            <a href="{{ url_for('static', filename=fee.voucher_back_pic) }}" target="_blank" class="btn btn-sm btn-secondary">Back</a>
+                        {% endif %}
+                        {% if not fee.voucher_front_pic and not fee.voucher_back_pic %}
+                            <span class="text-muted">None</span>
                         {% endif %}
                     </td>
                     <td>
-                        <form method="POST" action="#" style="display:inline;">
+                        <form method="POST" action="{{ url_for('admin.update_fee_status') }}" style="display:inline;">
                             <input type="hidden" name="student_fees_id" value="{{ fee.student_fees_id }}">
                             <select name="fee_status" class="form-select form-select-sm d-inline w-auto">
                                 <option value="paid" {% if fee.fee_status == 'paid' %}selected{% endif %}>Paid</option>
@@ -92,6 +102,9 @@
                     </td>
                 </tr>
                 {% endfor %}
+                {% if not fees %}
+                <tr><td colspan="9" class="text-center text-muted">No fee records found.</td></tr>
+                {% endif %}
             </tbody>
         </table>
     </div>
@@ -105,10 +118,11 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form method="POST" action="#">
+                <form method="POST" action="{{ url_for('admin.add_fee_record') }}">
                     <div class="mb-3">
                         <label class="form-label">Student</label>
                         <select class="form-select" name="student_id" required>
+                            <option value="">Select Student</option>
                             {% for student in students %}
                             <option value="{{ student.student_id }}">{{ student.first_name }} {{ student.last_name }}</option>
                             {% endfor %}
@@ -117,6 +131,7 @@
                     <div class="mb-3">
                         <label class="form-label">Program</label>
                         <select class="form-select" name="program_id" required>
+                            <option value="">Select Program</option>
                             {% for program in programs %}
                             <option value="{{ program.program_id }}">{{ program.program_name }}</option>
                             {% endfor %}
@@ -143,4 +158,15 @@
         </div>
     </div>
 </div>
+
+{% block scripts %}
+<script>
+    document.getElementById('searchInput').addEventListener('keyup', function () {
+        const filter=this.value.toLowerCase();
+        document.querySelectorAll('#feeBody tr').forEach(row => {
+            row.style.display=row.textContent.toLowerCase().includes(filter) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %}

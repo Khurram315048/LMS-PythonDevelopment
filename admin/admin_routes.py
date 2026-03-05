@@ -306,5 +306,365 @@ def update_student():
     
     return redirect(url_for('admin.register_student'))    
 
+
+@admin.route('/manage_attendance', methods=['GET', 'POST'])
+@login_required
+def manage_attendance():
+    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    course_id=request.args.get('course_id', '')
+    section_id=request.args.get('section_id', '')
+    selected_date=request.args.get('date', '')
+    query='''
+        SELECT a.attendance_id, a.attendance_date, a.attendance_status,
+               s.first_name, s.last_name,
+               c.course_name,
+               sec.section_name
+        FROM attendance a
+        JOIN students s ON a.student_id=s.student_id
+        JOIN student_course sc ON a.student_course_id=sc.student_course_id
+        JOIN courses c ON sc.course_id=c.course_id
+        JOIN course_schedule cs ON a.course_schedule_id=cs.course_schedule_id
+        JOIN sections sec ON cs.section_id=sec.section_id
+        WHERE 1=1
+    '''
+    params=[]
+
+    if course_id:
+        query += ' AND c.course_id=%s'
+        params.append(course_id)
+    if section_id:
+        query += ' AND sec.section_id=%s'
+        params.append(section_id)
+    if selected_date:
+        query += ' AND a.attendance_date=%s'
+        params.append(selected_date)
+
+    query += ' ORDER BY a.attendance_date DESC'
+    cursor.execute(query, params)
+    attendance=cursor.fetchall()
+    cursor.execute('SELECT course_id, course_name FROM courses')
+    courses=cursor.fetchall()
+    cursor.execute('SELECT section_id, section_name FROM sections')
+    sections=cursor.fetchall()
+
+    return render_template('manage_attendance.html',
+                           attendance=attendance,
+                           courses=courses,
+                           sections=sections,
+                           selected_course=int(course_id) if course_id else '',
+                           selected_section=int(section_id) if section_id else '',
+                           selected_date=selected_date)   
+
+
+@admin.route('/update_attendance', methods=['POST'])
+@login_required
+def update_attendance():
+    cursor=mysql.connection.cursor()
+    attendance_id=request.form.get('attendance_id')
+    attendance_status=request.form.get('attendance_status')
+    cursor.execute('UPDATE attendance SET attendance_status=%s WHERE attendance_id=%s',
+                   (attendance_status,attendance_id))
+    mysql.connection.commit()
+    flash('Attendance updated.', 'success')
+    return redirect(url_for('admin.manage_attendance'))
+
+
+@admin.route('/manage_grades', methods=['GET'])
+@login_required
+def manage_grades():
+    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    program_id=request.args.get('program_id', '')
+    selected_semester=request.args.get('semester', '')
+
+    query= '''
+        SELECT sr.student_result_id, sr.student_id, sr.student_semester,
+               sr.overall_gpa, sr.result_status,
+               s.first_name, s.last_name
+        FROM student_results sr
+        JOIN students s ON sr.student_id=s.student_id
+        JOIN programs p ON s.program_id=p.program_id
+        WHERE 1=1
+    '''
+    params=[]
+
+    if program_id:
+        query += ' AND p.program_id = %s'
+        params.append(program_id)
+    if selected_semester:
+        query += ' AND sr.student_semester = %s'
+        params.append(selected_semester)
+
+    query += ' ORDER BY sr.student_semester ASC'
+    cursor.execute(query, params)
+    results=cursor.fetchall()
+
+    for result in results:
+        cursor.execute('''
+            SELECT srm.*, c.course_name
+            FROM student_result_marks srm
+            JOIN student_course sc ON srm.student_course_id = sc.student_course_id
+            JOIN courses c ON sc.course_id = c.course_id
+            WHERE srm.student_result_id = %s
+        ''', (result['student_result_id'],))
+        result['marks']=cursor.fetchall()
+
+    cursor.execute('SELECT program_id, program_name FROM programs')
+    programs=cursor.fetchall()
+
+    return render_template('manage_grades.html',
+                           results=results,
+                           programs=programs,
+                           selected_program=int(program_id) if program_id else '',
+                           selected_semester=selected_semester)
+
+
+@admin.route('/update_result',methods=['POST'])
+@login_required
+def update_result():
+    cursor=mysql.connection.cursor()
+    student_result_id=request.form.get('student_result_id')
+    overall_gpa=request.form.get('overall_gpa')
+    result_status=request.form.get('result_status')
+    cursor.execute('''
+        UPDATE student_results SET overall_gpa=%s, result_status=%s
+        WHERE student_result_id=%s
+    ''', (overall_gpa, result_status, student_result_id))
+    mysql.connection.commit()
+    flash('Result updated successfully.', 'success')
+    return redirect(url_for('admin.manage_grades'))    
+
+
+
+
+@admin.route('/fee_management', methods=['GET'])
+@login_required
+def fee_management():
+    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    program_id=request.args.get('program_id', '')
+    fee_status=request.args.get('fee_status', '')
+    selected_month=request.args.get('fee_month', '')
+
+    query='''
+        SELECT sf.*, p.program_name, s.first_name, s.last_name
+        FROM student_fees sf
+        JOIN students s ON sf.student_id=s.student_id
+        JOIN programs p ON sf.program_id=p.program_id
+        WHERE 1=1
+    '''
+    params = []
+
+    if program_id:
+        query += ' AND sf.program_id = %s'
+        params.append(program_id)
+    if fee_status:
+        query += ' AND sf.fee_status = %s'
+        params.append(fee_status)
+    if selected_month:
+        query += ' AND sf.fee_month = %s'
+        params.append(selected_month)
+
+    query += ' ORDER BY sf.update_date DESC'
+    cursor.execute(query, params)
+    fees = cursor.fetchall()
+
+    cursor.execute('SELECT program_id, program_name FROM programs')
+    programs=cursor.fetchall()
+
+    cursor.execute('SELECT student_id, first_name, last_name FROM students WHERE is_deleted=0')
+    students=cursor.fetchall()
+
+    return render_template('fee_management.html',
+                           fees=fees,
+                           programs=programs,
+                           students=students,
+                           selected_program=int(program_id) if program_id else '',
+                           selected_status=fee_status,
+                           selected_month=selected_month)
+
+
+@admin.route('/update_fee_status', methods=['POST'])
+@login_required
+def update_fee_status():
+    cursor=mysql.connection.cursor()
+    student_fees_id=request.form.get('student_fees_id')
+    fee_status=request.form.get('fee_status')
+    cursor.execute('UPDATE student_fees SET fee_status=%s WHERE student_fees_id=%s',
+                   (fee_status, student_fees_id))
+    mysql.connection.commit()
+    flash('Fee status updated.', 'success')
+    return redirect(url_for('admin.fee_management'))
+
+
+@admin.route('/add_fee_record', methods=['POST'])
+@login_required
+def add_fee_record():
+    cursor=mysql.connection.cursor()
+    student_id=request.form.get('student_id')
+    program_id=request.form.get('program_id')
+    fee_amount=request.form.get('fee_amount')
+    fee_month=request.form.get('fee_month')
+    fee_status=request.form.get('fee_status')
+    cursor.execute('''
+        INSERT INTO student_fees (student_id,program_id,fee_amount,fee_month,fee_status,update_date)
+        VALUES (%s,%s,%s,%s,%s, NOW())
+    ''', (student_id,program_id,fee_amount,fee_month,fee_status))
+    mysql.connection.commit()
+    flash('Fee record added.', 'success')
+    return redirect(url_for('admin.fee_management'))
+
+
+
+@admin.route('/course_registration', methods=['GET'])
+@login_required
+def course_registration():
+    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('''
+        SELECT sc.student_course_id, s.first_name, s.last_name, s.student_id,
+               c.course_name, p.program_name
+        FROM student_course sc
+        JOIN students s ON sc.student_id=s.student_id
+        JOIN courses c ON sc.course_id=c.course_id
+        JOIN programs p ON s.program_id=p.program_id
+        WHERE sc.is_deleted=%s
+    ''',(0,))
+    enrollments=cursor.fetchall()
+
+    cursor.execute('SELECT student_id, first_name, last_name FROM students WHERE is_deleted=%s',(0,))
+    students=cursor.fetchall()
+
+    cursor.execute('SELECT course_id,course_name FROM courses WHERE is_deleted=%s',(0,))
+    courses=cursor.fetchall()
+
+    return render_template('course_registration.html',
+                           enrollments=enrollments,
+                           students=students,
+                           courses=courses)
+
+
+
+@admin.route('/enroll_student', methods=['POST'])
+@login_required
+def enroll_student():
+    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    student_id=request.form.get('student_id')
+    course_id=request.form.get('course_id')
+    cursor.execute('SELECT * FROM student_course WHERE student_id=%s AND course_id=%s AND is_deleted=%s',
+                   (student_id,course_id,0,))
+    if cursor.fetchone():
+        flash('Student is already enrolled in this course.', 'warning')
+        return redirect(url_for('admin.course_registration'))
+
+    cursor.execute('INSERT INTO student_course (student_id,course_id) VALUES (%s,%s)',
+                   (student_id, course_id))
+    mysql.connection.commit()
+    flash('Student enrolled successfully.', 'success')
+    return redirect(url_for('admin.course_registration'))
+
+
+@admin.route('/remove_enrollment', methods=['POST'])
+@login_required
+def remove_enrollment():
+    cursor=mysql.connection.cursor()
+    student_course_id=request.form.get('student_course_id')
+    cursor.execute('UPDATE student_course SET is_deleted=%s WHERE student_course_id=%s',(1,student_course_id,))
+    mysql.connection.commit()
+    flash('Enrollment removed.','danger')
+    return redirect(url_for('admin.course_registration'))
+
+
+@admin.route('/stSemester_freeze', methods=['GET'])
+@login_required
+def stSemester_freeze():
+    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('''
+        SELECT sfr.freeze_id,sfr.semester,sfr.reason,sfr.status,sfr.applied_date,
+               s.first_name,s.last_name,s.student_id
+        FROM semester_freeze_students sfr
+        JOIN students s ON sfr.student_id=s.student_id
+    ''')
+    freeze_requests=cursor.fetchall()
+    return render_template('stSemester_freeze.html', freeze_requests=freeze_requests)
+
+
+@admin.route('/approve_request/<int:freeze_id>', methods=['POST'])
+@login_required
+def approve_request(freeze_id):
+    cursor=mysql.connection.cursor()
+    cursor.execute('UPDATE semester_freeze_students SET status=%s WHERE freeze_id=%s',
+                   ('Approved', freeze_id))
+    mysql.connection.commit()
+    flash('Request approved.', 'success')
+    return redirect(url_for('admin.stSemester_freeze'))
+
+
+@admin.route('/reject_request/<int:freeze_id>', methods=['POST'])
+@login_required
+def reject_request(freeze_id):
+    cursor=mysql.connection.cursor()
+    cursor.execute('UPDATE semester_freeze_students SET status=%s WHERE freeze_id=%s',
+                   ('Rejected', freeze_id))
+    mysql.connection.commit()
+    flash('Request rejected.', 'success')
+    return redirect(url_for('admin.stSemester_freeze'))
+         
+
+
+@admin.route('/stSummer_semester', methods=['GET'])
+@login_required
+def stSummer_semester():
+    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('SELECT * FROM summer_semesters ORDER BY year DESC, summer_semesters_id DESC')
+    summer_semesters=cursor.fetchall()
+
+    for sem in summer_semesters:
+        cursor.execute('''
+            SELECT s.first_name,s.last_name,c.course_name,sr.registration_date
+            FROM summer_registration sr
+            JOIN students s ON sr.student_id=s.student_id
+            JOIN courses c ON sr.course_id=c.course_id
+            WHERE sr.summer_semesters_id=%s
+        ''', (sem['summer_semesters_id'],))
+        sem['registrations']=cursor.fetchall()
+
+
+    cursor.execute('SELECT semester_id, name, year FROM semester ORDER BY year DESC')
+    semesters=cursor.fetchall()
+
+    return render_template('stSummer_semester.html',
+                           summer_semesters=summer_semesters,
+                           semesters=semesters)
+
+
+@admin.route('/add_summer_semester',methods=['POST'])
+@login_required
+def add_summer_semester():
+    cursor=mysql.connection.cursor()
+    name=request.form.get('name')
+    year=request.form.get('year')
+    start_date=request.form.get('start_date')
+    end_date=request.form.get('end_date')
+    status=request.form.get('status')
+    previous_semester_id=request.form.get('previous_semester_id') or None
+    cursor.execute('''
+        INSERT INTO summer_semesters (name,year,start_date,end_date,status,previous_semester_id)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    ''', (name,year,start_date,end_date,status,previous_semester_id))
+    mysql.connection.commit()
+    flash('Summer semester added successfully.', 'success')
+    return redirect(url_for('admin.stSummer_semester'))
+
+
+@admin.route('/delete_summer_semester', methods=['POST'])
+@login_required
+def delete_summer_semester():
+    cursor=mysql.connection.cursor()
+    summer_semesters_id=request.form.get('summer_semesters_id')
+    cursor.execute('DELETE FROM summer_semesters WHERE summer_semesters_id=%s', (summer_semesters_id,))
+    mysql.connection.commit()
+    flash('Summer semester deleted.', 'danger')
+    return redirect(url_for('admin.stSummer_semester'))       
+
         
 

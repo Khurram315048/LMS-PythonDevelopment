@@ -326,49 +326,53 @@ def semester_freeze():
         return redirect(url_for('student.student_login'))
     student = StudentModel.get_student_by_id(student_id)
     existing_request = StudentModel.get_active_semester_freeze_request(student_id)
-    if existing_request:
-        flash("⚠️ You have already applied for a semester freeze. Please wait for approval.", "info")
-        return render_template("semester_freeze.html", already_applied=True)
     semester = StudentModel.get_last_recorded_semester(student_id)
+    if existing_request:
+        return render_template('semester_freeze.html', existing_request=existing_request, already_applied=True, semester=semester)
     if request.method == 'POST':
         reason = request.form.get('reason')
         if not semester:
-            flash("No semester record found.", "warning")
+            flash('No semester record found.', 'warning')
             return redirect(url_for('student.semester_freeze'))
         StudentModel.add_semester_freeze_request(student_id, semester, reason)
-        flash("✅ Your semester freeze request has been submitted successfully!", "success")
+        flash('✅ Your semester freeze request has been submitted successfully!', 'success')
         return redirect(url_for('student.semester_freeze'))
-    return render_template("semester_freeze.html", semester=semester, student=student, already_applied=False)
+    return render_template('semester_freeze.html', semester=semester, student=student, already_applied=False)
 
 
 
 @student.route('/summer_semester')
 @login_required
 def summer_semester():
-    student_id = session.get('student_id')
+    student_id=session.get('student_id')
     if not student_id:
         return redirect(url_for('student.student_login'))
-    
-    student = StudentModel.get_student_by_id(student_id)
-    latest_summer = StudentModel.get_latest_summer_semester()
-    
-    selected_subjects = []
-    failed_subjects = []
-    can_register = False
-    
+
+    student=StudentModel.get_student_by_id(student_id)
+    latest_summer=StudentModel.get_latest_summer_semester()
+
+    selected_subjects=[]
+    failed_subjects=[]
+    can_register=False
+
     if latest_summer:
-        summer_id = latest_summer['summer_semesters_id']
-        selected_subjects = StudentModel.get_selected_summer_subjects(student_id, summer_id)
-        failed_subjects = StudentModel.get_eligible_summer_failed_subjects(student_id)
-        
-        if failed_subjects and len(selected_subjects) < len(failed_subjects):
+        summer_id=latest_summer['summer_semesters_id']
+        selected_subjects=StudentModel.get_selected_summer_subjects(student_id,summer_id)
+        failed_subjects=StudentModel.get_eligible_summer_failed_subjects(student_id)
+
+        if (failed_subjects and
+            len(selected_subjects) < len(failed_subjects) and
+            latest_summer.get('status') == 'Open'):
             can_register = True
-            
-    return render_template('summer_semester.html', 
-                           student=student, 
-                           selected=selected_subjects, 
+
+    return render_template('summer_semester.html',
+                           student=student,
+                           selected=selected_subjects,
                            can_register=can_register,
-                           failed_count=len(failed_subjects))
+                           failed_count=len(failed_subjects),
+                           latest_summer=latest_summer)
+    
+   
 
 
 @student.route("/summer_subjects", methods=["GET"])
@@ -424,13 +428,14 @@ def student_fyp():
     if session.get('role') != 'student':
         return redirect(url_for('main_view'))
     
-    student_id = session.get('student_id')
-    student_obj = StudentModel.get_student_by_id(student_id)
-    fyp_project = StudentModel.get_fyp_project(student_id)
-    messages_list = []
+    student_id=session.get('student_id')
+    student_obj=StudentModel.get_student_by_id(student_id)
+    fyp_project=StudentModel.get_fyp_project(student_id)
+    messages_list=[]
+    teacher_details=None
     if fyp_project:
-        messages_list = StudentModel.get_fyp_messages(fyp_project['fyp_id'])
-        teacher_details = StudentModel.get_teacher_full_details(fyp_project['teacher_id'])
+        messages_list=StudentModel.get_fyp_messages(fyp_project['fyp_id'])
+        teacher_details=StudentModel.get_teacher_full_details(fyp_project['teacher_id'])
     
     return render_template('student_fyp.html', 
                            student=student_obj, 

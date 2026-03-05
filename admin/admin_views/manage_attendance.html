@@ -1,18 +1,21 @@
-{% extends "admin_base.html" %}
+{% extends "layouts/admin_base.html" %}
 {% block title %}Maintain Attendance{% endblock %}
 {% block content %}
 <div class="page-header">
     <h2><i class="fa-solid fa-calendar-check"></i> Maintain Attendance</h2>
 </div>
+
 <div class="card mb-3">
     <div class="card-body">
-        <form method="GET" action="#" class="row g-3">
+        <form method="GET" action="{{ url_for('admin.manage_attendance') }}" class="row g-3">
             <div class="col-md-3">
                 <label class="form-label">Course</label>
                 <select class="form-select" name="course_id">
                     <option value="">All Courses</option>
                     {% for course in courses %}
-                    <option value="{{ course.course_id }}" {% if selected_course == course.course_id %}selected{% endif %}>{{ course.course_name }}</option>
+                    <option value="{{ course.course_id }}" {% if selected_course == course.course_id %}selected{% endif %}>
+                        {{ course.course_name }}
+                    </option>
                     {% endfor %}
                 </select>
             </div>
@@ -21,7 +24,9 @@
                 <select class="form-select" name="section_id">
                     <option value="">All Sections</option>
                     {% for section in sections %}
-                    <option value="{{ section.section_id }}" {% if selected_section == section.section_id %}selected{% endif %}>{{ section.section_name }}</option>
+                    <option value="{{ section.section_id }}" {% if selected_section == section.section_id %}selected{% endif %}>
+                        {{ section.section_name }}
+                    </option>
                     {% endfor %}
                 </select>
             </div>
@@ -35,9 +40,11 @@
         </form>
     </div>
 </div>
+
 <div class="card">
-    <div class="card-header">
-        <h4>Attendance Records</h4>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">Attendance Records</h4>
+        <input type="text" id="searchInput" class="form-control w-auto" placeholder="Search...">
     </div>
     <div class="card-body">
         <table class="table table-bordered table-hover">
@@ -52,7 +59,7 @@
                     <th>Action</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="attendanceBody">
                 {% for record in attendance %}
                 <tr>
                     <td>{{ record.attendance_id }}</td>
@@ -68,7 +75,7 @@
                         {% endif %}
                     </td>
                     <td>
-                        <form method="POST" action="#" style="display:inline;">
+                        <form method="POST" action="{{ url_for('admin.update_attendance') }}" style="display:inline;">
                             <input type="hidden" name="attendance_id" value="{{ record.attendance_id }}">
                             <select name="attendance_status" class="form-select form-select-sm d-inline w-auto">
                                 <option value="Present" {% if record.attendance_status == 'Present' %}selected{% endif %}>Present</option>
@@ -79,8 +86,22 @@
                     </td>
                 </tr>
                 {% endfor %}
+                {% if not attendance %}
+                <tr><td colspan="7" class="text-center text-muted">No records found.</td></tr>
+                {% endif %}
             </tbody>
         </table>
     </div>
 </div>
+
+{% block scripts %}
+<script>
+    document.getElementById('searchInput').addEventListener('keyup', function () {
+        const filter=this.value.toLowerCase();
+        document.querySelectorAll('#attendanceBody tr').forEach(row => {
+            row.style.display=row.textContent.toLowerCase().includes(filter) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %}

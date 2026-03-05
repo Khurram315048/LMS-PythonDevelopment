@@ -199,6 +199,13 @@ def fyp_management():
     return render_template('fyp_management.html', fyp_data=groups, **stats)
 
 
+@teacher.route('/approve_fyp/<int:fyp_id>/<string:status>')
+@login_required
+def approve_fyp(fyp_id, status):
+    TeacherModel.update_fyp_status(fyp_id, status)
+    flash(f'FYP {status} successfully.', 'success')
+    return redirect(url_for('teacher.fyp_management'))
+    
 
 @teacher.route('/send_message/<int:fyp_id>', methods=['POST'])
 @login_required
