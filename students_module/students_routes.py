@@ -208,14 +208,26 @@ def view_grades():
 @student.route('/course_registeration')
 @login_required
 def course_registeration():
-    student_id = session.get('student_id')
+    student_id=session.get('student_id')
     if not student_id:
         return redirect(url_for('student.student_login'))
-    improvements = StudentModel.get_improvement_subjects(student_id)
-    retakes = StudentModel.get_retake_subjects(student_id)
-    selected = improvements + retakes
-    student = StudentModel.get_student_by_id(student_id)
-    return render_template('course_registeration.html', student=student, selected=selected)
+
+    student=StudentModel.get_student_by_id(student_id)
+    is_reg_open=StudentModel.get_system_setting('is_course_reg_open')
+
+    if str(is_reg_open) != '1':
+        return render_template('course_registeration.html',
+                               student=student,
+                               reg_closed=True,
+                               latest_summer=None,
+                               selected=[],
+                               can_register=False,
+                               failed_count=0)
+    
+    improvements=StudentModel.get_improvement_subjects(student_id)
+    retakes=StudentModel.get_retake_subjects(student_id)
+    selected=improvements + retakes
+    return render_template('course_registeration.html',student=student,selected=selected)
 
 
 @student.route('/improvement_subject')
@@ -340,26 +352,34 @@ def semester_freeze():
     return render_template('semester_freeze.html', semester=semester, student=student, already_applied=False)
 
 
-
 @student.route('/summer_semester')
 @login_required
 def summer_semester():
-    student_id=session.get('student_id')
+    student_id = session.get('student_id')
     if not student_id:
         return redirect(url_for('student.student_login'))
 
     student=StudentModel.get_student_by_id(student_id)
-    latest_summer=StudentModel.get_latest_summer_semester()
+    is_summer_open=StudentModel.get_system_setting('is_summer_app_open')
 
+    if str(is_summer_open) != '1':
+        return render_template('summer_semester.html',
+                               student=student,
+                               summer_closed=True,
+                               latest_summer=None,
+                               selected=[],
+                               can_register=False,
+                               failed_count=0)
+
+    latest_summer=StudentModel.get_latest_summer_semester()
     selected_subjects=[]
     failed_subjects=[]
     can_register=False
 
     if latest_summer:
         summer_id=latest_summer['summer_semesters_id']
-        selected_subjects=StudentModel.get_selected_summer_subjects(student_id,summer_id)
+        selected_subjects=StudentModel.get_selected_summer_subjects(student_id, summer_id)
         failed_subjects=StudentModel.get_eligible_summer_failed_subjects(student_id)
-
         if (failed_subjects and
             len(selected_subjects) < len(failed_subjects) and
             latest_summer.get('status') == 'Open'):
@@ -370,7 +390,10 @@ def summer_semester():
                            selected=selected_subjects,
                            can_register=can_register,
                            failed_count=len(failed_subjects),
-                           latest_summer=latest_summer)
+                           latest_summer=latest_summer,
+                           summer_closed=False)
+
+   
     
    
 

@@ -7,6 +7,16 @@
     <title>Student-Course-Registeration</title>
   </head>
   <div class="container">
+    {% if reg_closed %}
+      <div class="subject-card">
+          <div class="subject-list text-center" style="padding: 30px;">
+              <i class="fa-solid fa-ban fa-3x" style="color:red; margin-bottom:10px;"></i>
+              <h4 style="color:red;">Course Registration Applications Closed</h4>
+              <p style="color:grey;">Course registration is currently not available. Please check back later or contact the admin.</p>
+          </div>
+      </div>
+
+    {% else %}
     <div class="profile-card">
         {% if student %}
       <h3>{{ student.first_name }} {{ student.last_name }}</h3>
@@ -49,6 +59,9 @@
     {% endif %}
   </div>
 </div>
+  {% endif %}
+
+  </div>
 
 
 {% endblock %}

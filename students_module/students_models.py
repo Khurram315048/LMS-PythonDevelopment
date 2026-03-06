@@ -620,23 +620,28 @@ class StudentModel:
         subjects = cursor.fetchall()
         cursor.close()
         return subjects
-    
+
+        
+    @staticmethod
+    def get_system_setting(key):
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('SELECT setting_value FROM system_settings WHERE setting_key=%s', (key,))
+        result = cursor.fetchone()
+        cursor.close()
+        return result['setting_value'] if result else None
 
     @staticmethod
     def add_summer_subject(student_id, course_id, summer_semester_id):
-        cursor = mysql.connection.cursor()
-        cursor.execute("SELECT * FROM summer_registration WHERE student_id=%s AND course_id=%s AND summer_semesters_id=%s", 
-                       (student_id, course_id, summer_semester_id))
+        cursor=mysql.connection.cursor()
+        cursor.execute('SELECT * FROM summer_registration WHERE student_id=%s AND course_id=%s AND summer_semesters_id=%s',
+                   (student_id, course_id, summer_semester_id))
         if cursor.fetchone():
             cursor.close()
             return False
-
-        query = """
-            INSERT INTO summer_registration
-            (student_id, course_id, summer_semesters_id, registration_date)
+        cursor.execute('''
+            INSERT INTO summer_registration (student_id, course_id, summer_semesters_id, registration_date)
             VALUES (%s, %s, %s, NOW())
-        """
-        cursor.execute(query, (student_id, course_id, summer_semester_id))
+            ''', (student_id, course_id, summer_semester_id))
         mysql.connection.commit()
         cursor.close()
         return True
