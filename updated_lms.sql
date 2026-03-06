@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Mar 04, 2026 at 03:37 PM
+-- Generation Time: Mar 06, 2026 at 07:07 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -63,9 +63,9 @@ CREATE TABLE `attendance` (
 --
 
 INSERT INTO `attendance` (`attendance_id`, `student_course_id`, `course_schedule_id`, `attendance_date`, `attendance_status`, `student_id`) VALUES
-(1, 2, 3, '2025-12-31', 'Present', 3),
-(2, 3, 4, '2025-12-31', 'Present', 4),
-(3, 2, 3, '2026-02-04', 'Present', 3),
+(1, 2, 3, '2025-12-31', 'Absent', 3),
+(2, 3, 4, '2025-12-31', 'Absent', 4),
+(3, 2, 3, '2026-02-04', 'Absent', 3),
 (4, 2, 3, '2026-02-04', 'Present', 3),
 (5, 3, 4, '2026-02-04', 'Present', 4),
 (6, 2, 3, '2026-03-04', 'Absent', 3),
@@ -110,20 +110,21 @@ CREATE TABLE `courses` (
   `credit_hours` varchar(50) DEFAULT NULL,
   `no_of_lectures` varchar(50) DEFAULT NULL,
   `assignments_enabled` tinyint(1) DEFAULT 1,
-  `quizzes_enabled` tinyint(1) DEFAULT 1
+  `quizzes_enabled` tinyint(1) DEFAULT 1,
+  `is_deleted` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `courses`
 --
 
-INSERT INTO `courses` (`course_id`, `course_name`, `course_type`, `program_id`, `credit_hours`, `no_of_lectures`, `assignments_enabled`, `quizzes_enabled`) VALUES
-(1, 'Introduction to Computing', 'Regular', 1, '3', '17', 1, 1),
-(2, 'Programming Fundamentals', 'Regular', 1, '4', '19', 1, 1),
-(3, 'IT Infrastructure', 'Regular', 2, '3', '12', 1, 1),
-(4, 'Network Administration', 'Regular', 2, '3', '19', 1, 1),
-(5, 'Introduction to AI', 'Regular', 3, '3', '22', 1, 1),
-(6, 'Machine Learning', 'Regular', 3, '4', '20', 1, 1);
+INSERT INTO `courses` (`course_id`, `course_name`, `course_type`, `program_id`, `credit_hours`, `no_of_lectures`, `assignments_enabled`, `quizzes_enabled`, `is_deleted`) VALUES
+(1, 'Introduction to Computing', 'Regular', 1, '3', '17', 1, 1, 0),
+(2, 'Programming Fundamentals', 'Regular', 1, '4', '19', 1, 1, 0),
+(3, 'IT Infrastructure', 'Regular', 2, '3', '12', 1, 1, 0),
+(4, 'Network Administration', 'Regular', 2, '3', '19', 1, 1, 0),
+(5, 'Introduction to AI', 'Regular', 3, '3', '22', 1, 1, 0),
+(6, 'Machine Learning', 'Regular', 3, '4', '20', 1, 1, 0);
 
 -- --------------------------------------------------------
 
@@ -175,7 +176,8 @@ CREATE TABLE `fyp_groups` (
 
 INSERT INTO `fyp_groups` (`fyp_id`, `project_title`, `description`, `teacher_id`, `student_id`, `status`, `progress`, `last_submission`, `created_at`) VALUES
 (1, 'testing updation of fyp again again2', 'aaaabscs', 1, 2, 'Approved', 0, 'uploads/students_uploads/students_fyp_proposal/SID_2_PROJECT_REPORT-osama-new.pdf', '2026-01-27 06:49:29'),
-(2, 'Huzaifa Title pr', 'i am again checking the project ', 1, 3, 'Approved', 0, 'uploads/students_uploads/students_fyp_proposal/SID_3_portfolio-cv.pdf', '2026-01-27 08:44:04');
+(2, 'Huzaifa Title pr', 'i am again checking the project ', 1, 3, 'Approved', 0, 'uploads/students_uploads/students_fyp_proposal/SID_3_portfolio-cv.pdf', '2026-01-27 08:44:04'),
+(3, 'Developing LMS -Python-Flask-SQL', 'I want to develop the LMS of my University but with python flask and sqlalchemy.', 1, 5, 'Pending Approval', 0, 'uploads/students_uploads/students_fyp_proposal/SID_5_COA_CCP_sol.pdf', '2026-03-05 06:19:33');
 
 -- --------------------------------------------------------
 
@@ -303,9 +305,17 @@ CREATE TABLE `semester_freeze_students` (
   `student_id` int(11) NOT NULL,
   `semester` int(11) NOT NULL,
   `reason` text NOT NULL,
-  `status` enum('Pending') DEFAULT 'Pending',
-  `applied_date` datetime DEFAULT current_timestamp()
+  `status` enum('Pending','Approved','Rejected') DEFAULT 'Pending',
+  `applied_date` datetime DEFAULT current_timestamp(),
+  `is_deleted` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `semester_freeze_students`
+--
+
+INSERT INTO `semester_freeze_students` (`freeze_id`, `student_id`, `semester`, `reason`, `status`, `applied_date`, `is_deleted`) VALUES
+(1, 3, 5, 'I am checking the semester freeze routes and methods for admin', 'Approved', '2026-03-05 13:36:02', 0);
 
 -- --------------------------------------------------------
 
@@ -348,18 +358,20 @@ INSERT INTO `students` (`student_id`, `user_id`, `first_name`, `last_name`, `con
 CREATE TABLE `student_course` (
   `student_course_id` int(11) NOT NULL,
   `student_id` int(11) NOT NULL,
-  `course_id` int(11) NOT NULL
+  `course_id` int(11) NOT NULL,
+  `is_deleted` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `student_course`
 --
 
-INSERT INTO `student_course` (`student_course_id`, `student_id`, `course_id`) VALUES
-(1, 2, 1),
-(2, 3, 1),
-(3, 4, 1),
-(4, 5, 1);
+INSERT INTO `student_course` (`student_course_id`, `student_id`, `course_id`, `is_deleted`) VALUES
+(1, 2, 1, 0),
+(2, 3, 1, 0),
+(3, 4, 1, 0),
+(4, 5, 1, 0),
+(5, 7, 3, 0);
 
 -- --------------------------------------------------------
 
@@ -399,7 +411,8 @@ CREATE TABLE `student_fees` (
 
 INSERT INTO `student_fees` (`student_fees_id`, `fee_amount`, `fee_status`, `update_date`, `voucher_front_pic`, `voucher_back_pic`, `program_id`, `fee_month`, `student_id`) VALUES
 (1, 18708.00, 'paid', '2025-12-31 09:10:20', 'uploads/students_uploads/voucher_pics/student_4_front_contact.PNG', 'uploads/students_uploads/voucher_pics/student_4_back_prj.PNG', 1, 'December', 4),
-(2, 68102.00, 'due', '2026-03-02 11:44:13', 'uploads/students_uploads/voucher_pics/student_2_front_dep_view.PNG', 'uploads/students_uploads/voucher_pics/student_2_back_students_view.PNG', 1, 'January', 2);
+(2, 68102.00, 'paid', '2026-03-05 07:08:03', 'uploads/students_uploads/voucher_pics/student_2_front_dep_view.PNG', 'uploads/students_uploads/voucher_pics/student_2_back_students_view.PNG', 1, 'January', 2),
+(3, 18708.00, 'paid', '2026-03-05 07:08:31', NULL, NULL, 4, 'December', 5);
 
 -- --------------------------------------------------------
 
@@ -414,6 +427,14 @@ CREATE TABLE `student_improvement` (
   `status` varchar(50) DEFAULT 'Pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `student_improvement`
+--
+
+INSERT INTO `student_improvement` (`improvement_id`, `student_id`, `course_id`, `status`, `created_at`) VALUES
+(1, 2, 1, 'Pending', '2026-03-05 07:56:29'),
+(2, 3, 4, 'Pending', '2026-03-05 07:57:05');
 
 -- --------------------------------------------------------
 
@@ -434,7 +455,7 @@ CREATE TABLE `student_results` (
 --
 
 INSERT INTO `student_results` (`student_result_id`, `student_id`, `student_semester`, `overall_gpa`, `result_status`) VALUES
-(2, 2, '5', 1.27, 'Pass'),
+(2, 2, '5', 1.27, 'Fail'),
 (3, 3, '5', 3.70, 'Pass'),
 (4, 5, '5', 3.20, 'Pass'),
 (5, 4, '5', 3.10, 'Pass');
@@ -537,6 +558,14 @@ CREATE TABLE `summer_registration` (
   `registration_date` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `summer_registration`
+--
+
+INSERT INTO `summer_registration` (`registration_id`, `student_id`, `course_id`, `summer_semesters_id`, `registration_date`) VALUES
+(1, 2, 2, 1, '2026-03-05 10:23:25'),
+(2, 3, 4, 2, '2026-03-05 11:02:18');
+
 -- --------------------------------------------------------
 
 --
@@ -553,6 +582,14 @@ CREATE TABLE `summer_semesters` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `status` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `summer_semesters`
+--
+
+INSERT INTO `summer_semesters` (`summer_semesters_id`, `name`, `year`, `start_date`, `end_date`, `previous_semester_id`, `created_at`, `status`) VALUES
+(1, 'Winter', '2026', '2026-03-05', '2026-03-06', 1, '2026-03-05 10:22:54', 'Open'),
+(2, 'Summer', '2026', '2026-04-05', '2026-07-05', 1, '2026-03-05 10:25:17', 'Open');
 
 -- --------------------------------------------------------
 
@@ -922,7 +959,7 @@ ALTER TABLE `course_schedule`
 -- AUTO_INCREMENT for table `fyp_groups`
 --
 ALTER TABLE `fyp_groups`
-  MODIFY `fyp_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `fyp_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `fyp_messages`
@@ -958,7 +995,7 @@ ALTER TABLE `semester`
 -- AUTO_INCREMENT for table `semester_freeze_students`
 --
 ALTER TABLE `semester_freeze_students`
-  MODIFY `freeze_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `freeze_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `students`
@@ -970,7 +1007,7 @@ ALTER TABLE `students`
 -- AUTO_INCREMENT for table `student_course`
 --
 ALTER TABLE `student_course`
-  MODIFY `student_course_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `student_course_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `student_fail_subjects`
@@ -982,13 +1019,13 @@ ALTER TABLE `student_fail_subjects`
 -- AUTO_INCREMENT for table `student_fees`
 --
 ALTER TABLE `student_fees`
-  MODIFY `student_fees_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `student_fees_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `student_improvement`
 --
 ALTER TABLE `student_improvement`
-  MODIFY `improvement_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `improvement_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `student_results`
@@ -1012,13 +1049,13 @@ ALTER TABLE `student_submissions`
 -- AUTO_INCREMENT for table `summer_registration`
 --
 ALTER TABLE `summer_registration`
-  MODIFY `registration_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `registration_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `summer_semesters`
 --
 ALTER TABLE `summer_semesters`
-  MODIFY `summer_semesters_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `summer_semesters_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `teachers`
