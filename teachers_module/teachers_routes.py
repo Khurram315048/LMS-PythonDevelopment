@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import check_password_hash
-from utils.auth import login_required
+from utils.auth import login_required ,teacher_required
 from .teachers_models import TeacherModel  
 import datetime
 
@@ -30,7 +30,7 @@ def teacher_login():
 
 
 @teacher.route('/teacher_profile')
-@login_required
+@teacher_required
 def teacher_profile():
     if session.get('role') != 'teacher': 
         return redirect(url_for('main_view'))
@@ -41,7 +41,7 @@ def teacher_profile():
 
 
 @teacher.route('/teacher_dashboard')
-@login_required
+@teacher_required
 def teacher_dashboard():
     if session.get('role') != 'teacher':
         return redirect(url_for('main_view'))
@@ -60,7 +60,7 @@ def teacher_dashboard():
 
 
 @teacher.route("/class_attendance")
-@login_required
+@teacher_required
 def class_attendance():
     tid = session.get('teacher_id')
     today = datetime.datetime.now().strftime('%A')
@@ -76,7 +76,7 @@ def class_attendance():
 
 
 @teacher.route("/marked_attendance/<int:section_id>", methods=['GET', 'POST'])
-@login_required
+@teacher_required
 def marked_attendance(section_id):
     meta = TeacherModel.get_attendance_meta(section_id)
     if not meta: 
@@ -117,7 +117,7 @@ def marked_attendance(section_id):
 
 
 @teacher.route("/class_structure/<int:section_id>")
-@login_required
+@teacher_required
 def class_structure(section_id):
     info = TeacherModel.get_class_structure(section_id)
     return render_template('class_structure.html', class_info=info)
@@ -125,7 +125,7 @@ def class_structure(section_id):
 
 
 @teacher.route("/generate_result/<int:section_id>", methods=['GET', 'POST'])
-@login_required
+@teacher_required
 def generate_result(section_id):
     details = TeacherModel.get_attendance_meta(section_id) 
     
@@ -178,7 +178,7 @@ def generate_result(section_id):
 
 
 @teacher.route('/fyp_management')
-@login_required
+@teacher_required
 def fyp_management():
     tid = session.get('teacher_id')
     groups = TeacherModel.get_fyp_groups(tid)
@@ -200,7 +200,7 @@ def fyp_management():
 
 
 @teacher.route('/approve_fyp/<int:fyp_id>/<string:status>')
-@login_required
+@teacher_required
 def approve_fyp(fyp_id, status):
     TeacherModel.update_fyp_status(fyp_id, status)
     flash(f'FYP {status} successfully.', 'success')
@@ -208,7 +208,7 @@ def approve_fyp(fyp_id, status):
     
 
 @teacher.route('/send_message/<int:fyp_id>', methods=['POST'])
-@login_required
+@teacher_required
 def send_message(fyp_id):
     if session.get('role') != 'teacher': 
         return redirect(url_for('main_view'))
@@ -220,7 +220,7 @@ def send_message(fyp_id):
 
 
 @teacher.route("/view_submissions/<int:section_id>/<string:sub_type>")
-@login_required
+@teacher_required
 def view_submissions(section_id, sub_type):
     subs, meta = TeacherModel.get_submissions_by_type(section_id, sub_type)
     title = f"{meta['course_name']} ({meta['section_name']})" if meta else "Submissions"
@@ -234,7 +234,7 @@ def view_submissions(section_id, sub_type):
 
 
 @teacher.route("/mark_submission/<int:submission_id>", methods=['POST'])
-@login_required
+@teacher_required
 def mark_submission(submission_id):
     marks = request.form.get('marks')
     total = request.form.get('total_marks')
@@ -248,7 +248,7 @@ def mark_submission(submission_id):
 
 
 @teacher.route("/toggle_upload/<int:section_id>/<string:upload_type>", methods=['POST'])
-@login_required
+@teacher_required
 def toggle_upload(section_id, upload_type):
     if session.get('role') != 'teacher':
         return redirect(url_for('main_view'))
@@ -260,7 +260,7 @@ def toggle_upload(section_id, upload_type):
 
 
 @teacher.route('/complaint_suggestion', methods=['GET', 'POST'])
-@login_required
+@teacher_required
 def complaint_suggestion():
     if request.method == 'POST':
         title = request.form['title']

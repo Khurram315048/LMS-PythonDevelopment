@@ -1,11 +1,16 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, abort, current_app
-from utils.auth import login_required
+from utils.auth import login_required,student_required
 from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
 from students_module.students_models import UserModel, StudentModel, NotificationModel
 import os
 from utils.db import mysql 
 from datetime import datetime
+
+ALLOWED_EXTENSIONS={'pdf'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 student=Blueprint('student', __name__, template_folder='students_views')
 
@@ -34,7 +39,7 @@ def student_login():
 
 
 @student.route('/student_base', methods=['GET'])
-@login_required
+@student_required
 def base():
     if session.get('role') != 'student':
         return redirect(url_for('main_view'))
@@ -43,7 +48,7 @@ def base():
 
 
 @student.route('/student_profile', methods=['GET', 'POST'])
-@login_required
+@student_required
 def student_profile():
     if session.get('role') != 'student':
         return redirect(url_for('main_view'))
@@ -56,7 +61,7 @@ def student_profile():
 
 
 @student.route('/student_dashboard', methods=['GET', 'POST'])
-@login_required
+@student_required
 def student_dashboard():
     if session.get('role') != 'student':
         return redirect(url_for('main_view'))
@@ -90,7 +95,7 @@ def student_dashboard():
 
 
 @student.route('/student_fee', methods=['GET', 'POST'])
-@login_required
+@student_required
 def student_fee():
     if session.get('role') != 'student':
         return redirect(url_for('main_view'))
@@ -102,7 +107,7 @@ def student_fee():
 
 
 @student.route('/complaint_suggestion', methods=['GET', 'POST'])
-@login_required
+@student_required
 def complaint_suggestion():
     if request.method == 'POST':
         title = request.form['title']
@@ -114,7 +119,7 @@ def complaint_suggestion():
 
 
 @student.route('/notifications', methods=['GET', 'POST'])
-@login_required
+@student_required
 def notifications():
     user_id=session['user_id']
     complaint_status=StudentModel.get_complaint_status(user_id)
@@ -122,7 +127,7 @@ def notifications():
 
 
 @student.route('/upload_fee', methods=['GET', 'POST'])
-@login_required
+@student_required
 def upload_fee():
     student_id = session['student_id']
     if request.method == 'POST':
@@ -153,7 +158,7 @@ def upload_fee():
 
 
 @student.route('/view_attendence', methods=['GET', 'POST'])
-@login_required
+@student_required
 def view_attendence():
     cursor=mysql.connection.cursor()
     student_id=session.get('student_id')
@@ -193,7 +198,7 @@ def view_attendence():
     
 
 @student.route('/view_grades', methods=['GET', 'POST'])
-@login_required
+@student_required
 def view_grades():
     student_id = session['student_id']
     student_details = StudentModel.get_student_by_id(student_id)
@@ -206,7 +211,7 @@ def view_grades():
 
 
 @student.route('/course_registeration')
-@login_required
+@student_required
 def course_registeration():
     student_id=session.get('student_id')
     if not student_id:
@@ -231,7 +236,7 @@ def course_registeration():
 
 
 @student.route('/improvement_subject')
-@login_required
+@student_required
 def improvement_subject():
     student_id = session.get('student_id')
     if not student_id:
@@ -250,7 +255,7 @@ def improvement_subject():
 
 
 @student.route('/delete_improvement/<int:improvement_id>', methods=['POST'])
-@login_required
+@student_required
 def delete_improvement(improvement_id):
     StudentModel.delete_improvement_subject(improvement_id)
     flash("Improvement subject removed successfully. You can now select a new one.", "success")
@@ -259,7 +264,7 @@ def delete_improvement(improvement_id):
 
 
 @student.route('/student/select_improvement/<int:course_id>', methods=['POST'])
-@login_required
+@student_required
 def select_improvement(course_id):
     student_id = session.get('student_id')
     cid = request.form.get('course_id', course_id)
@@ -277,14 +282,14 @@ def select_improvement(course_id):
 
 
 @student.route('/help_desk', methods=['GET', 'POST'])
-@login_required
+@student_required
 def help_desk():
     return render_template('help_desk.html')
 
 
 
 @student.route('/fail_subjects')
-@login_required
+@student_required
 def fail_subjects():
     student_id = session.get('student_id')
     if not student_id:
@@ -303,7 +308,7 @@ def fail_subjects():
 
 
 @student.route('/student/select_fail/<int:course_id>', methods=['POST'])
-@login_required
+@student_required
 def select_fail(course_id):
     student_id = session.get('student_id')
     cid = request.form.get('course_id', course_id)
@@ -321,7 +326,7 @@ def select_fail(course_id):
 
 
 @student.route('/delete_fail/<int:fail_id>', methods=['POST'])
-@login_required
+@student_required
 def delete_fail(fail_id):
     student_id = session.get('student_id')
     StudentModel.delete_fail_subject(fail_id, student_id)
@@ -331,7 +336,7 @@ def delete_fail(fail_id):
 
 
 @student.route('/semester_freeze', methods=['GET', 'POST'])
-@login_required
+@student_required
 def semester_freeze():
     student_id = session.get('student_id')
     if not student_id:
@@ -353,7 +358,7 @@ def semester_freeze():
 
 
 @student.route('/summer_semester')
-@login_required
+@student_required
 def summer_semester():
     student_id = session.get('student_id')
     if not student_id:
@@ -399,7 +404,7 @@ def summer_semester():
 
 
 @student.route("/summer_subjects", methods=["GET"])
-@login_required
+@student_required
 def summer_subjects():
     student_id = session.get("student_id")  
     latest_summer = StudentModel.get_latest_summer_semester()
@@ -417,7 +422,7 @@ def summer_subjects():
 
 
 @student.route("/select_summer_subject/<int:subject_id>", methods=["POST"])
-@login_required
+@student_required
 def select_summer_subject(subject_id):
     student_id = session.get('student_id')
     summer_semester = StudentModel.get_latest_summer_semester()
@@ -433,7 +438,7 @@ def select_summer_subject(subject_id):
 
 
 @student.route("/delete_summer_subject/<int:subject_id>", methods=["POST"])
-@login_required
+@student_required
 def delete_summer_subject(subject_id):
     student_id = session.get('student_id')
     summer_semester = StudentModel.get_latest_summer_semester()
@@ -446,7 +451,7 @@ def delete_summer_subject(subject_id):
 
 
 @student.route('/student_fyp', methods=['GET'])
-@login_required
+@student_required
 def student_fyp():
     if session.get('role') != 'student':
         return redirect(url_for('main_view'))
@@ -468,7 +473,7 @@ def student_fyp():
 
 
 @student.route('/submit_fyp', methods=['POST'])
-@login_required
+@student_required
 def submit_fyp():
     if session.get('role') != 'student':
         return redirect(url_for('main_view'))
@@ -491,10 +496,14 @@ def submit_fyp():
     db_file_path = None
 
     if file and file.filename != '':
-        filename = secure_filename(file.filename)
-        unique_name = f"SID_{student_id}_{filename}"
-        file.save(os.path.join(upload_folder, unique_name))
-        db_file_path = f"uploads/students_uploads/students_fyp_proposal/{unique_name}"
+        if not allowed_file(file.filename):
+            flash('Only PDF files are allowed.', 'danger')
+            return redirect(request.url)
+    
+    filename=secure_filename(file.filename)
+    unique_name=f"SID_{student_id}_{filename}"
+    file.save(os.path.join(upload_folder, unique_name))
+    db_file_path=f"uploads/students_uploads/students_fyp_proposal/{unique_name}"
 
     try:
         StudentModel.insert_fyp_proposal(student_id, title, description, teacher_id, db_file_path)
@@ -512,18 +521,22 @@ def send_fyp_message(fyp_id):
     if session.get('role') != 'student':
         return redirect(url_for('main_view'))
 
-    message_text = request.form.get('message')
-    student_id = session.get('student_id')
-    
+    student_id=session.get('student_id')
+    fyp=StudentModel.get_fyp_by_id_and_student(fyp_id, student_id)
+    if not fyp:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('student.student_fyp'))
+
+    message_text=request.form.get('message')
     if message_text and message_text.strip():
-        StudentModel.insert_fyp_message(fyp_id, student_id, 'student', message_text)
+        StudentModel.insert_fyp_message(fyp_id, student_id,'student',message_text)
         
     return redirect(url_for('student.student_fyp'))
 
 
 
 @student.route('/update_fyp', methods=['POST'])
-@login_required
+@student_required
 def update_fyp():
     if session.get('role') != 'student':
         return redirect(url_for('main_view'))
@@ -536,10 +549,14 @@ def update_fyp():
     upload_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'students_uploads', 'students_fyp_proposal')
     
     if file and file.filename != '':
-        filename = secure_filename(file.filename)
-        unique_name = f"SID_{student_id}_{filename}"
-        file.save(os.path.join(upload_folder, unique_name))
-        db_file_path = f"uploads/students_uploads/students_fyp_proposal/{unique_name}"
+        if not allowed_file(file.filename):
+            flash('Only PDF files are allowed.', 'danger')
+            return redirect(request.url)
+    
+    filename=secure_filename(file.filename)
+    unique_name=f"SID_{student_id}_{filename}"
+    file.save(os.path.join(upload_folder, unique_name))
+    db_file_path = f"uploads/students_uploads/students_fyp_proposal/{unique_name}"
     
     
     StudentModel.update_fyp_data(student_id, title, db_file_path)
@@ -549,7 +566,7 @@ def update_fyp():
 
 
 @student.route('/upload_submission', methods=['POST'])
-@login_required
+@student_required
 def upload_submission():
     student_id = session.get('student_id')
     course_id = request.form.get('course_id')
@@ -580,7 +597,7 @@ def upload_submission():
 
 
 @student.route('/my_submissions')
-@login_required
+@student_required
 def my_submissions():
     student_id = session.get('student_id')
     courses = StudentModel.get_enrolled_courses_by_student_id(student_id)

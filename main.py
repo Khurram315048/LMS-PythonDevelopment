@@ -6,6 +6,7 @@ from utils.auth import login_required
 from students_module.students_routes import student
 from teachers_module.teachers_routes import teacher
 from admin.admin_routes import admin
+from werkzeug.exceptions import RequestEntityTooLarge
 
 from config import *
 import os
@@ -30,8 +31,10 @@ app.register_blueprint(student)
 app.register_blueprint(teacher)
 app.register_blueprint(admin)
 
+app.config['MAX_CONTENT_LENGTH']=5 * 1024 * 1024
 
 EMAIL_PATTERN=r'^[a-zA-Z0-9._%+-]+@gmail\.com$'
+
 
 @app.route('/main_view', methods=['GET', 'POST'])  
 def main_view():

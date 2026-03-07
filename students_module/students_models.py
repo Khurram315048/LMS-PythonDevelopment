@@ -34,7 +34,7 @@ class StudentModel:
     @staticmethod
     def get_student_by_id(student_id):
         cursor = mysql.connection.cursor()
-        cursor.execute('SELECT * FROM students WHERE student_id = %s', (student_id,))
+        cursor.execute('SELECT * FROM students WHERE student_id = %s AND is_deleted=%s', (student_id,0,))
         student = cursor.fetchone()
         cursor.close()
         return student
@@ -688,6 +688,18 @@ class StudentModel:
         mysql.connection.commit()
 
         cursor.close()
+
+
+    @staticmethod
+    def get_fyp_by_id_and_student(fyp_id, student_id):
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(
+            "SELECT fyp_id FROM fyp_groups WHERE fyp_id=%s AND student_id=%s",
+            (fyp_id, student_id)
+            )
+        fyp=cursor.fetchone()
+        cursor.close()
+        return fyp
 
 
     @staticmethod

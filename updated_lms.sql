@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Mar 06, 2026 at 07:07 AM
+-- Generation Time: Mar 07, 2026 at 08:23 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -610,8 +610,8 @@ CREATE TABLE `system_settings` (
 INSERT INTO `system_settings` (`setting_key`, `setting_value`, `description`) VALUES
 ('current_term', '1', 'Fall 2026'),
 ('is_admission_open', '0', 'Controls if the signup/admission page is accessible'),
-('is_course_reg_open', '0', 'Controls if students can register for new courses'),
-('is_summer_app_open', '1', 'Controls if summer semester applications are enabled');
+('is_course_reg_open', '1', 'Controls if students can register for new courses'),
+('is_summer_app_open', '0', 'Controls if summer semester applications are enabled');
 
 -- --------------------------------------------------------
 
@@ -627,15 +627,16 @@ CREATE TABLE `teachers` (
   `email` varchar(100) NOT NULL,
   `contact_num` varchar(100) NOT NULL,
   `qualification` varchar(100) DEFAULT NULL,
-  `joining_date` date DEFAULT NULL
+  `joining_date` date DEFAULT NULL,
+  `is_deleted` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `teachers`
 --
 
-INSERT INTO `teachers` (`teacher_id`, `user_id`, `first_name`, `last_name`, `email`, `contact_num`, `qualification`, `joining_date`) VALUES
-(1, 4, 'sana', 'fatima', 'sanacentral123@gmail.com', '923150484043', 'Graduation', '2025-12-30');
+INSERT INTO `teachers` (`teacher_id`, `user_id`, `first_name`, `last_name`, `email`, `contact_num`, `qualification`, `joining_date`, `is_deleted`) VALUES
+(1, 4, 'sana', 'fatima', 'sanacentral123@gmail.com', '923150484043', 'Graduation', '2025-12-30', 0);
 
 -- --------------------------------------------------------
 
