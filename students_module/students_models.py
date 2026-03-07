@@ -427,9 +427,9 @@ class StudentModel:
 
 
     @staticmethod
-    def delete_improvement_subject(improvement_id):
-        cursor = mysql.connection.cursor()
-        cursor.execute("DELETE FROM student_improvement WHERE improvement_id = %s", (improvement_id,))
+    def delete_improvement_subject(improvement_id,student_id):
+        cursor=mysql.connection.cursor()
+        cursor.execute("DELETE FROM student_improvement WHERE improvement_id=%s AND student_id=%s", (improvement_id,student_id))
         mysql.connection.commit()
         cursor.close()
 
@@ -689,6 +689,17 @@ class StudentModel:
 
         cursor.close()
 
+    @staticmethod
+    def get_all_teachers():
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(
+            "SELECT teacher_id,first_name,last_name FROM teachers WHERE is_deleted=0"
+            )
+        teachers=cursor.fetchall()
+        cursor.close()
+        return teachers
+
+
 
     @staticmethod
     def get_fyp_by_id_and_student(fyp_id, student_id):
@@ -720,8 +731,8 @@ class StudentModel:
 
     @staticmethod
     def insert_fyp_proposal(student_id, title, description, teacher_id, filename):
-        cursor = mysql.connection.cursor()
-        query = """INSERT INTO fyp_groups 
+        cursor=mysql.connection.cursor()
+        query="""INSERT INTO fyp_groups 
                    (project_title, description, teacher_id, student_id, status, progress, last_submission) 
                    VALUES (%s, %s, %s, %s, 'Pending Approval', 0, %s)"""
         cursor.execute(query, (title, description, teacher_id, student_id, filename))

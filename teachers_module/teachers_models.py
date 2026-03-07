@@ -209,6 +209,20 @@ class TeacherModel:
 
 
     @staticmethod
+    def is_section_owned_by_teacher(section_id,teacher_id):
+        cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute("""
+            SELECT tc.teacher_course_id 
+            FROM teacher_course tc
+            JOIN sections s ON tc.course_id=s.course_id
+            WHERE s.section_id=%s AND tc.teacher_id=%s
+            """, (section_id,teacher_id))
+        result=cursor.fetchone()
+        cursor.close()
+        return result is not None
+
+
+    @staticmethod
     def process_student_result(sid, section_id, course_id, semester, data):
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT student_course_id FROM student_course WHERE student_id = %s AND course_id = %s', (sid, course_id))

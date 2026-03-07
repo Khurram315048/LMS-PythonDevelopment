@@ -127,17 +127,24 @@ def class_structure(section_id):
 @teacher.route("/generate_result/<int:section_id>", methods=['GET', 'POST'])
 @teacher_required
 def generate_result(section_id):
-    details = TeacherModel.get_attendance_meta(section_id) 
+    if session.get('role') != 'teacher':
+        return redirect(url_for('main_view'))
     
-    if request.method == 'POST':
-        students = TeacherModel.get_student_list_for_attendance(section_id, details['course_id'])
+    teacher_id=session.get('teacher_id')
+    if not TeacherModel.is_section_owned_by_teacher(section_id, teacher_id):
+        flash('Unauthorized. This section does not belong to you.', 'danger')
+        return redirect(url_for('teacher.teacher_dashboard'))
+    details=TeacherModel.get_attendance_meta(section_id) 
+    
+    if request.method=='POST':
+        students=TeacherModel.get_student_list_for_attendance(section_id, details['course_id'])
         
         for stud in students:
-            sid = stud['student_id']
+            sid=stud['student_id']
             if request.form.get(f'sessional_{sid}'):
-                s = int(request.form.get(f'sessional_{sid}', 0))
-                m = int(request.form.get(f'mids_{sid}', 0))
-                f = int(request.form.get(f'final_{sid}', 0))
+                s=int(request.form.get(f'sessional_{sid}', 0))
+                m=int(request.form.get(f'mids_{sid}', 0))
+                f=int(request.form.get(f'final_{sid}', 0))
                 total = s + m + f
                 
                 if total >= 80: 
@@ -220,15 +227,22 @@ def send_message(fyp_id):
 
 
 @teacher.route("/view_submissions/<int:section_id>/<string:sub_type>")
-@teacher_required
-def view_submissions(section_id, sub_type):
-    subs, meta = TeacherModel.get_submissions_by_type(section_id, sub_type)
-    title = f"{meta['course_name']} ({meta['section_name']})" if meta else "Submissions"
-    
-    return render_template('view_submissions.html', 
-                           submissions=subs, 
-                           sub_type=sub_type, 
-                           course_name=title, 
+@login_required
+def view_submissions(section_id,sub_type):
+    if session.get('role') != 'teacher':
+        return redirect(url_for('main_view'))
+
+    teacher_id=session.get('teacher_id')
+    if not TeacherModel.is_section_owned_by_teacher(section_id, teacher_id):
+        flash('Unauthorized. This section does not belong to you.', 'danger')
+        return redirect(url_for('teacher.teacher_dashboard'))
+
+    subs, meta=TeacherModel.get_submissions_by_type(section_id, sub_type)
+    title=f"{meta['course_name']} ({meta['section_name']})" if meta else "Submissions"
+    return render_template('view_submissions.html',
+                           submissions=subs,
+                           sub_type=sub_type,
+                           course_name=title,
                            section_id=section_id)
 
 
@@ -236,8 +250,8 @@ def view_submissions(section_id, sub_type):
 @teacher.route("/mark_submission/<int:submission_id>", methods=['POST'])
 @teacher_required
 def mark_submission(submission_id):
-    marks = request.form.get('marks')
-    total = request.form.get('total_marks')
+    marks=request.form.get('marks')
+    total=request.form.get('total_marks')
     
     TeacherModel.update_submission_marks(submission_id, marks, total)
     
@@ -247,16 +261,20 @@ def mark_submission(submission_id):
 
 
 
-@teacher.route("/toggle_upload/<int:section_id>/<string:upload_type>", methods=['POST'])
-@teacher_required
+@teacher.route("/toggle_upload/<int:section_id>/<string:upload_type>",methods=['POST'])
+@login_required
 def toggle_upload(section_id, upload_type):
     if session.get('role') != 'teacher':
         return redirect(url_for('main_view'))
-    
-    
+
+    teacher_id=session.get('teacher_id')
+    if not TeacherModel.is_section_owned_by_teacher(section_id, teacher_id):
+        flash('Unauthorized. This section does not belong to you.', 'danger')
+        return redirect(url_for('teacher.teacher_dashboard'))
+
     TeacherModel.toggle_upload_status(section_id, upload_type)
-    flash(f"{upload_type.capitalize()} status updated.", "success")
-    return redirect(url_for('teacher.class_structure', section_id=section_id))  
+    flash(f"{upload_type.capitalize()} status updated.", 'success')
+    return redirect(url_for('teacher.teacher_dashboard'))
 
 
 @teacher.route('/complaint_suggestion', methods=['GET', 'POST'])

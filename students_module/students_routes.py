@@ -257,7 +257,8 @@ def improvement_subject():
 @student.route('/delete_improvement/<int:improvement_id>', methods=['POST'])
 @student_required
 def delete_improvement(improvement_id):
-    StudentModel.delete_improvement_subject(improvement_id)
+    student_id=session.get('student_id')
+    StudentModel.delete_improvement_subject(improvement_id,student_id)
     flash("Improvement subject removed successfully. You can now select a new one.", "success")
     return redirect(url_for('student.course_registeration'))
 
@@ -464,11 +465,13 @@ def student_fyp():
     if fyp_project:
         messages_list=StudentModel.get_fyp_messages(fyp_project['fyp_id'])
         teacher_details=StudentModel.get_teacher_full_details(fyp_project['teacher_id'])
+
+    all_teachers=StudentModel.get_all_teachers()    
     
     return render_template('student_fyp.html', 
                            student=student_obj, 
                            fyp=fyp_project, 
-                           messages=messages_list,teacher=teacher_details)
+                           messages=messages_list,teacher=teacher_details,all_teachers=all_teachers)
 
 
 
@@ -478,22 +481,22 @@ def submit_fyp():
     if session.get('role') != 'student':
         return redirect(url_for('main_view'))
 
-    student_id = session.get('student_id')
+    student_id=session.get('student_id')
     if not student_id:
         return redirect(url_for('student.student_login'))
 
-    upload_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'students_uploads', 'students_fyp_proposal')
+    upload_folder=os.path.join(current_app.root_path, 'static', 'uploads', 'students_uploads', 'students_fyp_proposal')
     
     
     if not os.path.exists(upload_folder):
         os.makedirs(upload_folder, exist_ok=True)
 
 
-    title = request.form.get('project_title')
-    description = request.form.get('description')
-    teacher_id = request.form.get('teacher_id', 1) 
-    file = request.files.get('proposal_file')
-    db_file_path = None
+    title=request.form.get('project_title')
+    description=request.form.get('description')
+    teacher_id=request.form.get('teacher_id')
+    file=request.files.get('proposal_file')
+    db_file_path=None
 
     if file and file.filename != '':
         if not allowed_file(file.filename):
@@ -506,6 +509,10 @@ def submit_fyp():
     db_file_path=f"uploads/students_uploads/students_fyp_proposal/{unique_name}"
 
     try:
+        
+        if not teacher_id:
+            flash('Please select a supervisor teacher.', 'danger')
+            return redirect(url_for('student.student_fyp'))
         StudentModel.insert_fyp_proposal(student_id, title, description, teacher_id, db_file_path)
         flash('FYP Proposal Submitted Successfully!', 'success')
     except Exception as e:
