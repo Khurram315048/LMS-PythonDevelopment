@@ -9,15 +9,15 @@ teacher =Blueprint('teacher', __name__, template_folder='teachers_views')
 
 @teacher.route('/teacher_login', methods=['GET', 'POST'])
 def teacher_login():
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+    if request.method=='POST':
+        email=request.form.get('email')
+        password=request.form.get('password')
         
-        user_data, logged_user = TeacherModel.get_by_email(email)
+        user_data,logged_user=TeacherModel.get_by_email(email)
         
         if user_data and check_password_hash(logged_user['password'], password):
             session.update({
-                'user_id': user_data['user_id'], 
+                'user_id': logged_user['user_id'], 
                 'role': 'teacher', 
                 'teacher_id': user_data['teacher_id']
             })

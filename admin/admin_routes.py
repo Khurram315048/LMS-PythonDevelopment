@@ -37,15 +37,15 @@ def admin_login():
 @login_required
 def admin_dashboard():
     cursor=mysql.connection.cursor()
-    cursor.execute('SELECT COUNT(*) AS total_students FROM students')
+    cursor.execute('SELECT COUNT(*) AS total_students FROM students WHERE is_deleted=0')
     students=cursor.fetchone()['total_students']
-    cursor.execute('SELECT COUNT(*) AS total_teachers FROM teachers')
+    cursor.execute('SELECT COUNT(*) AS total_teachers FROM teachers WHERE is_deleted=0')
     teachers=cursor.fetchone()['total_teachers']
     cursor.execute('SELECT COUNT(*) AS pending_fee FROM student_fees WHERE fee_status=%s',("due",))
     pending=cursor.fetchone()['pending_fee']
-    cursor.execute('SELECT COUNT(*) AS total_courses FROM courses')
+    cursor.execute('SELECT COUNT(*) AS total_courses FROM courses WHERE is_deleted=0')
     courses_count=cursor.fetchone()['total_courses']
-    cursor.execute('SELECT COUNT(*) AS total_fyp FROM fyp_groups')
+    cursor.execute('SELECT COUNT(*) AS total_fyp FROM fyp_groups WHERE is_deleted=0')
     fyp_count=cursor.fetchone()['total_fyp']
     cursor.execute('SELECT COUNT(*) AS total_complaints FROM complaint_suggestion')
     complaints_count=cursor.fetchone()['total_complaints']
@@ -536,12 +536,13 @@ def course_registration():
 
     cursor.execute('SELECT course_id,course_name FROM courses WHERE is_deleted=%s',(0,))
     courses=cursor.fetchall()
+    cursor.execute('SELECT section_id, section_name, semester, course_id FROM sections')
+    sections=cursor.fetchall()
 
     return render_template('course_registration.html',
                            enrollments=enrollments,
                            students=students,
-                           courses=courses)
-
+                           courses=courses,sections=sections)
 
 
 @admin.route('/enroll_student', methods=['POST'])
@@ -550,16 +551,57 @@ def enroll_student():
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     student_id=request.form.get('student_id')
     course_id=request.form.get('course_id')
-    cursor.execute('SELECT * FROM student_course WHERE student_id=%s AND course_id=%s AND is_deleted=%s',
-                   (student_id,course_id,0,))
+    section_id=request.form.get('section_id')
+
+    if not section_id:
+        flash('Please select a section.', 'danger')
+        return redirect(url_for('admin.course_registration'))
+
+    
+    cursor.execute(
+        'SELECT * FROM student_course WHERE student_id=%s AND course_id=%s AND is_deleted=%s',
+        (student_id,course_id, 0)
+    )
     if cursor.fetchone():
         flash('Student is already enrolled in this course.', 'warning')
         return redirect(url_for('admin.course_registration'))
 
-    cursor.execute('INSERT INTO student_course (student_id,course_id) VALUES (%s,%s)',
-                   (student_id, course_id))
+
+    cursor.execute(
+        'INSERT INTO student_course (student_id,course_id) VALUES (%s,%s)',
+        (student_id,course_id)
+    )
     mysql.connection.commit()
-    flash('Student enrolled successfully.', 'success')
+
+    cursor.execute(
+        'SELECT * FROM student_section WHERE student_id=%s AND section_id=%s AND is_deleted=0',
+        (student_id,section_id)
+    )
+    active_record=cursor.fetchone()
+
+    if active_record:
+        pass
+    else:
+        
+        cursor.execute(
+            'SELECT * FROM student_section WHERE student_id=%s AND section_id=%s AND is_deleted=1',
+            (student_id,section_id)
+        )
+        deleted_record=cursor.fetchone()
+
+        if deleted_record:
+            cursor.execute(
+                'UPDATE student_section SET is_deleted=0 WHERE student_id=%s AND section_id=%s',
+                (student_id, section_id)
+            )
+        else:
+            cursor.execute(
+                'INSERT INTO student_section (student_id,section_id) VALUES (%s,%s)',
+                (student_id,section_id)
+            )
+        mysql.connection.commit()
+
+    flash('Student enrolled successfully in course and section.', 'success')
     return redirect(url_for('admin.course_registration'))
 
 
@@ -568,8 +610,25 @@ def enroll_student():
 def remove_enrollment():
     cursor=mysql.connection.cursor()
     student_course_id=request.form.get('student_course_id')
+
+    cursor.execute(
+        'SELECT student_id, course_id FROM student_course WHERE student_course_id=%s',
+        (student_course_id,)
+    )
+    record=cursor.fetchone()
     cursor.execute('UPDATE student_course SET is_deleted=%s WHERE student_course_id=%s',(1,student_course_id,))
     mysql.connection.commit()
+    if record:
+        cursor.execute('''
+            UPDATE student_section 
+            SET is_deleted=1
+            WHERE student_id=%s 
+            AND section_id IN (
+            SELECT section_id FROM sections WHERE course_id=%s
+            )
+            ''', (record['student_id'], record['course_id']))
+    mysql.connection.commit()
+
     flash('Enrollment removed.','danger')
     return redirect(url_for('admin.course_registration'))
 
