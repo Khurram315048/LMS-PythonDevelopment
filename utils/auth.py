@@ -42,9 +42,21 @@ def student_required(f):
         if 'user_id' not in session:
             return redirect(url_for('main_view'))
         if session.get('role') != 'student':
-            return redirect(url_for('main_view'))  
+            return redirect(url_for('main_view'))
+        
+        cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(
+            'SELECT student_id FROM students WHERE user_id=%s AND is_deleted=0',
+            (session['user_id'],)
+        )
+        if not cursor.fetchone():
+            cursor.close()
+            session.clear()
+            return redirect(url_for('main_view'))
+        cursor.close()
         return f(*args, **kwargs)
     return decorated_function
+
 
 def teacher_required(f):
     @wraps(f)
@@ -52,6 +64,28 @@ def teacher_required(f):
         if 'user_id' not in session:
             return redirect(url_for('main_view'))
         if session.get('role') != 'teacher':
+            return redirect(url_for('main_view'))
+        
+        cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(
+            'SELECT teacher_id FROM teachers WHERE user_id=%s AND is_deleted=0',
+            (session['user_id'],)
+        )
+        if not cursor.fetchone():
+            cursor.close()
+            session.clear()
+            return redirect(url_for('main_view'))
+        cursor.close()
+        return f(*args, **kwargs)
+    return decorated_function   
+
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('main_view'))
+        if session.get('role') != 'admin':
             return redirect(url_for('main_view'))  
         return f(*args, **kwargs)
-    return decorated_function    
+    return decorated_function

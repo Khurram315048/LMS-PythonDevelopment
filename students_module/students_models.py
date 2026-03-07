@@ -34,7 +34,7 @@ class StudentModel:
     @staticmethod
     def get_student_by_id(student_id):
         cursor = mysql.connection.cursor()
-        cursor.execute('SELECT * FROM students WHERE student_id = %s AND is_deleted=%s', (student_id,0,))
+        cursor.execute('SELECT * FROM students WHERE student_id=%s AND is_deleted=%s',(student_id,0,))
         student = cursor.fetchone()
         cursor.close()
         return student
