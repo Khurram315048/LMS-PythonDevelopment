@@ -86,6 +86,16 @@ def admin_required(f):
         if 'user_id' not in session:
             return redirect(url_for('main_view'))
         if session.get('role') != 'admin':
-            return redirect(url_for('main_view'))  
+            return redirect(url_for('main_view'))
+        cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(
+            'SELECT admin_id FROM admins WHERE admin_id=%s',
+            (session.get('admin_id'),)
+        )
+        if not cursor.fetchone():
+            cursor.close()
+            session.clear()
+            return redirect(url_for('main_view'))
+        cursor.close()
         return f(*args, **kwargs)
     return decorated_function
