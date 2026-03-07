@@ -29,6 +29,7 @@ CREATE TABLE `admins` (
   `last_name` varchar(50) DEFAULT NULL,
   `contact` varchar(100) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`admin_id`),
   UNIQUE KEY `email` (`email`),
   KEY `user_id` (`user_id`),
@@ -42,7 +43,7 @@ CREATE TABLE `admins` (
 
 LOCK TABLES `admins` WRITE;
 /*!40000 ALTER TABLE `admins` DISABLE KEYS */;
-INSERT INTO `admins` VALUES (1,8,'Muhammad','Khuraam','923047698099','saleemkhurram420@gmail.com');
+INSERT INTO `admins` VALUES (1,8,'Muhammad','Khuraam','923047698099','saleemkhurram420@gmail.com',0);
 /*!40000 ALTER TABLE `admins` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -60,6 +61,7 @@ CREATE TABLE `attendance` (
   `attendance_date` date NOT NULL,
   `attendance_status` varchar(20) DEFAULT NULL CHECK (`attendance_status` in ('Present','Absent')),
   `student_id` int(11) DEFAULT NULL,
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`attendance_id`),
   KEY `student_course_id` (`student_course_id`),
   KEY `course_schedule_id` (`course_schedule_id`),
@@ -76,7 +78,7 @@ CREATE TABLE `attendance` (
 
 LOCK TABLES `attendance` WRITE;
 /*!40000 ALTER TABLE `attendance` DISABLE KEYS */;
-INSERT INTO `attendance` VALUES (1,2,3,'2025-12-31','Absent',3),(2,3,4,'2025-12-31','Absent',4),(3,2,3,'2026-02-04','Absent',3),(4,2,3,'2026-02-04','Present',3),(5,3,4,'2026-02-04','Present',4),(6,2,3,'2026-03-04','Absent',3),(7,3,4,'2026-03-04','Present',4);
+INSERT INTO `attendance` VALUES (1,2,3,'2025-12-31','Absent',3,0),(2,3,4,'2025-12-31','Absent',4,0),(3,2,3,'2026-02-04','Absent',3,0),(4,2,3,'2026-02-04','Present',3,0),(5,3,4,'2026-02-04','Present',4,0),(6,2,3,'2026-03-04','Absent',3,0),(7,3,4,'2026-03-04','Present',4,0);
 /*!40000 ALTER TABLE `attendance` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -126,6 +128,7 @@ CREATE TABLE `course_schedule` (
   `location` varchar(100) DEFAULT NULL,
   `course_id` int(11) NOT NULL,
   `section_id` int(11) DEFAULT NULL,
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`course_schedule_id`),
   KEY `course_id` (`course_id`),
   KEY `section_id` (`section_id`),
@@ -140,7 +143,7 @@ CREATE TABLE `course_schedule` (
 
 LOCK TABLES `course_schedule` WRITE;
 /*!40000 ALTER TABLE `course_schedule` DISABLE KEYS */;
-INSERT INTO `course_schedule` VALUES (1,'Monday','09:00:00','11:00:00','Class Room',1,1),(2,'Monday','11:00:00','01:00:00','Class Room',1,2),(3,'Wednesday','09:00:00','11:00:00','Lab 01',1,3),(4,'Wednesday','11:00:00','02:00:00','Lab 02',1,4);
+INSERT INTO `course_schedule` VALUES (1,'Monday','09:00:00','11:00:00','Class Room',1,1,0),(2,'Monday','11:00:00','01:00:00','Class Room',1,2,0),(3,'Wednesday','09:00:00','11:00:00','Lab 01',1,3,0),(4,'Wednesday','11:00:00','02:00:00','Lab 02',1,4,0);
 /*!40000 ALTER TABLE `course_schedule` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -194,6 +197,7 @@ CREATE TABLE `fyp_groups` (
   `progress` int(11) DEFAULT 0,
   `last_submission` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`fyp_id`),
   KEY `teacher_id` (`teacher_id`),
   KEY `student_id` (`student_id`),
@@ -208,7 +212,7 @@ CREATE TABLE `fyp_groups` (
 
 LOCK TABLES `fyp_groups` WRITE;
 /*!40000 ALTER TABLE `fyp_groups` DISABLE KEYS */;
-INSERT INTO `fyp_groups` VALUES (1,'testing updation of fyp again again2','aaaabscs',1,2,'Approved',0,'uploads/students_uploads/students_fyp_proposal/SID_2_PROJECT_REPORT-osama-new.pdf','2026-01-27 06:49:29'),(2,'Huzaifa Title pr','i am again checking the project ',1,3,'Approved',0,'uploads/students_uploads/students_fyp_proposal/SID_3_portfolio-cv.pdf','2026-01-27 08:44:04'),(3,'Developing LMS -Python-Flask-SQL','I want to develop the LMS of my University but with python flask and sqlalchemy.',1,5,'Pending Approval',0,'uploads/students_uploads/students_fyp_proposal/SID_5_COA_CCP_sol.pdf','2026-03-05 06:19:33');
+INSERT INTO `fyp_groups` VALUES (1,'testing updation of fyp again again2','aaaabscs',1,2,'Approved',0,'uploads/students_uploads/students_fyp_proposal/SID_2_PROJECT_REPORT-osama-new.pdf','2026-01-27 06:49:29',0),(2,'Huzaifa Title pr','i am again checking the project ',1,3,'Approved',0,'uploads/students_uploads/students_fyp_proposal/SID_3_portfolio-cv.pdf','2026-01-27 08:44:04',0),(3,'Developing LMS -Python-Flask-SQL','I want to develop the LMS of my University but with python flask and sqlalchemy.',1,5,'Pending Approval',0,'uploads/students_uploads/students_fyp_proposal/SID_5_COA_CCP_sol.pdf','2026-03-05 06:19:33',0);
 /*!40000 ALTER TABLE `fyp_groups` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -227,6 +231,7 @@ CREATE TABLE `fyp_messages` (
   `sender_role` enum('teacher','student') NOT NULL,
   `message` text NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`message_id`),
   KEY `fyp_id` (`fyp_id`),
   CONSTRAINT `fyp_messages_ibfk_1` FOREIGN KEY (`fyp_id`) REFERENCES `fyp_groups` (`fyp_id`) ON DELETE CASCADE
@@ -239,7 +244,7 @@ CREATE TABLE `fyp_messages` (
 
 LOCK TABLES `fyp_messages` WRITE;
 /*!40000 ALTER TABLE `fyp_messages` DISABLE KEYS */;
-INSERT INTO `fyp_messages` VALUES (1,1,1,2,'teacher','hy','2026-02-24 11:21:54'),(2,2,1,3,'teacher','hy','2026-02-24 11:22:04');
+INSERT INTO `fyp_messages` VALUES (1,1,1,2,'teacher','hy','2026-02-24 11:21:54',0),(2,2,1,3,'teacher','hy','2026-02-24 11:22:04',0);
 /*!40000 ALTER TABLE `fyp_messages` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -261,6 +266,7 @@ CREATE TABLE `notifications` (
   `related_course_id` int(11) DEFAULT NULL,
   `status` enum('Pending','Resolved','Rejected') DEFAULT 'Pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   KEY `related_course_id` (`related_course_id`),
   KEY `sender_id` (`sender_id`),
@@ -289,6 +295,7 @@ CREATE TABLE `programs` (
   `program_id` int(11) NOT NULL AUTO_INCREMENT,
   `program_name` varchar(100) NOT NULL,
   `program_coordinator` varchar(100) NOT NULL,
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`program_id`),
   UNIQUE KEY `program_name` (`program_name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -300,7 +307,7 @@ CREATE TABLE `programs` (
 
 LOCK TABLES `programs` WRITE;
 /*!40000 ALTER TABLE `programs` DISABLE KEYS */;
-INSERT INTO `programs` VALUES (1,'BS Computer Science','Zeeshan Haider'),(2,'BS Information Technology','Ansar Muneer'),(3,'BS Artificial Intelligence','Shakeeb Ali'),(4,'BS Data Science','Zohair Haider');
+INSERT INTO `programs` VALUES (1,'BS Computer Science','Zeeshan Haider',0),(2,'BS Information Technology','Ansar Muneer',0),(3,'BS Artificial Intelligence','Shakeeb Ali',0),(4,'BS Data Science','Zohair Haider',0);
 /*!40000 ALTER TABLE `programs` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -319,6 +326,7 @@ CREATE TABLE `sections` (
   `semester` int(11) NOT NULL,
   `assignments_enabled` tinyint(1) DEFAULT 1,
   `quizzes_enabled` tinyint(1) DEFAULT 1,
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`section_id`),
   KEY `course_id` (`course_id`),
   KEY `program_id` (`program_id`),
@@ -333,7 +341,7 @@ CREATE TABLE `sections` (
 
 LOCK TABLES `sections` WRITE;
 /*!40000 ALTER TABLE `sections` DISABLE KEYS */;
-INSERT INTO `sections` VALUES (1,1,'Blue',1,5,1,1),(2,1,'Green',1,5,1,1),(3,1,'Red',1,5,1,1),(4,1,'Orange',1,5,0,1);
+INSERT INTO `sections` VALUES (1,1,'Blue',1,5,1,1,0),(2,1,'Green',1,5,1,1,0),(3,1,'Red',1,5,1,1,0),(4,1,'Orange',1,5,0,1,0);
 /*!40000 ALTER TABLE `sections` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -440,6 +448,7 @@ CREATE TABLE `student_fail_subjects` (
   `course_id` int(11) DEFAULT NULL,
   `status` varchar(50) DEFAULT 'pending',
   `create_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`student_fail_id`),
   KEY `student_id` (`student_id`),
   KEY `course_id` (`course_id`),
@@ -474,6 +483,7 @@ CREATE TABLE `student_fees` (
   `program_id` int(11) NOT NULL,
   `fee_month` varchar(20) DEFAULT NULL,
   `student_id` int(11) NOT NULL,
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`student_fees_id`),
   KEY `program_id` (`program_id`),
   KEY `student_id` (`student_id`),
@@ -488,7 +498,7 @@ CREATE TABLE `student_fees` (
 
 LOCK TABLES `student_fees` WRITE;
 /*!40000 ALTER TABLE `student_fees` DISABLE KEYS */;
-INSERT INTO `student_fees` VALUES (1,18708.00,'paid','2025-12-31 09:10:20','uploads/students_uploads/voucher_pics/student_4_front_contact.PNG','uploads/students_uploads/voucher_pics/student_4_back_prj.PNG',1,'December',4),(2,68102.00,'paid','2026-03-05 07:08:03','uploads/students_uploads/voucher_pics/student_2_front_dep_view.PNG','uploads/students_uploads/voucher_pics/student_2_back_students_view.PNG',1,'January',2),(3,18708.00,'paid','2026-03-05 07:08:31',NULL,NULL,4,'December',5);
+INSERT INTO `student_fees` VALUES (1,18708.00,'paid','2025-12-31 09:10:20','uploads/students_uploads/voucher_pics/student_4_front_contact.PNG','uploads/students_uploads/voucher_pics/student_4_back_prj.PNG',1,'December',4,0),(2,68102.00,'paid','2026-03-05 07:08:03','uploads/students_uploads/voucher_pics/student_2_front_dep_view.PNG','uploads/students_uploads/voucher_pics/student_2_back_students_view.PNG',1,'January',2,0),(3,18708.00,'paid','2026-03-05 07:08:31',NULL,NULL,4,'December',5,0);
 /*!40000 ALTER TABLE `student_fees` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -505,6 +515,7 @@ CREATE TABLE `student_improvement` (
   `course_id` int(11) NOT NULL,
   `status` varchar(50) DEFAULT 'Pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`improvement_id`),
   KEY `student_id` (`student_id`),
   KEY `course_id` (`course_id`),
@@ -519,7 +530,7 @@ CREATE TABLE `student_improvement` (
 
 LOCK TABLES `student_improvement` WRITE;
 /*!40000 ALTER TABLE `student_improvement` DISABLE KEYS */;
-INSERT INTO `student_improvement` VALUES (1,2,1,'Pending','2026-03-05 07:56:29'),(2,3,4,'Pending','2026-03-05 07:57:05');
+INSERT INTO `student_improvement` VALUES (1,2,1,'Pending','2026-03-05 07:56:29',0),(2,3,4,'Pending','2026-03-05 07:57:05',0);
 /*!40000 ALTER TABLE `student_improvement` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -542,6 +553,7 @@ CREATE TABLE `student_result_marks` (
   `mid_marks` int(11) DEFAULT 0,
   `final_marks` int(11) DEFAULT 0,
   `subject_gpa` decimal(3,2) DEFAULT 0.00,
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`marks_id`),
   KEY `student_course_id` (`student_course_id`),
   KEY `student_result_id` (`student_result_id`),
@@ -556,7 +568,7 @@ CREATE TABLE `student_result_marks` (
 
 LOCK TABLES `student_result_marks` WRITE;
 /*!40000 ALTER TABLE `student_result_marks` DISABLE KEYS */;
-INSERT INTO `student_result_marks` VALUES (1,1,2,83,'B+','Pass','5',17,23,43,0.00),(2,1,2,83,'B+','Pass','5',19,21,43,0.00),(3,1,2,92,'A-','Pass','5',19,26,47,3.80),(4,2,3,81,'B+','Pass','5',14,23,44,3.40),(5,2,3,95,'A+','Pass','5',18,28,49,4.00),(6,4,4,84,'B+','Pass','5',18,23,43,3.40),(7,3,5,81,'B+','Pass','5',13,23,45,3.40);
+INSERT INTO `student_result_marks` VALUES (1,1,2,83,'B+','Pass','5',17,23,43,0.00,0),(2,1,2,83,'B+','Pass','5',19,21,43,0.00,0),(3,1,2,92,'A-','Pass','5',19,26,47,3.80,0),(4,2,3,81,'B+','Pass','5',14,23,44,3.40,0),(5,2,3,95,'A+','Pass','5',18,28,49,4.00,0),(6,4,4,84,'B+','Pass','5',18,23,43,3.40,0),(7,3,5,81,'B+','Pass','5',13,23,45,3.40,0);
 /*!40000 ALTER TABLE `student_result_marks` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -573,6 +585,7 @@ CREATE TABLE `student_results` (
   `student_semester` varchar(50) NOT NULL,
   `overall_gpa` decimal(3,2) NOT NULL CHECK (`overall_gpa` between 0.00 and 4.00),
   `result_status` varchar(50) NOT NULL CHECK (`result_status` in ('Pass','Fail')),
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`student_result_id`),
   KEY `student_id` (`student_id`),
   CONSTRAINT `student_results_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`)
@@ -585,7 +598,7 @@ CREATE TABLE `student_results` (
 
 LOCK TABLES `student_results` WRITE;
 /*!40000 ALTER TABLE `student_results` DISABLE KEYS */;
-INSERT INTO `student_results` VALUES (2,2,'5',1.27,'Fail'),(3,3,'5',3.70,'Pass'),(4,5,'5',3.20,'Pass'),(5,4,'5',3.10,'Pass');
+INSERT INTO `student_results` VALUES (2,2,'5',1.27,'Fail',0),(3,3,'5',3.70,'Pass',0),(4,5,'5',3.20,'Pass',0),(5,4,'5',3.10,'Pass',0);
 /*!40000 ALTER TABLE `student_results` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -634,6 +647,7 @@ CREATE TABLE `student_submissions` (
   `upload_date` datetime DEFAULT current_timestamp(),
   `marks` int(11) DEFAULT NULL,
   `total_marks` int(11) DEFAULT NULL,
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`submission_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -644,7 +658,7 @@ CREATE TABLE `student_submissions` (
 
 LOCK TABLES `student_submissions` WRITE;
 /*!40000 ALTER TABLE `student_submissions` DISABLE KEYS */;
-INSERT INTO `student_submissions` VALUES (1,3,1,3,'uploads/students_uploads/students_assignments/SID3_20260204_120727_new_cover.docx','assignment','2026-02-04 12:07:27',5,5),(2,3,1,3,'uploads/students_uploads/students_quizes/SID3_20260204_121554_Student_Management_System_Report_Project.docx','quiz','2026-02-04 12:15:54',2,5),(3,2,1,1,'uploads/students_uploads/students_assignments/SID2_20260204_135331_signup_view.PNG','assignment','2026-02-04 13:53:31',4,5),(4,4,1,4,'uploads/students_uploads/students_assignments/SID4_20260204_135820_add_view_st.PNG','assignment','2026-02-04 13:58:20',3,5),(5,4,1,4,'uploads/students_uploads/students_quizes/SID4_20260204_135954_home_view.PNG','quiz','2026-02-04 13:59:54',3,5),(6,2,1,1,'uploads/students_uploads/students_quizes/SID2_20260204_151638_login_view.PNG','quiz','2026-02-04 15:16:38',4,5);
+INSERT INTO `student_submissions` VALUES (1,3,1,3,'uploads/students_uploads/students_assignments/SID3_20260204_120727_new_cover.docx','assignment','2026-02-04 12:07:27',5,5,0),(2,3,1,3,'uploads/students_uploads/students_quizes/SID3_20260204_121554_Student_Management_System_Report_Project.docx','quiz','2026-02-04 12:15:54',2,5,0),(3,2,1,1,'uploads/students_uploads/students_assignments/SID2_20260204_135331_signup_view.PNG','assignment','2026-02-04 13:53:31',4,5,0),(4,4,1,4,'uploads/students_uploads/students_assignments/SID4_20260204_135820_add_view_st.PNG','assignment','2026-02-04 13:58:20',3,5,0),(5,4,1,4,'uploads/students_uploads/students_quizes/SID4_20260204_135954_home_view.PNG','quiz','2026-02-04 13:59:54',3,5,0),(6,2,1,1,'uploads/students_uploads/students_quizes/SID2_20260204_151638_login_view.PNG','quiz','2026-02-04 15:16:38',4,5,0);
 /*!40000 ALTER TABLE `student_submissions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -698,6 +712,7 @@ CREATE TABLE `summer_registration` (
   `course_id` int(11) NOT NULL,
   `summer_semesters_id` int(11) NOT NULL,
   `registration_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`registration_id`),
   KEY `fk_summer_student` (`student_id`),
   KEY `fk_summer_course` (`course_id`),
@@ -714,7 +729,7 @@ CREATE TABLE `summer_registration` (
 
 LOCK TABLES `summer_registration` WRITE;
 /*!40000 ALTER TABLE `summer_registration` DISABLE KEYS */;
-INSERT INTO `summer_registration` VALUES (1,2,2,1,'2026-03-05 10:23:25'),(2,3,4,2,'2026-03-05 11:02:18');
+INSERT INTO `summer_registration` VALUES (1,2,2,1,'2026-03-05 10:23:25',0),(2,3,4,2,'2026-03-05 11:02:18',0);
 /*!40000 ALTER TABLE `summer_registration` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -734,6 +749,7 @@ CREATE TABLE `summer_semesters` (
   `previous_semester_id` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `status` varchar(100) NOT NULL,
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`summer_semesters_id`),
   KEY `previous_semester_id` (`previous_semester_id`),
   CONSTRAINT `summer_semesters_ibfk_1` FOREIGN KEY (`previous_semester_id`) REFERENCES `semester` (`semester_id`) ON DELETE SET NULL ON UPDATE CASCADE
@@ -746,7 +762,7 @@ CREATE TABLE `summer_semesters` (
 
 LOCK TABLES `summer_semesters` WRITE;
 /*!40000 ALTER TABLE `summer_semesters` DISABLE KEYS */;
-INSERT INTO `summer_semesters` VALUES (1,'Winter',2026,'2026-03-05','2026-03-06',1,'2026-03-05 10:22:54','Open'),(2,'Summer',2026,'2026-04-05','2026-07-05',1,'2026-03-05 10:25:17','Open');
+INSERT INTO `summer_semesters` VALUES (1,'Winter',2026,'2026-03-05','2026-03-06',1,'2026-03-05 10:22:54','Open',0),(2,'Summer',2026,'2026-04-05','2026-07-05',1,'2026-03-05 10:25:17','Open',0);
 /*!40000 ALTER TABLE `summer_semesters` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -761,6 +777,7 @@ CREATE TABLE `system_settings` (
   `setting_key` varchar(50) NOT NULL,
   `setting_value` varchar(255) DEFAULT NULL,
   `description` text DEFAULT NULL,
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`setting_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -771,7 +788,7 @@ CREATE TABLE `system_settings` (
 
 LOCK TABLES `system_settings` WRITE;
 /*!40000 ALTER TABLE `system_settings` DISABLE KEYS */;
-INSERT INTO `system_settings` VALUES ('current_term','1','Fall 2026'),('is_admission_open','0','Controls if the signup/admission page is accessible'),('is_course_reg_open','1','Controls if students can register for new courses'),('is_summer_app_open','0','Controls if summer semester applications are enabled');
+INSERT INTO `system_settings` VALUES ('current_term','1','Fall 2026',0),('is_admission_open','0','Controls if the signup/admission page is accessible',0),('is_course_reg_open','1','Controls if students can register for new courses',0),('is_summer_app_open','0','Controls if summer semester applications are enabled',0);
 /*!40000 ALTER TABLE `system_settings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -786,6 +803,7 @@ CREATE TABLE `teacher_course` (
   `teacher_course_id` int(11) NOT NULL AUTO_INCREMENT,
   `teacher_id` int(11) NOT NULL,
   `course_id` int(11) NOT NULL,
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`teacher_course_id`),
   KEY `teacher_id` (`teacher_id`),
   KEY `course_id` (`course_id`),
@@ -800,7 +818,7 @@ CREATE TABLE `teacher_course` (
 
 LOCK TABLES `teacher_course` WRITE;
 /*!40000 ALTER TABLE `teacher_course` DISABLE KEYS */;
-INSERT INTO `teacher_course` VALUES (1,1,1),(2,1,2);
+INSERT INTO `teacher_course` VALUES (1,1,1,0),(2,1,2,0);
 /*!40000 ALTER TABLE `teacher_course` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -877,6 +895,7 @@ DROP TABLE IF EXISTS `users_role`;
 CREATE TABLE `users_role` (
   `role_id` int(11) NOT NULL AUTO_INCREMENT,
   `role_type` varchar(100) NOT NULL,
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`role_id`),
   UNIQUE KEY `role_type` (`role_type`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -888,7 +907,7 @@ CREATE TABLE `users_role` (
 
 LOCK TABLES `users_role` WRITE;
 /*!40000 ALTER TABLE `users_role` DISABLE KEYS */;
-INSERT INTO `users_role` VALUES (3,'admin'),(2,'student'),(1,'teacher');
+INSERT INTO `users_role` VALUES (1,'teacher',0),(2,'student',0),(3,'admin',0);
 /*!40000 ALTER TABLE `users_role` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -905,4 +924,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-07 13:17:11
+-- Dump completed on 2026-03-07 13:43:18
