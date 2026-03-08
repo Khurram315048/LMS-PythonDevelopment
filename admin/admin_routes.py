@@ -866,5 +866,68 @@ def edit_teacher():
 
          
 
+@admin.route('/assign_classes', methods=['GET'])
+@admin_required
+def assign_classes():
+    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('''
+        SELECT tc.teacher_course_id,t.first_name,t.last_name,
+               c.course_name,c.credit_hours,p.program_name
+        FROM teacher_course tc
+        JOIN teachers t ON tc.teacher_id=t.teacher_id
+        JOIN courses c ON tc.course_id=c.course_id
+        JOIN programs p ON c.program_id=p.program_id
+        WHERE tc.is_deleted=0 AND t.is_deleted=0 AND c.is_deleted=0
+    ''')
+    assignments=cursor.fetchall()
+
+    cursor.execute('SELECT teacher_id,first_name,last_name FROM teachers WHERE is_deleted=0')
+    teachers=cursor.fetchall()
+
+    cursor.execute('''
+        SELECT c.course_id,c.course_name,p.program_name
+        FROM courses c
+        JOIN programs p ON c.program_id=p.program_id
+        WHERE c.is_deleted=0
+    ''')
+    courses=cursor.fetchall()
+
+    cursor.close()
+    return render_template('assign_classes.html',
+                           assignments=assignments,
+                           teachers=teachers,
+                           courses=courses)
+
+
+@admin.route('/assign_course',methods=['GET','POST'])
+@admin_required
+def assign_course():
+    cursor=mysql.connection.cursor()
+    if request.method=='POST':
+        teacher_id=request.form.get('teacher_id')
+        course_id=request.form.get('course_id')
+
+        cursor.execute('INSERT INTO teacher_course (course_id,teacher_id) VALUES (%s,%s)',(course_id,teacher_id))
+        mysql.connection.commit()
+        cursor.close()
+        return redirect(url_for('admin.assign_classes'))
+
+    return redirect(url_for('admin.assign_classes'))    
+
+
+@admin.route('/delete_course',methods=['GET','POST'])
+@admin_required
+def delete_course():
+    cursor=mysql.connection.cursor()
+    teacher_course_id=request.form.get('teacher_course_id')
+    if request.method=='POST':
+        cursor.execute('UPDATE teacher_course SET is_deleted=%s  WHERE teacher_course_id=%s',(1,teacher_course_id,))
+        mysql.connection.commit()
+        flash('Course Deleted successfully.', 'success')
+        return redirect(url_for('admin.assign_classes'))
+    
+    return redirect(url_for('admin.assign_classes'))
+    
+
         
 
