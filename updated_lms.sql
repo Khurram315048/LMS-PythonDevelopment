@@ -817,7 +817,7 @@ CREATE TABLE `teacher_course` (
   KEY `course_id` (`course_id`),
   CONSTRAINT `teacher_course_ibfk_1` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`teacher_id`),
   CONSTRAINT `teacher_course_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `courses` (`course_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -826,7 +826,7 @@ CREATE TABLE `teacher_course` (
 
 LOCK TABLES `teacher_course` WRITE;
 /*!40000 ALTER TABLE `teacher_course` DISABLE KEYS */;
-INSERT INTO `teacher_course` VALUES (1,1,1,0),(2,1,2,0);
+INSERT INTO `teacher_course` VALUES (1,1,1,0),(2,1,2,0),(3,3,5,0),(4,3,6,0),(8,4,1,0),(9,4,2,0);
 /*!40000 ALTER TABLE `teacher_course` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -850,7 +850,7 @@ CREATE TABLE `teachers` (
   PRIMARY KEY (`teacher_id`),
   UNIQUE KEY `user_id` (`user_id`),
   CONSTRAINT `teachers_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -859,7 +859,7 @@ CREATE TABLE `teachers` (
 
 LOCK TABLES `teachers` WRITE;
 /*!40000 ALTER TABLE `teachers` DISABLE KEYS */;
-INSERT INTO `teachers` VALUES (1,4,'sana','fatima','sanacentral123@gmail.com','923150484043','Graduation','2025-12-30',0);
+INSERT INTO `teachers` VALUES (1,4,'sana','fatima','sanacentral123@gmail.com','923150484043','Graduation','2025-12-30',0),(2,11,'Asim','Bashir','asimcentral123@gmail.com','923100484042','Master','2026-03-08',1),(3,13,'Ali','Imran','alicentral123@gmal.com','0315048404','Master','2026-03-08',1),(4,14,'Muhammad','Bashir','bashir123@gmail.com','923094645444','Phd','2027-03-12',0);
 /*!40000 ALTER TABLE `teachers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -880,7 +880,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `email` (`email`),
   KEY `role_id` (`role_id`),
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `users_role` (`role_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -889,7 +889,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'teacher@gmail.com','12345',1,0),(2,'student@gmail.com','54321',2,0),(3,'ullahcentral123@gmail.com','scrypt:32768:8:1$7jPlgi083yfmCTVX$09d66e8cbbcb7df85dba9cc78052ab9d547244815938d89dcbcd01f00d58ff2a7be80bd3a4ad9bc57f84125a3affb624b32a0c0c8a32e85b628f3908fdd59e4c',2,0),(4,'sanacentral123@gmail.com','scrypt:32768:8:1$S7vfbzBO2aRNJpRd$6ffe5515c5085614610d0af9e13e005cfad46755406334ec6804562c60a3511112b3f61fe9f700d8b3a6a315ec1179c8d0377dc0f9bfab76cfd3bc2db693b951',1,0),(5,'huzaifacentral123@gmail.com','scrypt:32768:8:1$I9n0FGjNKaqHRaC4$3e9a48dd81365bda10cf83a4ab1e1eab8c15ac930da13bc1742efef4f4ea57274842f7ab41d824c2c8f135c5f214071ac911d9dd1a334ff553388ab2d0369575',2,0),(6,'hammadcentral123@gmail.com','scrypt:32768:8:1$jfSOWTiPsrWqazKQ$221c31ec18f224255ea2dff9eaf531a035cf704e27918fa7e4364a89d54eeae8af42701c759ba68cd5e7f49c9cf5bb690e8768725f11e63fc7b848f0f2e3de0f',2,0),(7,'mubeenmuzaffar123@gmail.com','scrypt:32768:8:1$ZhqrixLR5MGq8CS2$163df37b57801281972e50959c569da0d91ce77390944d9c2e81729f9a8feab0e9eaa3502ff59bdc825898746268da597de329eeebc9049ff365302bcfb74634',2,0),(8,'saleemkhurram420@gmail.com','scrypt:32768:8:1$skIzf7LpmeXDV7We$46816137a770b3c6ca5f90f7a3c5e03d772807aada70e450473f15803ebf2c5793b04ca86e78101e5da1272c80919b4e8a49d2540aabc7bd51e84d68b91e5e70',3,0),(9,'hariscentral123@gmail.com','scrypt:32768:8:1$R3WyGmnp0WVq4Yr6$3f666a241ec267a81464d1b8ba5efc3937e99b14d0970339055853ed23fb6c024978199950cd6c93e3d97d00d8999db3d286b43a1bf47b30c66cc8f09b55471e',2,0),(10,'aiman123@gmail.com','scrypt:32768:8:1$5K9YM4nseB8f0CJ6$2b429fd8fcb38a2d5611110452b2f1929b785ce2923b3885fd6efa75e0740f70fa0df8f057f47292ae1ea1dcb3d6b5c1cb370e7526ae69a64a1f8e7eab00ddbb',2,0);
+INSERT INTO `users` VALUES (1,'teacher@gmail.com','12345',1,0),(2,'student@gmail.com','54321',2,0),(3,'ullahcentral123@gmail.com','scrypt:32768:8:1$7jPlgi083yfmCTVX$09d66e8cbbcb7df85dba9cc78052ab9d547244815938d89dcbcd01f00d58ff2a7be80bd3a4ad9bc57f84125a3affb624b32a0c0c8a32e85b628f3908fdd59e4c',2,0),(4,'sanacentral123@gmail.com','scrypt:32768:8:1$S7vfbzBO2aRNJpRd$6ffe5515c5085614610d0af9e13e005cfad46755406334ec6804562c60a3511112b3f61fe9f700d8b3a6a315ec1179c8d0377dc0f9bfab76cfd3bc2db693b951',1,0),(5,'huzaifacentral123@gmail.com','scrypt:32768:8:1$I9n0FGjNKaqHRaC4$3e9a48dd81365bda10cf83a4ab1e1eab8c15ac930da13bc1742efef4f4ea57274842f7ab41d824c2c8f135c5f214071ac911d9dd1a334ff553388ab2d0369575',2,0),(6,'hammadcentral123@gmail.com','scrypt:32768:8:1$jfSOWTiPsrWqazKQ$221c31ec18f224255ea2dff9eaf531a035cf704e27918fa7e4364a89d54eeae8af42701c759ba68cd5e7f49c9cf5bb690e8768725f11e63fc7b848f0f2e3de0f',2,0),(7,'mubeenmuzaffar123@gmail.com','scrypt:32768:8:1$ZhqrixLR5MGq8CS2$163df37b57801281972e50959c569da0d91ce77390944d9c2e81729f9a8feab0e9eaa3502ff59bdc825898746268da597de329eeebc9049ff365302bcfb74634',2,0),(8,'saleemkhurram420@gmail.com','scrypt:32768:8:1$skIzf7LpmeXDV7We$46816137a770b3c6ca5f90f7a3c5e03d772807aada70e450473f15803ebf2c5793b04ca86e78101e5da1272c80919b4e8a49d2540aabc7bd51e84d68b91e5e70',3,0),(9,'hariscentral123@gmail.com','scrypt:32768:8:1$R3WyGmnp0WVq4Yr6$3f666a241ec267a81464d1b8ba5efc3937e99b14d0970339055853ed23fb6c024978199950cd6c93e3d97d00d8999db3d286b43a1bf47b30c66cc8f09b55471e',2,0),(10,'aiman123@gmail.com','scrypt:32768:8:1$5K9YM4nseB8f0CJ6$2b429fd8fcb38a2d5611110452b2f1929b785ce2923b3885fd6efa75e0740f70fa0df8f057f47292ae1ea1dcb3d6b5c1cb370e7526ae69a64a1f8e7eab00ddbb',2,0),(11,'asimcentral123@gmail.com','scrypt:32768:8:1$VTMHhurPtwATVk7Q$ad65121463944b4b1c731e815ea9d1a5e09b128f71273a68d9358d46d4ae811a74c12595b23579b676cc5d8306ae955809d942dc1f68f97370759e3ca3dde27f',1,1),(13,'alicentral123@gmal.com','scrypt:32768:8:1$yZ1ibSvuXtajO9Wy$635b6089201d227ff298af507a2b311e5a87382c5054a37d760b808d5e491e80bb0d3d3f0c3af8234731c8360a23b71ba5402dd41b340325e221865c8ad5f920',1,1),(14,'bashir123@gmail.com','scrypt:32768:8:1$IQjPszk5IyxicfEQ$57ec53dbbf405f881f2bfda1422a9cc11f5df4fcae9cea10a3971e88abe7e410f625536e523fc4e8579e49bfeff5314645a10a16b1ee6d48cfa88be27d03d3ce',1,0);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -932,4 +932,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-08 10:24:20
+-- Dump completed on 2026-03-08 12:23:55
