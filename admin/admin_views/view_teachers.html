@@ -1,4 +1,4 @@
-{% extends "admin_base.html" %}
+{% extends "layouts/admin_base.html" %}
 {% block title %}View Teachers{% endblock %}
 {% block content %}
 <div class="page-header">
@@ -35,23 +35,58 @@
                     <td>{{ teacher.qualification }}</td>
                     <td>{{ teacher.joining_date }}</td>
                     <td>
-                        {% for course in teacher.courses %}
-                            <span class="badge bg-secondary">{{ course.course_name }}</span>
-                        {% endfor %}
+                        <button class="btn btn-sm btn-info" data-bs-toggle="modal" 
+                                data-bs-target="#coursesModal{{ teacher.teacher_id }}">
+                            <i class="fa-solid fa-book"></i> 
+                            View ({{ teacher.courses | length }})
+                        </button>
                     </td>
+
                     <td>
-                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editTeacherModal{{ teacher.teacher_id }}">
+                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal" 
+                                data-bs-target="#editTeacherModal{{ teacher.teacher_id }}">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <form method="POST" action="#" style="display:inline;">
+                        <form method="POST" action="{{url_for('admin.delete_teacher')}}" style="display:inline;">
                             <input type="hidden" name="teacher_id" value="{{ teacher.teacher_id }}">
-                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this teacher?')">
+                            <input type="hidden" name="email" value="{{ teacher.email }}">
+                            <button type="submit" class="btn btn-sm btn-danger" 
+                                    onclick="return confirm('Delete this teacher?')">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </form>
                     </td>
                 </tr>
 
+               
+                <div class="modal fade" id="coursesModal{{ teacher.teacher_id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    Courses — {{ teacher.first_name }} {{ teacher.last_name }}
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                {% if teacher.courses %}
+                                    <ul class="list-group">
+                                        {% for course in teacher.courses %}
+                                            <li class="list-group-item">
+                                                <i class="fa-solid fa-book-open me-2"></i>
+                                                {{ course.course_name }}
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p class="text-muted">No courses assigned yet.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
                 <div class="modal fade" id="editTeacherModal{{ teacher.teacher_id }}" tabindex="-1">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -60,31 +95,48 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
-                                <form method="POST" action="#">
+                                <form method="POST" action="{{url_for('admin.edit_teacher')}}">
                                     <input type="hidden" name="teacher_id" value="{{ teacher.teacher_id }}">
                                     <div class="mb-3">
                                         <label class="form-label">First Name</label>
-                                        <input type="text" class="form-control" name="first_name" value="{{ teacher.first_name }}" required>
+                                        <input type="text" class="form-control" name="first_name" 
+                                               value="{{ teacher.first_name }}" required>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Last Name</label>
-                                        <input type="text" class="form-control" name="last_name" value="{{ teacher.last_name }}" required>
+                                        <input type="text" class="form-control" name="last_name" 
+                                               value="{{ teacher.last_name }}" required>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Email</label>
-                                        <input type="email" class="form-control" name="email" value="{{ teacher.email }}" required>
+                                        <input type="email" class="form-control" name="email" 
+                                               value="{{ teacher.email }}" required>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Contact</label>
-                                        <input type="text" class="form-control" name="contact_num" value="{{ teacher.contact_num }}" required>
+                                        <input type="text" class="form-control" name="contact_num" 
+                                               value="{{ teacher.contact_num }}" required>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Qualification</label>
-                                        <input type="text" class="form-control" name="qualification" value="{{ teacher.qualification }}">
+                                        <input type="text" class="form-control" name="qualification" 
+                                               value="{{ teacher.qualification }}">
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Joining Date</label>
-                                        <input type="date" class="form-control" name="joining_date" value="{{ teacher.joining_date }}">
+                                        <input type="date" class="form-control" name="joining_date" 
+                                               value="{{ teacher.joining_date }}">
+                                    </div>
+                                      <div class="mb-3">
+                                        <label class="form-label">Assign Courses</label>
+                                        {% for course in all_courses %}
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                    name="course_ids" value="{{ course.course_id }}"
+                                                    {% if course.course_id in teacher.course_ids %}checked{% endif %}>
+                                                <label class="form-check-label">{{ course.course_name }}</label>
+                                            </div>
+                                        {% endfor %}
                                     </div>
                                     <button type="submit" class="btn btn-primary">Update</button>
                                 </form>
@@ -92,11 +144,13 @@
                         </div>
                     </div>
                 </div>
+
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
+
 
 <div class="modal fade" id="addTeacherModal" tabindex="-1">
     <div class="modal-dialog">
@@ -106,7 +160,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form method="POST" action="#">
+                <form method="POST" action="{{url_for('admin.add_teacher')}}">
                     <div class="mb-3">
                         <label class="form-label">First Name</label>
                         <input type="text" class="form-control" name="first_name" required>
@@ -121,7 +175,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Password</label>
-                        <input type="password" class="form-control" name="password" required>
+                        <input type="text" class="form-control" name="password" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Contact</label>
@@ -135,6 +189,21 @@
                         <label class="form-label">Joining Date</label>
                         <input type="date" class="form-control" name="joining_date">
                     </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Assign Courses</label>
+                        {% for course in all_courses %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" 
+                                       name="course_ids" value="{{ course.course_id }}" 
+                                       id="course_{{ course.course_id }}">
+                                <label class="form-check-label" for="course_{{ course.course_id }}">
+                                    {{ course.course_name }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+
                     <button type="submit" class="btn btn-primary">Add Teacher</button>
                 </form>
             </div>
