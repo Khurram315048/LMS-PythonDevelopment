@@ -927,6 +927,44 @@ def delete_course():
         return redirect(url_for('admin.assign_classes'))
     
     return redirect(url_for('admin.assign_classes'))
+
+
+
+@admin.route('/teacher_attendance', methods=['GET'])
+@admin_required
+def teacher_attendance():
+    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    query='''
+        SELECT  t.teacher_id,t.first_name,t.last_name,c.course_name,c.course_id,
+            cs.day_of_week,cs.course_schedule_id,
+            CASE 
+                WHEN COUNT(a.attendance_id) > 0 THEN 'Present'
+                ELSE 'Absent'
+            END AS status,
+            a.attendance_date
+        FROM teacher_course tc
+        JOIN teachers t ON tc.teacher_id=t.teacher_id
+        JOIN courses c ON tc.course_id=c.course_id
+        JOIN course_schedule cs ON cs.course_id=c.course_id AND cs.section_id IS NOT NULL
+        LEFT JOIN attendance a ON a.course_schedule_id=cs.course_schedule_id
+        WHERE t.is_deleted=0 AND tc.is_deleted=0
+        GROUP BY t.teacher_id, c.course_id, cs.course_schedule_id, a.attendance_date
+        ORDER BY a.attendance_date ASC, t.first_name,c.course_name
+    '''
+    cursor.execute(query)
+    attendance_records=cursor.fetchall()
+
+    cursor.execute('SELECT teacher_id,first_name,last_name FROM teachers WHERE is_deleted=0')
+    teachers=cursor.fetchall()
+
+    cursor.execute('SELECT course_id,course_name FROM courses WHERE is_deleted=0')
+    courses=cursor.fetchall()
+
+    return render_template('teacher_attendance.html',
+                           attendance_records=attendance_records,
+                           teachers=teachers,
+                           courses=courses)
     
 
         
