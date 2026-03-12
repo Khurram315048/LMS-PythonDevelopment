@@ -17,91 +17,93 @@
     </div>
     <div class="card-body">
         <table class="table table-bordered table-hover">
+            
             <thead class="table-dark">
-                <tr>
-                    <th>Teacher</th>
-                    <th>Course</th>
-                    <th>Scheduled Day</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="attendanceBody">
-                {% for record in attendance_records %}
-                <tr>
-                    <td>{{ record.first_name }} {{ record.last_name }}</td>
-                    <td>{{ record.course_name }}</td>
-                    <td>{{ record.day_of_week }}</td>
-                    <td>{{ record.attendance_date if record.attendance_date else '—' }}</td>
-                    <td>
-                        {% if record.status == 'Present' %}
-                            <span class="badge bg-success">
-                                <i class="fa-solid fa-circle-check"></i> Present
-                            </span>
-                        {% else %}
-                            <span class="badge bg-danger">
-                                <i class="fa-solid fa-circle-xmark"></i> Absent
-                            </span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-                {% if not attendance_records %}
-                <tr>
-                    <td colspan="5" class="text-center text-muted">No records found.</td>
-                </tr>
-                {% endif %}
-            </tbody>
+            <tr>
+                <th>Teacher</th>
+                <th>Course</th>
+                <th>Scheduled Day</th>
+                <th>Date</th>
+                <th>Total Students</th>
+                <th>Present</th>
+                <th>Absent</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in attendance_records %}
+            <tr>
+                <td>{{ record.first_name }} {{ record.last_name }}</td>
+                <td>{{ record.course_name }}</td>
+                <td>{{ record.day_of_week }}</td>
+                <td>{{ record.attendance_date }}</td>
+                <td>{{ record.total_students }}</td>
+                <td><span class="badge bg-success">{{ record.total_present }}</span></td>
+                <td><span class="badge bg-danger">{{ record.total_absent }}</span></td>
+                    </tr>
+            {% endfor %}
+        </tbody>
         </table>
-
-        <div class="mt-3 d-flex gap-4">
-            <span class="badge bg-success fs-6" id="presentCount">Present: 0</span>
-            <span class="badge bg-danger fs-6" id="absentCount">Absent: 0</span>
-            <span class="badge bg-secondary fs-6" id="totalCount">Total: 0</span>
-        </div>
     </div>
 </div>
 
-<div class="modal fade" id="addAttendanceModal" tabindex="-1">
+<<div class="modal fade" id="addAttendanceModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Add Teacher Attendance Record</h5>
+                <h5 class="modal-title">Add Attendance Record</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form method="POST" action="#">
+                <form method="POST" action="{{ url_for('admin.mark_course_attendance') }}">
+
                     <div class="mb-3">
                         <label class="form-label">Teacher</label>
-                        <select class="form-select" name="teacher_id" id="teacherSelect" required>
+                        <select class="form-select" name="teacher_id" required>
                             <option value="" disabled selected>Select Teacher</option>
-                            {% for teacher in teachers %}
-                            <option value="{{ teacher.teacher_id }}">
-                                {{ teacher.first_name }} {{ teacher.last_name }}
-                            </option>
+                            {% for t in teachers %}
+                            <option value="{{ t.teacher_id }}">{{ t.first_name }} {{ t.last_name }}</option>
                             {% endfor %}
                         </select>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label">Course</label>
                         <select class="form-select" name="course_id" required>
                             <option value="" disabled selected>Select Course</option>
-                            {% for course in courses %}
-                            <option value="{{ course.course_id }}">{{ course.course_name }}</option>
+                            {% for c in courses %}
+                            <option value="{{ c.course_id }}">{{ c.course_name }}</option>
                             {% endfor %}
                         </select>
                     </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Section</label>
+                        <select class="form-select" name="section_id" required>
+                            <option value="" disabled selected>Select Section</option>
+                            {% for sec in sections %}
+                            <option value="{{ sec.section_id }}">
+                                {{ sec.section_name }} — {{ sec.course_name }} (Semester {{ sec.semester }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label">Date</label>
                         <input type="date" class="form-control" name="attendance_date" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" name="status" required>
-                            <option value="Present">Present</option>
-                            <option value="Absent">Absent</option>
-                        </select>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Total Present</label>
+                            <input type="number" class="form-control" name="total_present" min="0" value="0" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Total Absent</label>
+                            <input type="number" class="form-control" name="total_absent" min="0" value="0" required>
+                        </div>
                     </div>
+
                     <button type="submit" class="btn btn-primary w-100">Save Record</button>
                 </form>
             </div>

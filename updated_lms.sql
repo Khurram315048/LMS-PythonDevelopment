@@ -69,7 +69,7 @@ CREATE TABLE `attendance` (
   CONSTRAINT `attendance_ibfk_1` FOREIGN KEY (`student_course_id`) REFERENCES `student_course` (`student_course_id`),
   CONSTRAINT `attendance_ibfk_2` FOREIGN KEY (`course_schedule_id`) REFERENCES `course_schedule` (`course_schedule_id`),
   CONSTRAINT `fk_attendance_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -78,7 +78,7 @@ CREATE TABLE `attendance` (
 
 LOCK TABLES `attendance` WRITE;
 /*!40000 ALTER TABLE `attendance` DISABLE KEYS */;
-INSERT INTO `attendance` VALUES (1,2,3,'2025-12-31','Absent',3,0),(2,3,4,'2025-12-31','Absent',4,0),(3,2,3,'2026-02-04','Absent',3,0),(4,2,3,'2026-02-04','Present',3,0),(5,3,4,'2026-02-04','Present',4,0),(6,2,3,'2026-03-04','Absent',3,0),(7,3,4,'2026-03-04','Present',4,0);
+INSERT INTO `attendance` VALUES (1,2,3,'2025-12-31','Absent',3,0),(2,3,4,'2025-12-31','Absent',4,0),(3,2,3,'2026-02-04','Absent',3,0),(4,2,3,'2026-02-04','Present',3,0),(5,3,4,'2026-02-04','Present',4,0),(6,2,3,'2026-03-04','Absent',3,0),(7,3,4,'2026-03-04','Present',4,0),(10,2,3,'2026-03-11','Present',3,0),(11,3,4,'2026-03-11','Present',4,0);
 /*!40000 ALTER TABLE `attendance` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -114,6 +114,45 @@ INSERT INTO `complaint_suggestion` VALUES (1,'Result','check my result',NULL,3,'
 UNLOCK TABLES;
 
 --
+-- Table structure for table `course_attendance_log`
+--
+
+DROP TABLE IF EXISTS `course_attendance_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `course_attendance_log` (
+  `log_id` int(11) NOT NULL AUTO_INCREMENT,
+  `teacher_id` int(11) NOT NULL,
+  `course_id` int(11) NOT NULL,
+  `course_schedule_id` int(11) NOT NULL,
+  `attendance_date` date NOT NULL,
+  `total_students` int(11) DEFAULT 0,
+  `total_present` int(11) DEFAULT 0,
+  `total_absent` int(11) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `semester` int(11) DEFAULT NULL,
+  PRIMARY KEY (`log_id`),
+  KEY `teacher_id` (`teacher_id`),
+  KEY `course_id` (`course_id`),
+  KEY `course_schedule_id` (`course_schedule_id`),
+  CONSTRAINT `cal_ibfk_1` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`teacher_id`),
+  CONSTRAINT `cal_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `courses` (`course_id`),
+  CONSTRAINT `cal_ibfk_3` FOREIGN KEY (`course_schedule_id`) REFERENCES `course_schedule` (`course_schedule_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `course_attendance_log`
+--
+
+LOCK TABLES `course_attendance_log` WRITE;
+/*!40000 ALTER TABLE `course_attendance_log` DISABLE KEYS */;
+INSERT INTO `course_attendance_log` VALUES (3,1,1,3,'2026-03-11',91,41,50,'2026-03-11 07:37:21',0,5),(4,1,1,4,'2026-03-11',1,1,0,'2026-03-11 07:37:26',0,5);
+/*!40000 ALTER TABLE `course_attendance_log` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `course_schedule`
 --
 
@@ -134,7 +173,7 @@ CREATE TABLE `course_schedule` (
   KEY `section_id` (`section_id`),
   CONSTRAINT `course_schedule_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `courses` (`course_id`),
   CONSTRAINT `course_schedule_ibfk_2` FOREIGN KEY (`section_id`) REFERENCES `sections` (`section_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -143,7 +182,7 @@ CREATE TABLE `course_schedule` (
 
 LOCK TABLES `course_schedule` WRITE;
 /*!40000 ALTER TABLE `course_schedule` DISABLE KEYS */;
-INSERT INTO `course_schedule` VALUES (1,'Monday','09:00:00','11:00:00','Class Room',1,1,0),(2,'Monday','11:00:00','01:00:00','Class Room',1,2,0),(3,'Wednesday','09:00:00','11:00:00','Lab 01',1,3,0),(4,'Wednesday','11:00:00','02:00:00','Lab 02',1,4,0);
+INSERT INTO `course_schedule` VALUES (1,'Monday','09:00:00','11:00:00','Class Room',1,1,1),(2,'Monday','11:00:00','01:00:00','Class Room',1,2,0),(3,'Friday','15:00:00','17:00:00','B-Lab-1',1,3,0),(4,'Wednesday','11:00:00','02:00:00','Lab 02',1,4,0),(5,'Monday','18:25:00','20:25:00','BTF-10',3,3,0);
 /*!40000 ALTER TABLE `course_schedule` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -498,7 +537,7 @@ CREATE TABLE `student_fees` (
 
 LOCK TABLES `student_fees` WRITE;
 /*!40000 ALTER TABLE `student_fees` DISABLE KEYS */;
-INSERT INTO `student_fees` VALUES (1,18708.00,'paid','2025-12-31 09:10:20','uploads/students_uploads/voucher_pics/student_4_front_contact.PNG','uploads/students_uploads/voucher_pics/student_4_back_prj.PNG',1,'December',4,0),(2,68102.00,'paid','2026-03-05 07:08:03','uploads/students_uploads/voucher_pics/student_2_front_dep_view.PNG','uploads/students_uploads/voucher_pics/student_2_back_students_view.PNG',1,'January',2,0),(3,18708.00,'paid','2026-03-05 07:08:31',NULL,NULL,4,'December',5,0);
+INSERT INTO `student_fees` VALUES (1,18708.00,'paid','2025-12-31 09:10:20','uploads/students_uploads/voucher_pics/student_4_front_contact.PNG','uploads/students_uploads/voucher_pics/student_4_back_prj.PNG',1,'December',4,0),(2,68102.00,'paid','2026-03-05 07:08:03','uploads/students_uploads/voucher_pics/student_2_front_dep_view.PNG','uploads/students_uploads/voucher_pics/student_2_back_students_view.PNG',1,'January',2,0),(3,18708.00,'due','2026-03-12 10:52:07',NULL,NULL,4,'December',5,0);
 /*!40000 ALTER TABLE `student_fees` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -831,6 +870,39 @@ INSERT INTO `teacher_course` VALUES (1,1,1,0),(2,1,2,0),(3,3,5,0),(4,3,6,0),(8,4
 UNLOCK TABLES;
 
 --
+-- Table structure for table `teacher_salary`
+--
+
+DROP TABLE IF EXISTS `teacher_salary`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `teacher_salary` (
+  `salary_id` int(11) NOT NULL AUTO_INCREMENT,
+  `teacher_id` int(11) NOT NULL,
+  `month` varchar(20) NOT NULL,
+  `year` int(11) NOT NULL,
+  `basic_salary` decimal(10,2) NOT NULL,
+  `bonus` decimal(10,2) DEFAULT 0.00,
+  `deductions` decimal(10,2) DEFAULT 0.00,
+  `status` enum('Pending','Paid') DEFAULT 'Pending',
+  `is_deleted` tinyint(4) DEFAULT 0,
+  PRIMARY KEY (`salary_id`),
+  KEY `teacher_id` (`teacher_id`),
+  CONSTRAINT `teacher_salary_ibfk_1` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`teacher_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `teacher_salary`
+--
+
+LOCK TABLES `teacher_salary` WRITE;
+/*!40000 ALTER TABLE `teacher_salary` DISABLE KEYS */;
+INSERT INTO `teacher_salary` VALUES (1,4,'March',2026,35000.00,2500.00,500.00,'Paid',0),(2,1,'April',2026,45000.00,3500.00,1199.99,'Paid',0);
+/*!40000 ALTER TABLE `teacher_salary` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `teachers`
 --
 
@@ -932,4 +1004,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-08 16:51:32
+-- Dump completed on 2026-03-12 16:55:01

@@ -41,14 +41,14 @@
                 <li><a href="{{url_for('admin.admin_profile')}}"><i class="fa-solid fa-user"></i> <span>Profile</span></a></li>
                 <li><a href="{{url_for('admin.admin_dashboard')}}"><i class="fa-solid fa-chart-line"></i> <span>Dashboard</span></a></li>
                 <li class="has-submenu">
-                    <a href="#"><i class="fa-solid fa-gear"></i> <span>System Management</span> <i class="fa-solid fa-chevron-down sidebar-arrow"></i></a>
+                    <a href="#"><i class="fa-solid fa-gear"></i> <span>System Management</span> </a>
                     <ul class="submenu">
                         <li><a href="{{url_for('admin.system_settings')}}"><i class="fa-solid fa-toggle-on"></i> Settings</a></li>
                         <li><a href="{{url_for('admin.system_controls')}}"><i class="fa-solid fa-sliders"></i> Controls</a></li>
                     </ul>
                 </li>
                 <li class="has-submenu">
-                    <a href="#"><i class="fa-solid fa-user-graduate"></i> <span>Student Management</span> <i class="fa-solid fa-chevron-down sidebar-arrow"></i></a>
+                    <a href="#"><i class="fa-solid fa-user-graduate"></i> <span>Student Management</span></a>
                     <ul class="submenu">
                         <li><a href="{{url_for('admin.register_student')}}"><i class="fa-solid fa-user-plus"></i> Register Student</a></li>
                         <li><a href="{{url_for('admin.manage_attendance')}}"><i class="fa-solid fa-calendar-check"></i> Maintain Attendance</a></li>
@@ -60,22 +60,23 @@
                     </ul>
                 </li>
                 <li class="has-submenu">
-                    <a href="#"><i class="fa-solid fa-chalkboard-user"></i> <span>Teacher Management</span> <i class="fa-solid fa-chevron-down sidebar-arrow"></i></a>
+                    <a href="#"><i class="fa-solid fa-chalkboard-user"></i> <span>Teacher Management</span></a>
                     <ul class="submenu">
                         <li><a href="{{url_for('admin.view_teachers')}}"><i class="fa-solid fa-users"></i> View Teachers</a></li>
                         <li><a href="{{url_for('admin.assign_classes')}}"><i class="fa-solid fa-chalkboard"></i> Assign Classes</a></li>
-                        <li><a href="{{url_for('admin.teacher_attendance')}}"><i class="fa-solid fa-clipboard-user"></i> Teacher Attendance</a></li>
+                        <li><a href="{{url_for('admin.course_attendance')}}"><i class="fa-solid fa-clipboard-user"></i> Course Attendance</a></li>
+                        <li><a href="{{url_for('admin.salary_record')}}"><i class="fa-solid fa-money-bill-wave"></i> Salary Records</a></li>
                     </ul>
                 </li>
                 <li class="has-submenu">
-                    <a href="#"><i class="fa-solid fa-calendar-days"></i> <span>Schedule Management</span> <i class="fa-solid fa-chevron-down sidebar-arrow"></i></a>
+                    <a href="#"><i class="fa-solid fa-calendar-days"></i> <span>Schedule Management</span></a>
                     <ul class="submenu">
-                        <li><a href="class_timetable.html"><i class="fa-solid fa-table-cells"></i> Class Timetable</a></li>
-                        <li><a href="exam_dates.html"><i class="fa-solid fa-file-pen"></i> Exam Dates</a></li>
+                        <li><a href="{{url_for('admin.class_timetable')}}"><i class="fa-solid fa-table-cells"></i> Class Timetable</a></li>
+                        <li><a href="{{url_for('admin.exam_dates')}}"><i class="fa-solid fa-file-pen"></i> Exam Dates</a></li>
                     </ul>
                 </li>
                 <li class="has-submenu">
-                    <a href="#"><i class="fa-solid fa-diagram-project"></i> <span>FYP Management</span> <i class="fa-solid fa-chevron-down sidebar-arrow"></i></a>
+                    <a href="#"><i class="fa-solid fa-diagram-project"></i> <span>FYP Management</span> </a>
                     <ul class="submenu">
                         <li><a href="fyp_proposals.html"><i class="fa-solid fa-file-circle-plus"></i> Proposals</a></li>
                         <li><a href="fyp_evaluations.html"><i class="fa-solid fa-clipboard-check"></i> Evaluations</a></li>

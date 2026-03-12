@@ -19,14 +19,6 @@
     flex: 1;
 }
 
-.sidebar .has-submenu > a .sidebar-arrow {
-    font-size: 0.75rem;
-    transition: transform 0.3s ease;
-    flex-shrink: 0;
-    pointer-events: none;
-    margin-left: 0;
-}
-
 .sidebar .submenu {
     max-height: 0;
     overflow: hidden;
@@ -69,9 +61,7 @@
     max-height: 500px;
 }
 
-.sidebar .has-submenu:hover > a .sidebar-arrow {
-    transform: rotate(180deg);
-}
+
 
 .sidebar li a i:first-child {
     width: 20px;

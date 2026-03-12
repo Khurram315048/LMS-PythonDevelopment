@@ -453,15 +453,10 @@ def update_result():
 
 
 
-
 @admin.route('/fee_management', methods=['GET'])
 @admin_required
 def fee_management():
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-
-    program_id=request.args.get('program_id', '')
-    fee_status=request.args.get('fee_status', '')
-    selected_month=request.args.get('fee_month', '')
 
     query='''
         SELECT sf.*, p.program_name, s.first_name, s.last_name
@@ -470,35 +465,16 @@ def fee_management():
         JOIN programs p ON sf.program_id=p.program_id
         WHERE 1=1
     '''
-    params = []
+    cursor.execute(query)
+    fees=cursor.fetchall()
 
-    if program_id:
-        query += ' AND sf.program_id = %s'
-        params.append(program_id)
-    if fee_status:
-        query += ' AND sf.fee_status = %s'
-        params.append(fee_status)
-    if selected_month:
-        query += ' AND sf.fee_month = %s'
-        params.append(selected_month)
-
-    query += ' ORDER BY sf.update_date DESC'
-    cursor.execute(query, params)
-    fees = cursor.fetchall()
-
-    cursor.execute('SELECT program_id, program_name FROM programs')
+    cursor.execute('SELECT program_id,program_name FROM programs')
     programs=cursor.fetchall()
 
-    cursor.execute('SELECT student_id, first_name, last_name FROM students WHERE is_deleted=0')
+    cursor.execute('SELECT student_id,first_name,last_name FROM students WHERE is_deleted=0')
     students=cursor.fetchall()
 
-    return render_template('fee_management.html',
-                           fees=fees,
-                           programs=programs,
-                           students=students,
-                           selected_program=int(program_id) if program_id else '',
-                           selected_status=fee_status,
-                           selected_month=selected_month)
+    return render_template('fee_management.html',fees=fees,programs=programs,students=students)
 
 
 
@@ -864,7 +840,94 @@ def edit_teacher():
 
     return redirect(url_for('admin.view_teachers'))
 
-         
+
+
+@admin.route('/salary_record',methods=['GET'])
+@admin_required
+def salary_record():
+    cursor=mysql.connection.cursor()
+
+    cursor.execute("SELECT teacher_id,first_name,last_name FROM teachers WHERE is_deleted=%s",(0,))
+    teachers=cursor.fetchall()
+
+    query="""
+        SELECT s.salary_id,t.first_name,t.last_name,s.month,s.year,
+               s.basic_salary,s.bonus,s.deductions,
+               (s.basic_salary + s.bonus - s.deductions) AS net_salary,s.status
+        FROM teacher_salary s
+        JOIN teachers t ON s.teacher_id=t.teacher_id
+        WHERE s.is_deleted=%s
+        ORDER BY s.salary_id ASC
+    """
+    cursor.execute(query,(0,))
+    salary_records=cursor.fetchall()
+    cursor.close()
+
+    return render_template('salary_record.html',teachers=teachers,salary_records=salary_records)
+
+
+@admin.route('/add_record',methods=['POST'])
+@admin_required
+def add_record():
+    cursor=mysql.connection.cursor()
+
+    teacher_id=request.form.get('teacher_id')
+    month=request.form['month']
+    year=request.form['year']
+    basic_sal=request.form['basic_salary']
+    bonus=request.form['bonus']
+    deduct=request.form['deductions']
+    status=request.form['status']
+
+    cursor.execute('SELECT salary_id FROM teacher_salary WHERE teacher_id=%s AND month=%s AND year=%s',
+                   (teacher_id,month,year))
+    if cursor.fetchone():
+        flash('Salary Record Already Exists','danger')
+        return redirect(url_for('admin.salary_record'))
+
+    cursor.execute('''INSERT INTO teacher_salary(teacher_id,month,year,basic_salary,bonus,deductions,status)
+                   VALUES(%s,%s,%s,%s,%s,%s,%s)''',(teacher_id,month,year,basic_sal,bonus,deduct,status))
+    mysql.connection.commit()
+    cursor.close()
+    flash('Record Added Successfully', 'success')
+    return redirect(url_for('admin.salary_record'))
+   
+
+@admin.route('/update_salary',methods=['POST'])
+@admin_required
+def update_salary():
+    cursor=mysql.connection.cursor()
+    salary_id=request.form.get('salary_id')
+
+    basic_sal=request.form['basic_salary']
+    bonus=request.form['bonus']
+    deduct=request.form['deductions']
+    status=request.form['status']
+
+    cursor.execute('UPDATE teacher_salary SET basic_salary=%s,bonus=%s,deductions=%s,status=%s WHERE salary_id=%s',
+    (basic_sal,bonus,deduct,status,salary_id))
+    mysql.connection.commit()
+    cursor.close()
+    flash('Record Updated Successfully','success')
+    return redirect(url_for('admin.salary_record'))
+
+
+@admin.route('/delete_salary',methods=['POST'])
+@admin_required
+def delete_salary():
+    cursor=mysql.connection.cursor()
+
+    salary_id=request.form.get('salary_id')
+    cursor.execute('UPDATE teacher_salary SET is_deleted=%s WHERE salary_id=%s',(1,salary_id))
+    mysql.connection.commit()
+    flash('Record Deleted Successfully','success')
+    return redirect(url_for('admin.salary_record'))
+
+
+
+
+
+
 
 @admin.route('/assign_classes', methods=['GET'])
 @admin_required
@@ -930,41 +993,179 @@ def delete_course():
 
 
 
-@admin.route('/teacher_attendance', methods=['GET'])
+@admin.route('/course_attendance', methods=['GET'])
 @admin_required
-def teacher_attendance():
+def course_attendance():
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
 
-    query='''
-        SELECT  t.teacher_id,t.first_name,t.last_name,c.course_name,c.course_id,
-            cs.day_of_week,cs.course_schedule_id,
-            CASE 
-                WHEN COUNT(a.attendance_id) > 0 THEN 'Present'
-                ELSE 'Absent'
-            END AS status,
-            a.attendance_date
-        FROM teacher_course tc
-        JOIN teachers t ON tc.teacher_id=t.teacher_id
-        JOIN courses c ON tc.course_id=c.course_id
-        JOIN course_schedule cs ON cs.course_id=c.course_id AND cs.section_id IS NOT NULL
-        LEFT JOIN attendance a ON a.course_schedule_id=cs.course_schedule_id
-        WHERE t.is_deleted=0 AND tc.is_deleted=0
-        GROUP BY t.teacher_id, c.course_id, cs.course_schedule_id, a.attendance_date
-        ORDER BY a.attendance_date ASC, t.first_name,c.course_name
-    '''
-    cursor.execute(query)
+    cursor.execute('''
+        SELECT cal.log_id,cal.attendance_date,cal.total_students,cal.total_present,cal.total_absent,
+            t.first_name, t.last_name,c.course_name,cs.day_of_week
+        FROM course_attendance_log cal
+        JOIN teachers t  ON cal.teacher_id=t.teacher_id
+        JOIN courses c   ON cal.course_id=c.course_id
+        JOIN course_schedule cs ON cal.course_schedule_id=cs.course_schedule_id
+        WHERE cal.is_deleted=0
+    ''')
     attendance_records=cursor.fetchall()
-
     cursor.execute('SELECT teacher_id,first_name,last_name FROM teachers WHERE is_deleted=0')
     teachers=cursor.fetchall()
 
     cursor.execute('SELECT course_id,course_name FROM courses WHERE is_deleted=0')
     courses=cursor.fetchall()
 
-    return render_template('teacher_attendance.html',
+    cursor.execute('''
+        SELECT s.section_id,s.section_name,s.semester,c.course_name
+        FROM sections s
+        JOIN courses c  ON s.course_id=c.course_id
+        WHERE s.is_deleted=0
+    ''')
+    sections=cursor.fetchall()
+
+    return render_template('course_attendance.html',
                            attendance_records=attendance_records,
                            teachers=teachers,
-                           courses=courses)
+                           courses=courses,sections=sections)
+
+
+
+@admin.route('/mark_course_attendance', methods=['POST'])
+@admin_required
+def mark_course_attendance():
+    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    teacher_id=request.form.get('teacher_id')
+    course_id=request.form.get('course_id')
+    section_id=request.form.get('section_id')
+    attendance_date=request.form.get('attendance_date')
+    semester=request.form.get('semester')
+    total_present=int(request.form.get('total_present', 0))
+    total_absent=int(request.form.get('total_absent', 0))
+    total_students=total_present + total_absent
+
+    cursor.execute('''
+            SELECT cs.course_schedule_id, s.semester 
+            FROM course_schedule cs
+            JOIN sections s ON cs.section_id=s.section_id
+            WHERE cs.section_id=%s LIMIT 1
+        ''',(section_id,))
+    schedule=cursor.fetchone()
+
+    if not schedule:
+        flash('No schedule found for this section.', 'danger')
+        return redirect(url_for('admin.course_attendance'))
+
+    course_schedule_id=schedule['course_schedule_id']
+    semester=schedule['semester']
+
+    cursor.execute('''
+        INSERT INTO course_attendance_log
+        (teacher_id,course_id,course_schedule_id,attendance_date,semester,total_students,total_present,total_absent)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+        ''', (teacher_id,course_id,course_schedule_id,attendance_date,
+            semester,total_students,total_present,total_absent))
+    flash('Attendance record added.', 'success')
+
+    mysql.connection.commit()
+    return redirect(url_for('admin.course_attendance'))
+
+
+
+@admin.route('/class_timetable', methods=['GET'])
+@admin_required
+def class_timetable():
+    cursor=mysql.connection.cursor()
+    cursor.execute("""
+        SELECT cs.course_schedule_id,cs.day_of_week,cs.start_time,cs.end_time,cs.location,
+               c.course_name,s.section_name
+        FROM course_schedule cs
+        JOIN courses c ON cs.course_id=c.course_id
+        JOIN sections s ON cs.section_id=s.section_id
+        WHERE cs.is_deleted=%s
+    """,(0,))
+    schedules=cursor.fetchall()
+    cursor.execute('SELECT course_id,course_name FROM courses')
+    courses=cursor.fetchall()
+    cursor.execute('SELECT section_id,section_name FROM sections')
+    sections=cursor.fetchall()
+
+    return render_template('class_timetable.html',schedules=schedules,courses=courses,sections=sections)   
+
+
+
+@admin.route('/add_schedule',methods=['POST'])
+@admin_required
+def add_schedule():
+    cursor=mysql.connection.cursor()
+
+    course_id=request.form.get('course_id')
+    section_id=request.form.get('section_id')
+    day_of_week=request.form['day_of_week']
+    start_time=request.form['start_time']
+    end_time=request.form['end_time']
+    location=request.form['location']
+
+    cursor.execute('SELECT course_id FROM course_schedule WHERE course_id=%s',(course_id,))
+    exist=cursor.fetchone()
+    if exist:
+        flash('Schedule Already Exist','danger')
+        return redirect(url_for('admin.class_timetable'))
+    
+    cursor.execute('''INSERT INTO course_schedule(day_of_week,start_time,end_time,location,course_id,section_id) 
+                   VALUES (%s,%s,%s,%s,%s,%s)''',(day_of_week,start_time,end_time,location,course_id,section_id))
+    mysql.connection.commit()
+    cursor.close()
+    flash('Schedule Added to the System','success')
+    return redirect(url_for('admin.class_timetable'))
+
+
+
+@admin.route('/update_schedule',methods=['POST'])
+@admin_required
+def update_schedule():
+    cursor=mysql.connection.cursor()
+    course_schedule_id=request.form.get('course_schedule_id')
+    day_of_week=request.form['day_of_week']
+    start_time=request.form['start_time']
+    end_time=request.form['end_time']
+    location=request.form['location']
+
+    cursor.execute('''
+    UPDATE course_schedule SET day_of_week=%s,start_time=%s,end_time=%s,location=%s WHERE course_schedule_id=%s
+    ''',(day_of_week,start_time,end_time,location,course_schedule_id))
+    mysql.connection.commit()
+    cursor.close()
+    flash('Schedule Updated Successfully','success')
+    return redirect(url_for('admin.class_timetable'))
+
+
+@admin.route('/delete_schedule',methods=['POST'])
+@admin_required
+def delete_schedule():
+    cursor=mysql.connection.cursor()
+    course_schedule_id=request.form.get('course_schedule_id')
+    cursor.execute('UPDATE course_schedule SET is_deleted=%s WHERE course_schedule_id=%s',(1,course_schedule_id))
+    mysql.connection.commit()
+    cursor.close()
+    flash('Schedule Deleted Successfully','success')
+    return redirect(url_for('admin.class_timetable'))    
+
+
+
+@admin.route('/exam_dates',methods=['GET'])
+@admin_required
+def exam_dates():
+    return render_template('exam_dates.html')
+    
+          
+
+
+                              
+
+
+
+
+    
     
 
         

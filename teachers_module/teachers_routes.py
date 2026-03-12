@@ -78,20 +78,20 @@ def class_attendance():
 @teacher.route("/marked_attendance/<int:section_id>", methods=['GET', 'POST'])
 @teacher_required
 def marked_attendance(section_id):
-    meta = TeacherModel.get_attendance_meta(section_id)
+    meta=TeacherModel.get_attendance_meta(section_id)
     if not meta: 
         return "Error: Schedule not found."
 
-    cur_date = request.form.get('attendance_date') or request.args.get('date') or str(datetime.date.today())
-    already_marked = TeacherModel.check_attendance_marked(meta['course_schedule_id'], cur_date)
+    cur_date=request.form.get('attendance_date') or request.args.get('date') or str(datetime.date.today())
+    already_marked=TeacherModel.check_attendance_marked(meta['course_schedule_id'], cur_date)
 
-    if request.method == 'POST':
+    if request.method=='POST':
         if already_marked: 
             return "Error: Attendance already marked for this date."
             
-        students = TeacherModel.get_student_list_for_attendance(section_id, meta['course_id'])
+        students=TeacherModel.get_student_list_for_attendance(section_id, meta['course_id'])
         
-        batch_data = [
+        batch_data=[
             (
                 s['student_course_id'], 
                 meta['course_schedule_id'], 
@@ -102,6 +102,14 @@ def marked_attendance(section_id):
         ]
         
         TeacherModel.save_bulk_attendance(batch_data)
+        TeacherModel.save_course_attendance_log(
+            teacher_id=session.get('teacher_id'),
+            course_id=meta['course_id'],
+            course_schedule_id=meta['course_schedule_id'],
+            attendance_date=cur_date,
+            semester=meta['semester'],
+            attendance_data=batch_data
+        )
         return redirect(url_for('teacher.class_attendance'))
 
     student_list = TeacherModel.get_student_list_for_attendance(section_id, meta['course_id'])

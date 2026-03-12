@@ -125,6 +125,41 @@ class TeacherModel:
 
 
     @staticmethod
+    def save_course_attendance_log(teacher_id,course_id,course_schedule_id,attendance_date,semester,attendance_data):
+        cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    
+        total_students=len(attendance_data)
+        total_present =sum(1 for row in attendance_data if row[3] == 'Present')
+        total_absent=total_students - total_present
+
+        cursor.execute('''
+        SELECT log_id FROM course_attendance_log
+        WHERE course_schedule_id=%s AND attendance_date=%s
+        ''', (course_schedule_id,attendance_date))
+        existing=cursor.fetchone()
+
+        if existing:
+            cursor.execute('''
+            UPDATE course_attendance_log
+            SET total_students=%s,total_present=%s,total_absent=%s
+            WHERE log_id=%s
+            ''',(total_students,total_present,total_absent,existing['log_id']))
+        else:
+            cursor.execute('''
+                INSERT INTO course_attendance_log 
+                (teacher_id,course_id,course_schedule_id,attendance_date,semester,total_students,total_present,total_absent)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+                ''', (teacher_id,course_id,course_schedule_id,attendance_date,semester,
+                        total_students,total_present,total_absent))
+
+        mysql.connection.commit()
+        cursor.close()
+
+       
+
+
+
+    @staticmethod
     def get_fyp_groups(teacher_id):
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         query = """

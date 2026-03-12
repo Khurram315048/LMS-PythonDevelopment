@@ -1,4 +1,4 @@
-{% extends "admin_base.html" %}
+{% extends "layouts/admin_base.html" %}
 {% block title %}Class Timetable{% endblock %}
 {% block content %}
 <div class="page-header">
@@ -11,32 +11,6 @@
             <i class="fa-solid fa-plus"></i> Add Schedule
         </button>
     </div>
-    <div class="card-body">
-        <div class="mb-3">
-            <form method="GET" action="#" class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">Course</label>
-                    <select class="form-select" name="course_id">
-                        <option value="">All Courses</option>
-                        {% for course in courses %}
-                        <option value="{{ course.course_id }}" {% if selected_course == course.course_id %}selected{% endif %}>{{ course.course_name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Section</label>
-                    <select class="form-select" name="section_id">
-                        <option value="">All Sections</option>
-                        {% for section in sections %}
-                        <option value="{{ section.section_id }}" {% if selected_section == section.section_id %}selected{% endif %}>{{ section.section_name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-4 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">Filter</button>
-                </div>
-            </form>
-        </div>
         <table class="table table-bordered table-hover">
             <thead class="table-dark">
                 <tr>
@@ -64,7 +38,7 @@
                         <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editScheduleModal{{ schedule.course_schedule_id }}">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <form method="POST" action="#" style="display:inline;">
+                        <form method="POST" action="{{url_for('admin.delete_schedule')}}" style="display:inline;">
                             <input type="hidden" name="course_schedule_id" value="{{ schedule.course_schedule_id }}">
                             <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this schedule?')">
                                 <i class="fa-solid fa-trash"></i>
@@ -81,7 +55,7 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
-                                <form method="POST" action="#">
+                                <form method="POST" action="{{url_for('admin.update_schedule')}}">
                                     <input type="hidden" name="course_schedule_id" value="{{ schedule.course_schedule_id }}">
                                     <div class="mb-3">
                                         <label class="form-label">Day</label>
@@ -123,7 +97,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form method="POST" action="#">
+                <form method="POST" action="{{url_for('admin.add_schedule')}}">
                     <div class="mb-3">
                         <label class="form-label">Course</label>
                         <select class="form-select" name="course_id" required>
