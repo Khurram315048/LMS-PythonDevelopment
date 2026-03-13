@@ -325,9 +325,7 @@ def update_student():
 @admin_required
 def manage_attendance():
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    course_id=request.args.get('course_id', '')
-    section_id=request.args.get('section_id', '')
-    selected_date=request.args.get('date', '')
+
     query='''
         SELECT a.attendance_id, a.attendance_date, a.attendance_status,
                s.first_name, s.last_name,
@@ -339,35 +337,16 @@ def manage_attendance():
         JOIN courses c ON sc.course_id=c.course_id
         JOIN course_schedule cs ON a.course_schedule_id=cs.course_schedule_id
         JOIN sections sec ON cs.section_id=sec.section_id
-        WHERE 1=1
+        WHERE  a.is_deleted=%s
     '''
-    params=[]
-
-    if course_id:
-        query += ' AND c.course_id=%s'
-        params.append(course_id)
-    if section_id:
-        query += ' AND sec.section_id=%s'
-        params.append(section_id)
-    if selected_date:
-        query += ' AND a.attendance_date=%s'
-        params.append(selected_date)
-
-    query += ' ORDER BY a.attendance_date DESC'
-    cursor.execute(query, params)
+    cursor.execute(query,(0,))
     attendance=cursor.fetchall()
     cursor.execute('SELECT course_id, course_name FROM courses')
     courses=cursor.fetchall()
     cursor.execute('SELECT section_id, section_name FROM sections')
     sections=cursor.fetchall()
 
-    return render_template('manage_attendance.html',
-                           attendance=attendance,
-                           courses=courses,
-                           sections=sections,
-                           selected_course=int(course_id) if course_id else '',
-                           selected_section=int(section_id) if section_id else '',
-                           selected_date=selected_date)   
+    return render_template('manage_attendance.html',attendance=attendance,courses=courses,sections=sections,)   
 
 
 @admin.route('/update_attendance', methods=['POST'])
@@ -926,9 +905,6 @@ def delete_salary():
 
 
 
-
-
-
 @admin.route('/assign_classes', methods=['GET'])
 @admin_required
 def assign_classes():
@@ -1156,9 +1132,143 @@ def delete_schedule():
 @admin_required
 def exam_dates():
     return render_template('exam_dates.html')
-    
-          
 
+
+@admin.route('/get_proposals',methods=['GET'])
+@admin_required
+def get_proposals():
+    cursor=mysql.connection.cursor()
+    cursor.execute("""
+        SELECT fy.fyp_id,fy.project_title,fy.description,fy.`status`,fy.last_submission,fy.created_at,
+           fy.student_id,fy.teacher_id,
+           CONCAT(s.first_name,' ',s.last_name) AS student_name,
+           s.email AS student_email, s.contact AS student_contact,
+           p.program_name AS program,
+           sec.semester
+        FROM fyp_groups fy
+        JOIN students s ON fy.student_id=s.student_id
+        JOIN programs p ON s.program_id=p.program_id
+        LEFT JOIN student_section ss ON s.student_id=ss.student_id AND ss.is_deleted=0
+        LEFT JOIN sections sec ON ss.section_id=sec.section_id
+        WHERE fy.is_deleted=%s AND fy.`status`='Pending Approval'
+        """, (0,))
+    fyp_groups=cursor.fetchall()
+    cursor.execute('SELECT teacher_id,first_name,last_name FROM teachers WHERE is_deleted=%s',(0,))
+    teachers=cursor.fetchall()
+    
+    return render_template('get_proposals.html',fyp_groups=fyp_groups,teachers=teachers) 
+
+          
+@admin.route('/fyp_proposals', methods=['GET'])
+@admin_required
+def fyp_proposals():
+    cursor=mysql.connection.cursor()
+
+    cursor.execute("""
+    SELECT fy.fyp_id, fy.project_title,fy.progress,fy.description,fy.status,fy.last_submission,fy.created_at,
+           fy.student_id,fy.teacher_id,
+           CONCAT(s.first_name,' ',s.last_name) AS student_name,
+           s.email AS student_email, s.contact AS student_contact,
+           p.program_name AS program,
+           sec.semester,
+           CONCAT(t.first_name,' ',t.last_name) AS teacher_name,
+           t.email AS teacher_email, t.contact_num AS teacher_contact
+    FROM fyp_groups fy
+    JOIN students s ON fy.student_id=s.student_id
+    JOIN teachers t ON fy.teacher_id=t.teacher_id
+    JOIN programs p ON s.program_id=p.program_id
+    LEFT JOIN student_section ss ON s.student_id=ss.student_id AND ss.is_deleted=0
+    LEFT JOIN sections sec ON ss.section_id=sec.section_id
+    WHERE fy.is_deleted=%s
+    """,(0,))
+    fyp_groups=cursor.fetchall()
+    cursor.close()
+
+    return render_template('fyp_proposals.html',fyp_groups=fyp_groups)
+
+
+
+@admin.route('/updated_fyp',methods=['POST'])
+@admin_required
+def updated_fyp():
+    cursor=mysql.connection.cursor()
+
+    fyp_id=request.form.get('fyp_id')
+    fyp_status=request.form['status']
+
+    cursor.execute('UPDATE fyp_groups SET status=%s WHERE fyp_id=%s',(fyp_status,fyp_id))
+    mysql.connection.commit()
+    cursor.close()
+    return redirect(url_for('admin.fyp_proposals'))
+
+
+
+@admin.route('/assign_supervisor', methods=['POST'])
+@admin_required
+def assign_supervisor():
+    cursor=mysql.connection.cursor()
+    fyp_id=request.form.get('fyp_id')
+    teacher_id=request.form.get('teacher_id')
+
+    cursor.execute("UPDATE fyp_groups SET teacher_id=%s WHERE fyp_id=%s",(teacher_id,fyp_id))
+    mysql.connection.commit()
+    cursor.close()
+    flash('Supervisor assigned successfully.', 'success')
+    return redirect(url_for('admin.fyp_proposals'))
+
+
+@admin.route('/admin_notifications',methods=['GET'])
+@admin_required
+def admin_notifications():
+    cursor=mysql.connection.cursor()
+    cursor.execute('SELECT id,title,sender_role,receiver_role,status,created_at FROM notifications WHERE is_deleted=%s',(0,))
+    notifications=cursor.fetchall()
+    cursor.execute('SELECT course_id,course_name FROM courses WHERE is_deleted=%s',(0,))
+    courses=cursor.fetchall()
+    cursor.execute("""
+        SELECT us.user_id,us.email,rl.role_type
+        FROM users us
+        JOIN users_role rl ON us.role_id=rl.role_id
+        WHERE us.is_deleted=%s
+    """,(0,))
+    users=cursor.fetchall()
+    return render_template('admin_notifications.html',notifications=notifications,courses=courses,users=users)
+
+
+@admin.route('/send_notification',methods=['POST'])
+@admin_required
+def send_notification():
+    cursor=mysql.connection.cursor()
+    receiver_role=request.form['receiver_role']
+    receiver_id=request.form.get('receiver_id') or None
+    related_course_id=request.form.get('related_course_id') or None
+    title=request.form['title']
+    description=request.form['description']
+    sender_id=session['user_id']
+    sender_role='Admin'
+
+    cursor.execute('''INSERT INTO notifications(sender_id,sender_role,receiver_id,receiver_role,title,description,related_course_id,status)
+    VALUES(%s,%s,%s,%s,%s,%s,%s,%s)
+    ''',(sender_id,sender_role,receiver_id,receiver_role,title,description,related_course_id,'Pending'))
+    mysql.connection.commit()
+    cursor.close()
+    flash('Notification Send Successfully','success')
+    return redirect(url_for('admin.admin_notifications'))    
+
+
+@admin.route('/delete_notification',methods=['POST'])
+@admin_required
+def delete_notification():
+    cursor=mysql.connection.cursor()
+
+    notify_id=request.form.get('notif_id')
+    current_status='Rejected'
+
+    cursor.execute('UPDATE notifications SET is_deleted=%s,`status`=%s WHERE id=%s',(1,current_status,notify_id))
+    mysql.connection.commit()
+    cursor.close()
+    flash('Nofitication Deleted Successfully','success')
+    return redirect(url_for('admin.admin_notifications'))    
 
                               
 

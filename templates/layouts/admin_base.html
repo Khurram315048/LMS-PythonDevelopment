@@ -78,13 +78,12 @@
                 <li class="has-submenu">
                     <a href="#"><i class="fa-solid fa-diagram-project"></i> <span>FYP Management</span> </a>
                     <ul class="submenu">
-                        <li><a href="fyp_proposals.html"><i class="fa-solid fa-file-circle-plus"></i> Proposals</a></li>
-                        <li><a href="fyp_evaluations.html"><i class="fa-solid fa-clipboard-check"></i> Evaluations</a></li>
+                        <li><a href="{{url_for('admin.get_proposals')}}"><i class="fa-solid fa-file-circle-plus"></i> Assign Supervisor</a></li>
+                        <li><a href="{{url_for('admin.fyp_proposals')}}"><i class="fa-solid fa-file-circle-plus"></i> FYP Proposals</a></li>
                     </ul>
                 </li>
                 <li><a href="{{url_for('admin.complaints')}}"><i class="fa-solid fa-comment-dots"></i> <span>Complaints</span></a></li>
-                <li><a href="help_desk.html"><i class="fa-solid fa-headset"></i> <span>Help Desk</span></a></li>
-                <li><a href="notifications.html"><i class="fa-solid fa-bell"></i> <span>Notifications</span></a></li>
+                <li><a href="{{url_for('admin.admin_notifications')}}"><i class="fa-solid fa-bell"></i> <span>Notifications</span></a></li>
                 <li><a href="{{url_for('logout')}}" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span></a></li>
             </ul>
         </nav>

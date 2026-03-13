@@ -89,9 +89,11 @@ def student_dashboard():
     for s in schedule:
         s['course_name'] = course_names.get(s['course_id'], 'Unknown Course')
 
+    active_notifications=NotificationModel.get_active_notifications(session['user_id'],'student')
+    
     return render_template(
         'student_dashboard.html', schedule=schedule, teacher=teacher_info, teacher_ids=teacher_ids_by_course,
-         uploaded_assignments=uploaded_assignments,uploaded_quizzes=uploaded_quizzes)
+         uploaded_assignments=uploaded_assignments,uploaded_quizzes=uploaded_quizzes,active_notifications=active_notifications)
 
 
 @student.route('/student_fee', methods=['GET', 'POST'])
@@ -494,7 +496,6 @@ def submit_fyp():
 
     title=request.form.get('project_title')
     description=request.form.get('description')
-    teacher_id=request.form.get('teacher_id')
     file=request.files.get('proposal_file')
     db_file_path=None
 
@@ -510,10 +511,7 @@ def submit_fyp():
 
     try:
         
-        if not teacher_id:
-            flash('Please select a supervisor teacher.', 'danger')
-            return redirect(url_for('student.student_fyp'))
-        StudentModel.insert_fyp_proposal(student_id, title, description, teacher_id, db_file_path)
+        StudentModel.insert_fyp_proposal(student_id,title,description,None,db_file_path)
         flash('FYP Proposal Submitted Successfully!', 'success')
     except Exception as e:
         flash(f'Error: {str(e)}', 'danger')
@@ -548,12 +546,12 @@ def update_fyp():
     if session.get('role') != 'student':
         return redirect(url_for('main_view'))
 
-    student_id = session.get('student_id')
-    title = request.form.get('project_title')
-    file = request.files.get('proposal_file')
-    db_file_path = None 
+    student_id=session.get('student_id')
+    title=request.form.get('project_title')
+    file=request.files.get('proposal_file')
+    db_file_path=None 
     
-    upload_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'students_uploads', 'students_fyp_proposal')
+    upload_folder=os.path.join(current_app.root_path, 'static', 'uploads', 'students_uploads', 'students_fyp_proposal')
     
     if file and file.filename != '':
         if not allowed_file(file.filename):
@@ -566,7 +564,7 @@ def update_fyp():
     db_file_path = f"uploads/students_uploads/students_fyp_proposal/{unique_name}"
     
     
-    StudentModel.update_fyp_data(student_id, title, db_file_path)
+    StudentModel.update_fyp_data(student_id,title,db_file_path)
     flash('FYP Project updated successfully!', 'success')
     return redirect(url_for('student.student_fyp'))
 

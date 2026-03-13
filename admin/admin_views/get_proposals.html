@@ -7,7 +7,7 @@
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h4>All FYP Groups</h4>
+        <h4>All FYP Proposals</h4>
         <input type="text" id="searchInput" class="form-control w-auto" placeholder="Search...">
     </div>
     <div class="card-body">
@@ -17,11 +17,9 @@
                     <th>ID</th>
                     <th>Project Title</th>
                     <th>Student</th>
-                    <th>Supervisor</th>
-                    <th>Progress</th>
                     <th>Description</th>
                     <th>Status</th>
-                    <th>Last Submission</th>
+                    <th>Proposal</th>
                     <th>Created At</th>
                     <th>Action</th>
                 </tr>
@@ -35,16 +33,6 @@
                         <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#stuModal{{ fyp.fyp_id }}">
                             <i class="fa-solid fa-eye"></i> {{ fyp.student_name }}
                         </button>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#tchrModal{{ fyp.fyp_id }}">
-                            <i class="fa-solid fa-eye"></i> {{ fyp.teacher_name }}
-                        </button>
-                    </td>
-                    <td style="min-width:120px;">
-                        <div class="progress" style="height:20px;">
-                            <div class="progress-bar" role="progressbar">{{ fyp.progress }}%</div>
-                        </div>
                     </td>
                     <td>
                         <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#dscrModal{{ fyp.fyp_id }}">
@@ -73,22 +61,24 @@
                     </td>
                     <td>{{ fyp.created_at }}</td>
                     <td>
-                        <form method="POST" action="{{url_for('admin.updated_fyp')}}" style="display:inline;">
+                        <form method="POST" action="{{ url_for('admin.assign_supervisor') }}" style="display:inline;">
                             <input type="hidden" name="fyp_id" value="{{ fyp.fyp_id }}">
-                            <select name="status" class="form-select form-select-sm d-inline w-auto">
-                                <option value="In Progress" {% if fyp.status == 'In Progress' %}selected{% endif %}>In Progress</option>
-                                <option value="Approved" {% if fyp.status == 'Approved' %}selected{% endif %}>Approved</option>
-                                <option value="Rejected" {% if fyp.status == 'Rejected' %}selected{% endif %}>Rejected</option>
-                                <option value="Completed" {% if fyp.status == 'Completed' %}selected{% endif %}>Completed</option>
+                            <select name="teacher_id" class="form-select form-select-sm d-inline w-auto">
+                                <option value="">Select Supervisor</option>
+                                {% for teacher in teachers %}
+                                <option value="{{ teacher.teacher_id }}" {% if fyp.teacher_id == teacher.teacher_id %}selected{% endif %}>
+                                    {{ teacher.first_name }} {{ teacher.last_name }}
+                                </option>
+                                {% endfor %}
                             </select>
-                            <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                            <button type="submit" class="btn btn-sm btn-success">Assign</button>
                         </form>
                     </td>
                 </tr>
                 {% endfor %}
                 {% if not fyp_groups %}
                 <tr>
-                    <td colspan="9" class="text-center text-muted">No FYP groups found.</td>
+                    <td colspan="9" class="text-center text-muted">No New FYP proposals found.</td>
                 </tr>
                 {% endif %}
             </tbody>
@@ -96,9 +86,6 @@
     </div>
 </div>
 {% for fyp in fyp_groups %}
-
-
-
 <div class="modal fade" id="dscrModal{{ fyp.fyp_id }}" tabindex="-1">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
@@ -114,7 +101,8 @@
                     </div>
                 </div>
 
-<div class="modal fade" id="stuModal{{ fyp.fyp_id }}" tabindex="-1">
+
+                <div class="modal fade" id="stuModal{{ fyp.fyp_id }}" tabindex="-1">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
                             <div class="modal-header">
@@ -148,39 +136,7 @@
                         </div>
                     </div>
                 </div>
-
-
-                 <div class="modal fade" id="tchrModal{{ fyp.fyp_id }}" tabindex="-1">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Supervisor — {{ fyp.teacher_name }}</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <table class="table table-bordered">
-                                    <thead class="table-dark">
-                                        <tr>
-                                            <th>ID#</th>
-                                            <th>Name</th>
-                                            <th>Email</th>
-                                            <th>Contact</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>{{ fyp.teacher_id }}</td>
-                                            <td>{{ fyp.teacher_name }}</td>
-                                            <td>{{ fyp.teacher_email }}</td>
-                                            <td>{{ fyp.teacher_contact }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-{% endfor %}
+                {% endfor %}
 
 {% block scripts %}
 <script>

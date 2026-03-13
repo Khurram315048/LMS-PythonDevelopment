@@ -730,12 +730,12 @@ class StudentModel:
 
 
     @staticmethod
-    def insert_fyp_proposal(student_id, title, description, teacher_id, filename):
+    def insert_fyp_proposal(student_id,title,description,teacher_id,filename):
         cursor=mysql.connection.cursor()
         query="""INSERT INTO fyp_groups 
-                   (project_title, description, teacher_id, student_id, status, progress, last_submission) 
-                   VALUES (%s, %s, %s, %s, 'Pending Approval', 0, %s)"""
-        cursor.execute(query, (title, description, teacher_id, student_id, filename))
+                   (project_title, description,teacher_id,student_id,status,progress,last_submission) 
+                   VALUES (%s,%s,%s,%s, 'Pending Approval',0, %s)"""
+        cursor.execute(query, (title,description,teacher_id,student_id,filename))
         mysql.connection.commit()
         cursor.close()    
 
@@ -776,14 +776,17 @@ class StudentModel:
 
 
     @staticmethod
-    def update_fyp_data(student_id, title, filename=None):
-        cursor = mysql.connection.cursor()
+    def update_fyp_data(student_id,title,filename=None):
+        cursor=mysql.connection.cursor()
         if filename:
-            query = "UPDATE fyp_groups SET project_title=%s, last_submission=%s WHERE student_id=%s"
-            cursor.execute(query, (title, filename, student_id))
+            cursor.execute('SELECT progress FROM fyp_groups WHERE student_id=%s',(student_id,))
+            current_progress=cursor.fetchone()['progress']
+            new_progress=min(current_progress + 10, 100)
+            query="UPDATE fyp_groups SET project_title=%s,last_submission=%s,progress=%s WHERE student_id=%s"
+            cursor.execute(query,(title,filename,new_progress,student_id))
         else:
-            query = "UPDATE fyp_groups SET project_title=%s WHERE student_id=%s"
-            cursor.execute(query, (title, student_id))
+            query="UPDATE fyp_groups SET project_title=%s WHERE student_id=%s"
+            cursor.execute(query, (title,student_id))
         
         mysql.connection.commit()
         cursor.close()    
@@ -813,3 +816,18 @@ class NotificationModel:
         notifications = cursor.fetchall()
         cursor.close()
         return notifications
+
+    @staticmethod
+    def get_active_notifications(user_id,role):
+        cursor=mysql.connection.cursor()
+        cursor.execute("""
+            SELECT id,title,description,created_at
+            FROM notifications
+            WHERE (receiver_id=%s OR receiver_id IS NULL)
+            AND receiver_role=%s
+            AND is_deleted=%s
+            AND status='Pending'
+            """, (user_id,role,0))
+        notifications=cursor.fetchall()
+        cursor.close()
+        return notifications    

@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import check_password_hash
 from utils.auth import login_required ,teacher_required
-from .teachers_models import TeacherModel  
+from .teachers_models import TeacherModel  ,Notifications
 import datetime
 
 teacher =Blueprint('teacher', __name__, template_folder='teachers_views')
@@ -52,10 +52,11 @@ def teacher_dashboard():
     full_schedule = TeacherModel.get_full_schedule(tid)
     today_list = [row for row in full_schedule if row['day_of_week'] == today]
     
+    active_notifications=Notifications.get_active_notifications(session['user_id'],'teacher')
     return render_template('teacher_dashboard.html', 
                            full_schedule=full_schedule, 
                            today_schedule=today_list, 
-                           today_name=today)
+                           today_name=today,active_notifications=active_notifications)
 
 
 

@@ -157,8 +157,6 @@ class TeacherModel:
 
        
 
-
-
     @staticmethod
     def get_fyp_groups(teacher_id):
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -289,3 +287,22 @@ class TeacherModel:
         cursor.execute('INSERT INTO complaint_suggestion (title, description, user_id) VALUES (%s, %s, %s)', (title, description, user_id))
         mysql.connection.commit()
         cursor.close()    
+
+
+
+class Notifications:
+
+    @staticmethod
+    def get_active_notifications(user_id,role):
+        cursor=mysql.connection.cursor()
+        cursor.execute("""
+            SELECT id,title,description,created_at
+            FROM notifications
+            WHERE (receiver_id=%s OR receiver_id IS NULL)
+            AND receiver_role=%s
+            AND is_deleted=%s
+            AND status='Pending'
+            """, (user_id,role,0))
+        notifications=cursor.fetchall()
+        cursor.close()
+        return notifications    

@@ -7,7 +7,6 @@ from students_module.students_routes import student
 from teachers_module.teachers_routes import teacher
 from admin.admin_routes import admin
 from werkzeug.exceptions import RequestEntityTooLarge
-
 from config import *
 import os
 import re

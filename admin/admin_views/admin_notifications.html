@@ -1,4 +1,4 @@
-{% extends "admin_base.html" %}
+{% extends "layouts/admin_base.html" %}
 {% block title %}Notifications{% endblock %}
 {% block content %}
 <div class="page-header">
@@ -9,7 +9,7 @@
         <h4>Send Notification</h4>
     </div>
     <div class="card-body">
-        <form method="POST" action="#">
+        <form method="POST" action="{{url_for('admin.send_notification')}}">
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Receiver Role</label>
@@ -24,10 +24,25 @@
                     <select class="form-select" name="receiver_id">
                         <option value="">All (Broadcast)</option>
                         {% for user in users %}
-                        <option value="{{ user.user_id }}">{{ user.email }} ({{ user.role_type }})</option>
+                        <option value="{{ user.user_id }}" data-role="{{ user.role_type }}">{{ user.email }}</option>
                         {% endfor %}
                     </select>
                 </div>
+                <script>
+                        document.getElementById('receiver_role').addEventListener('change', function() {
+                            const role=this.value;
+                            const options=document.querySelectorAll('#receiver_id option');
+                            options.forEach(opt => {
+                                if(opt.value==='' || opt.dataset.role===role){
+                                    opt.style.display = '';
+                                } 
+                                else{
+                                    opt.style.display='none';
+                                }
+                            });
+                            document.getElementById('receiver_id').value='';
+                        });
+                        </script>
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Related Course (Optional)</label>
                     <select class="form-select" name="related_course_id">
@@ -89,7 +104,7 @@
                     </td>
                     <td>{{ notif.created_at }}</td>
                     <td>
-                        <form method="POST" action="#" style="display:inline;">
+                        <form method="POST" action="{{url_for('admin.delete_notification')}}" style="display:inline;">
                             <input type="hidden" name="notif_id" value="{{ notif.id }}">
                             <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete?')">
                                 <i class="fa-solid fa-trash"></i>

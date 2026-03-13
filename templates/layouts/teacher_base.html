@@ -44,6 +44,32 @@
             {% block scripts %}{% endblock %} 
         </main>
     </div>
+     </div>
+    {% if active_notifications %}
+    <div class="modal fade show" id="notifPopup" tabindex="-1" style="display:block; background:rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fa-solid fa-bell"></i> Notifications</h5>
+                </div>
+                <div class="modal-body">
+                    {% for notif in active_notifications %}
+                    <div class="mb-3 border-bottom pb-3">
+                        <h6 class="fw-bold">{{ notif.title }}</h6>
+                        <p class="text-muted mb-1"><small>{{ notif.created_at }}</small></p>
+                        <p>{{ notif.description }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('notifPopup').style.display='none'">
+                        <i class="fa-solid fa-xmark"></i> Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
    
     
 </body>

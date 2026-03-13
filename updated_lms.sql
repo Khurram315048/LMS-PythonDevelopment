@@ -69,7 +69,7 @@ CREATE TABLE `attendance` (
   CONSTRAINT `attendance_ibfk_1` FOREIGN KEY (`student_course_id`) REFERENCES `student_course` (`student_course_id`),
   CONSTRAINT `attendance_ibfk_2` FOREIGN KEY (`course_schedule_id`) REFERENCES `course_schedule` (`course_schedule_id`),
   CONSTRAINT `fk_attendance_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -78,7 +78,7 @@ CREATE TABLE `attendance` (
 
 LOCK TABLES `attendance` WRITE;
 /*!40000 ALTER TABLE `attendance` DISABLE KEYS */;
-INSERT INTO `attendance` VALUES (1,2,3,'2025-12-31','Absent',3,0),(2,3,4,'2025-12-31','Absent',4,0),(3,2,3,'2026-02-04','Absent',3,0),(4,2,3,'2026-02-04','Present',3,0),(5,3,4,'2026-02-04','Present',4,0),(6,2,3,'2026-03-04','Absent',3,0),(7,3,4,'2026-03-04','Present',4,0),(10,2,3,'2026-03-11','Present',3,0),(11,3,4,'2026-03-11','Present',4,0);
+INSERT INTO `attendance` VALUES (1,2,3,'2025-12-31','Absent',3,0),(2,3,4,'2025-12-31','Absent',4,0),(3,2,3,'2026-02-04','Absent',3,0),(4,2,3,'2026-02-04','Present',3,0),(5,3,4,'2026-02-04','Present',4,0),(6,2,3,'2026-03-04','Absent',3,0),(7,3,4,'2026-03-04','Present',4,0),(10,2,3,'2026-03-11','Present',3,0),(11,3,4,'2026-03-11','Present',4,0),(12,2,3,'2026-03-13','Present',3,0);
 /*!40000 ALTER TABLE `attendance` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -109,7 +109,7 @@ CREATE TABLE `complaint_suggestion` (
 
 LOCK TABLES `complaint_suggestion` WRITE;
 /*!40000 ALTER TABLE `complaint_suggestion` DISABLE KEYS */;
-INSERT INTO `complaint_suggestion` VALUES (1,'Result','check my result',NULL,3,'Solved',0),(2,'Finance_Department','Give my salary\r\n',NULL,4,'Pending',0),(3,'Exam_Department','Where is my shedule??',NULL,3,'Pending',0);
+INSERT INTO `complaint_suggestion` VALUES (1,'Result','check my result',NULL,3,'Solved',0),(2,'Finance_Department','Give my salary\r\n',NULL,4,'Solved',0),(3,'Exam_Department','Where is my shedule??',NULL,3,'Pending',0);
 /*!40000 ALTER TABLE `complaint_suggestion` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -139,7 +139,7 @@ CREATE TABLE `course_attendance_log` (
   CONSTRAINT `cal_ibfk_1` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`teacher_id`),
   CONSTRAINT `cal_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `courses` (`course_id`),
   CONSTRAINT `cal_ibfk_3` FOREIGN KEY (`course_schedule_id`) REFERENCES `course_schedule` (`course_schedule_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -148,7 +148,7 @@ CREATE TABLE `course_attendance_log` (
 
 LOCK TABLES `course_attendance_log` WRITE;
 /*!40000 ALTER TABLE `course_attendance_log` DISABLE KEYS */;
-INSERT INTO `course_attendance_log` VALUES (3,1,1,3,'2026-03-11',91,41,50,'2026-03-11 07:37:21',0,5),(4,1,1,4,'2026-03-11',1,1,0,'2026-03-11 07:37:26',0,5);
+INSERT INTO `course_attendance_log` VALUES (3,1,1,3,'2026-03-11',91,41,50,'2026-03-11 07:37:21',0,5),(4,1,1,4,'2026-03-11',1,1,0,'2026-03-11 07:37:26',0,5),(5,1,1,3,'2026-03-13',1,1,0,'2026-03-13 06:38:50',0,5);
 /*!40000 ALTER TABLE `course_attendance_log` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -230,7 +230,7 @@ CREATE TABLE `fyp_groups` (
   `fyp_id` int(11) NOT NULL AUTO_INCREMENT,
   `project_title` text NOT NULL,
   `description` text DEFAULT NULL,
-  `teacher_id` int(11) NOT NULL,
+  `teacher_id` int(11) DEFAULT NULL,
   `student_id` int(11) NOT NULL,
   `status` text DEFAULT 'In Progress',
   `progress` int(11) DEFAULT 0,
@@ -242,7 +242,7 @@ CREATE TABLE `fyp_groups` (
   KEY `student_id` (`student_id`),
   CONSTRAINT `fyp_groups_ibfk_1` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`teacher_id`),
   CONSTRAINT `fyp_groups_ibfk_2` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -251,7 +251,7 @@ CREATE TABLE `fyp_groups` (
 
 LOCK TABLES `fyp_groups` WRITE;
 /*!40000 ALTER TABLE `fyp_groups` DISABLE KEYS */;
-INSERT INTO `fyp_groups` VALUES (1,'testing updation of fyp again again2','aaaabscs',1,2,'Approved',0,'uploads/students_uploads/students_fyp_proposal/SID_2_PROJECT_REPORT-osama-new.pdf','2026-01-27 06:49:29',0),(2,'Huzaifa Title pr','i am again checking the project ',1,3,'Approved',0,'uploads/students_uploads/students_fyp_proposal/SID_3_portfolio-cv.pdf','2026-01-27 08:44:04',0),(3,'Developing LMS -Python-Flask-SQL','I want to develop the LMS of my University but with python flask and sqlalchemy.',1,5,'Pending Approval',0,'uploads/students_uploads/students_fyp_proposal/SID_5_COA_CCP_sol.pdf','2026-03-05 06:19:33',0);
+INSERT INTO `fyp_groups` VALUES (1,'testing the progress bar','aaaabscs',1,2,'Approved',10,'uploads/students_uploads/students_fyp_proposal/SID_2_Muhammad_Khurram_CV_Original.pdf','2026-01-27 06:49:29',0),(2,'Huzaifa Title pr','i am again checking the project ',1,3,'Completed',0,'uploads/students_uploads/students_fyp_proposal/SID_3_portfolio-cv.pdf','2026-01-27 08:44:04',0),(3,'Developing LMS -Python-Flask-SQL','I want to develop the LMS of my University but with python flask and sqlalchemy.',4,5,'Approved',0,'uploads/students_uploads/students_fyp_proposal/SID_5_COA_CCP_sol.pdf','2026-03-05 06:19:33',0),(5,'finally working admin supervisor','chkng admin',4,4,'Approved',10,'uploads/students_uploads/students_fyp_proposal/SID_4_Organizational_Structure_and_Design.pdf','2026-03-13 11:01:22',0);
 /*!40000 ALTER TABLE `fyp_groups` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -274,7 +274,7 @@ CREATE TABLE `fyp_messages` (
   PRIMARY KEY (`message_id`),
   KEY `fyp_id` (`fyp_id`),
   CONSTRAINT `fyp_messages_ibfk_1` FOREIGN KEY (`fyp_id`) REFERENCES `fyp_groups` (`fyp_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -283,7 +283,7 @@ CREATE TABLE `fyp_messages` (
 
 LOCK TABLES `fyp_messages` WRITE;
 /*!40000 ALTER TABLE `fyp_messages` DISABLE KEYS */;
-INSERT INTO `fyp_messages` VALUES (1,1,1,2,'teacher','hy','2026-02-24 11:21:54',0),(2,2,1,3,'teacher','hy','2026-02-24 11:22:04',0);
+INSERT INTO `fyp_messages` VALUES (1,1,1,2,'teacher','hy','2026-02-24 11:21:54',0),(2,2,1,3,'teacher','hy','2026-02-24 11:22:04',0),(3,1,1,2,'student','ji','2026-03-13 09:45:29',0),(4,5,4,4,'student','hi guys','2026-03-13 11:11:25',0);
 /*!40000 ALTER TABLE `fyp_messages` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -311,7 +311,7 @@ CREATE TABLE `notifications` (
   KEY `sender_id` (`sender_id`),
   CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`related_course_id`) REFERENCES `courses` (`course_id`) ON DELETE SET NULL,
   CONSTRAINT `notifications_ibfk_2` FOREIGN KEY (`sender_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -320,6 +320,7 @@ CREATE TABLE `notifications` (
 
 LOCK TABLES `notifications` WRITE;
 /*!40000 ALTER TABLE `notifications` DISABLE KEYS */;
+INSERT INTO `notifications` VALUES (1,8,'admin',NULL,'student','Notification checking','checking the method of notification',1,'Rejected','2026-03-13 06:21:45',1),(2,8,'admin',NULL,'teacher','checking the teacher  notify','i am just checking it.',NULL,'Pending','2026-03-13 06:38:10',0),(3,8,'admin',5,'student','Assigning the Course','this course has been assigned to you kindly visit my office.',5,'Pending','2026-03-13 06:44:07',0);
 /*!40000 ALTER TABLE `notifications` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1004,4 +1005,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-12 16:55:01
+-- Dump completed on 2026-03-13 16:13:12
