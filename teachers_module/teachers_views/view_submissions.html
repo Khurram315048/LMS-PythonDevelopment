@@ -12,6 +12,7 @@
                 <th>Student ID</th>
                 <th>Student Name</th>
                 <th>Upload Date</th>
+                <th>Set Status</th>
                 <th>Action</th>
                 <th>Upload Marks</th>
             </tr>
@@ -23,6 +24,36 @@
                 <td>{{ sub.student_id }}</td>
                 <td>{{ sub.first_name }} {{ sub.last_name }}</td>
                 <td>{{ sub.upload_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                 <td>
+                        
+                        {% if sub.submission_status=='Best' %}
+                            <span class="badge bg-success mb-1 d-block">Rated: Best</span>
+                        {% elif sub.submission_status=='Average' %}
+                            <span class="badge bg-warning text-dark mb-1 d-block"> Rated: Average</span>
+                        {% elif sub.submission_status=='Worst' %}
+                            <span class="badge bg-danger mb-1 d-block">Rated: Worst</span>
+                        {% else %}
+                            <span class="badge bg-secondary mb-1 d-block">Not Rated</span>
+                        {% endif %}
+
+                        <div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:4px;">
+                            <form method="POST" action="{{ url_for('teacher.set_submission_status', submission_id=sub.submission_id, status='Best') }}">
+                                <input type="hidden" name="section_id" value="{{ section_id }}">
+                                <input type="hidden" name="sub_type" value="{{ sub_type }}">
+                                <button type="submit" style="font-size:10px; padding:2px 6px;" class="btn btn-success">Best</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('teacher.set_submission_status', submission_id=sub.submission_id, status='Average') }}">
+                                <input type="hidden" name="section_id" value="{{ section_id }}">
+                                <input type="hidden" name="sub_type" value="{{ sub_type }}">
+                                <button type="submit" style="font-size:10px; padding:2px 6px;" class="btn btn-warning">Avg</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('teacher.set_submission_status', submission_id=sub.submission_id, status='Worst') }}">
+                                <input type="hidden" name="section_id" value="{{ section_id }}">
+                                <input type="hidden" name="sub_type" value="{{ sub_type }}">
+                                <button type="submit" style="font-size:10px; padding:2px 6px;" class="btn btn-danger">Worst</button>
+                            </form>
+                        </div>
+                    </td>
                 <td>
                     <a href="{{ url_for('static', filename=sub.file_path) }}" target="_blank" class="btn-submit"
                         style="padding: 5px 10px; font-size: 12px; text-decoration: none; background-color: #10367D;">

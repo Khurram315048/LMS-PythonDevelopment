@@ -3,6 +3,8 @@ from werkzeug.security import check_password_hash
 from utils.auth import login_required ,teacher_required
 from .teachers_models import TeacherModel  ,Notifications
 import datetime
+import MySQLdb.cursors
+from utils.db import mysql
 
 teacher =Blueprint('teacher', __name__, template_folder='teachers_views')
 
@@ -246,7 +248,7 @@ def view_submissions(section_id,sub_type):
         flash('Unauthorized. This section does not belong to you.', 'danger')
         return redirect(url_for('teacher.teacher_dashboard'))
 
-    subs, meta=TeacherModel.get_submissions_by_type(section_id, sub_type)
+    subs, meta=TeacherModel.get_submissions_by_type(section_id,sub_type)
     title=f"{meta['course_name']} ({meta['section_name']})" if meta else "Submissions"
     return render_template('view_submissions.html',
                            submissions=subs,
@@ -296,3 +298,18 @@ def complaint_suggestion():
         TeacherModel.insert_complaint_suggestion(title, description, user_id)
         return redirect(url_for('teacher.teacher_dashboard'))
     return render_template('complaint_suggestion.html')    
+
+
+
+@teacher.route('/set_submission_status/<int:submission_id>/<string:status>',methods=['POST'])
+@login_required
+def set_submission_status(submission_id,status):
+    cursor=mysql.connection.cursor()
+    section_id=request.form.get('section_id')
+    sub_type =request.form.get('sub_type')
+    cursor.execute('UPDATE student_submissions SET submission_status=%s WHERE submission_id=%s',
+                   (status, submission_id))
+    mysql.connection.commit()
+    
+    flash(f'Status set to {status}.', 'success')
+    return redirect(url_for('teacher.view_submissions',section_id=section_id,sub_type=sub_type))

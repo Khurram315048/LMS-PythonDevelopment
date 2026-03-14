@@ -210,19 +210,19 @@ class TeacherModel:
 
     @staticmethod
     def get_submissions_by_type(section_id, sub_type):
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        query = """
-            SELECT sub.submission_id, sub.student_id, sub.file_path, sub.upload_date, sub.marks, sub.total_marks, s.first_name, s.last_name 
+        cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        query="""
+            SELECT sub.submission_id,sub.student_id,sub.file_path,sub.upload_date,sub.marks,sub.total_marks,sub.submission_status,s.first_name,s.last_name 
             FROM student_submissions sub
-            JOIN students s ON sub.student_id = s.student_id
-            WHERE sub.section_id = %s AND LOWER(sub.submission_type) = LOWER(%s)
+            JOIN students s ON sub.student_id=s.student_id
+            WHERE sub.section_id=%s AND LOWER(sub.submission_type) = LOWER(%s)
         """
-        cursor.execute(query, (section_id, sub_type))
-        subs = cursor.fetchall()
-        cursor.execute('SELECT c.course_name, s.section_name FROM sections s JOIN courses c ON s.course_id = c.course_id WHERE s.section_id = %s', (section_id,))
-        meta = cursor.fetchone()
+        cursor.execute(query,(section_id,sub_type))
+        subs=cursor.fetchall()
+        cursor.execute('SELECT c.course_name, s.section_name FROM sections s JOIN courses c ON s.course_id=c.course_id WHERE s.section_id=%s',(section_id,))
+        meta=cursor.fetchone()
         cursor.close()
-        return subs, meta
+        return subs,meta
 
 
     @staticmethod

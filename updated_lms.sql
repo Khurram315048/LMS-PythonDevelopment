@@ -109,7 +109,7 @@ CREATE TABLE `complaint_suggestion` (
 
 LOCK TABLES `complaint_suggestion` WRITE;
 /*!40000 ALTER TABLE `complaint_suggestion` DISABLE KEYS */;
-INSERT INTO `complaint_suggestion` VALUES (1,'Result','check my result',NULL,3,'Solved',0),(2,'Finance_Department','Give my salary\r\n',NULL,4,'Solved',0),(3,'Exam_Department','Where is my shedule??',NULL,3,'Pending',0);
+INSERT INTO `complaint_suggestion` VALUES (1,'Result','check my result',NULL,3,'Solved',0),(2,'Finance_Department','Give my salary\r\n',NULL,4,'Solved',0),(3,'Exam_Department','Where is my shedule??',NULL,3,'Solved',0);
 /*!40000 ALTER TABLE `complaint_suggestion` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -687,6 +687,7 @@ CREATE TABLE `student_submissions` (
   `file_path` varchar(255) DEFAULT NULL,
   `submission_type` enum('assignment','quiz') DEFAULT NULL,
   `upload_date` datetime DEFAULT current_timestamp(),
+  `submission_status` enum('Best','Average','Worst','Pending') DEFAULT 'Pending',
   `marks` int(11) DEFAULT NULL,
   `total_marks` int(11) DEFAULT NULL,
   `is_deleted` int(11) NOT NULL DEFAULT 0,
@@ -706,7 +707,7 @@ CREATE TABLE `student_submissions` (
 
 LOCK TABLES `student_submissions` WRITE;
 /*!40000 ALTER TABLE `student_submissions` DISABLE KEYS */;
-INSERT INTO `student_submissions` VALUES (1,3,1,3,'uploads/students_uploads/students_assignments/SID3_20260204_120727_new_cover.docx','assignment','2026-02-04 12:07:27',5,5,0),(2,3,1,3,'uploads/students_uploads/students_quizes/SID3_20260204_121554_Student_Management_System_Report_Project.docx','quiz','2026-02-04 12:15:54',2,5,0),(3,2,1,1,'uploads/students_uploads/students_assignments/SID2_20260204_135331_signup_view.PNG','assignment','2026-02-04 13:53:31',4,5,0),(4,4,1,4,'uploads/students_uploads/students_assignments/SID4_20260204_135820_add_view_st.PNG','assignment','2026-02-04 13:58:20',3,5,0),(5,4,1,4,'uploads/students_uploads/students_quizes/SID4_20260204_135954_home_view.PNG','quiz','2026-02-04 13:59:54',3,5,0),(6,2,1,1,'uploads/students_uploads/students_quizes/SID2_20260204_151638_login_view.PNG','quiz','2026-02-04 15:16:38',4,5,0);
+INSERT INTO `student_submissions` VALUES (1,3,1,3,'uploads/students_uploads/students_assignments/SID3_20260204_120727_new_cover.docx','assignment','2026-02-04 12:07:27','Best',5,5,0),(2,3,1,3,'uploads/students_uploads/students_quizes/SID3_20260204_121554_Student_Management_System_Report_Project.docx','quiz','2026-02-04 12:15:54','Best',2,5,0),(3,2,1,1,'uploads/students_uploads/students_assignments/SID2_20260204_135331_signup_view.PNG','assignment','2026-02-04 13:53:31','Average',4,5,0),(4,4,1,4,'uploads/students_uploads/students_assignments/SID4_20260204_135820_add_view_st.PNG','assignment','2026-02-04 13:58:20','Best',3,5,0),(5,4,1,4,'uploads/students_uploads/students_quizes/SID4_20260204_135954_home_view.PNG','quiz','2026-02-04 13:59:54','Best',3,5,0),(6,2,1,1,'uploads/students_uploads/students_quizes/SID2_20260204_151638_login_view.PNG','quiz','2026-02-04 15:16:38','Worst',4,5,0);
 /*!40000 ALTER TABLE `student_submissions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1005,4 +1006,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-13 16:13:12
+-- Dump completed on 2026-03-14 16:58:07

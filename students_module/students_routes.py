@@ -1,8 +1,8 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, abort, current_app
+from flask import Blueprint,render_template,request,redirect,url_for,session,flash,abort,current_app
 from utils.auth import login_required,student_required
 from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
-from students_module.students_models import UserModel, StudentModel, NotificationModel
+from students_module.students_models import UserModel,StudentModel,NotificationModel
 import os
 from utils.db import mysql 
 from datetime import datetime
@@ -15,21 +15,21 @@ def allowed_file(filename):
 student=Blueprint('student', __name__, template_folder='students_views')
 
 
-@student.route('/student_login', methods=['GET', 'POST'])
+@student.route('/student_login',methods=['GET','POST'])
 def student_login():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        remember = 'remember_me' in request.form
+    if request.method=='POST':
+        email=request.form['email']
+        password=request.form['password']
+        remember='remember_me' in request.form
 
-        user = UserModel.get_user_by_email(email)
-        if user and check_password_hash(user['password'], password):
-            student_obj = StudentModel.get_student_by_user_id(user['user_id'])
+        user=UserModel.get_user_by_email(email)
+        if user and check_password_hash(user['password'],password):
+            student_obj=StudentModel.get_student_by_user_id(user['user_id'])
             if student_obj:
-                session['user_id'] = user['user_id']
-                session['role'] = 'student'
-                session['student_id'] = student_obj['student_id']
-                session.permanent = remember
+                session['user_id']=user['user_id']
+                session['role']='student'
+                session['student_id']=student_obj['student_id']
+                session.permanent=remember
                 return redirect(url_for('student.student_dashboard'))
             else:
                 return redirect(url_for('student.student_login'))
@@ -38,39 +38,40 @@ def student_login():
     return render_template('student_login.html')
 
 
-@student.route('/student_base', methods=['GET'])
+@student.route('/student_base',methods=['GET'])
 @student_required
 def base():
     if session.get('role') != 'student':
         return redirect(url_for('main_view'))
-    student_name = StudentModel.get_student_name_by_user_id(session['user_id'])
-    return render_template('student_base.html', student_name=student_name)
+    student_name=StudentModel.get_student_name_by_user_id(session['user_id'])
+    return render_template('student_base.html',student_name=student_name)
 
 
-@student.route('/student_profile', methods=['GET', 'POST'])
+@student.route('/student_profile',methods=['GET', 'POST'])
 @student_required
 def student_profile():
     if session.get('role') != 'student':
         return redirect(url_for('main_view'))
 
-    student_id = session['student_id']
-    student_obj = StudentModel.get_student_by_id(student_id)
-    program = StudentModel.get_student_program_details(student_id)
-    show_notification = request.method == 'POST' and 'edit_request' in request.form
-    return render_template('student_profile.html', student=student_obj, program=program, show_notification=show_notification)
+    student_id=session['student_id']
+    student_obj=StudentModel.get_student_by_id(student_id)
+    program=StudentModel.get_student_program_details(student_id)
+    show_notification=request.method =='POST' and 'edit_request' in request.form
+    return render_template('student_profile.html',student=student_obj,program=program,show_notification=show_notification)
 
 
-@student.route('/student_dashboard', methods=['GET', 'POST'])
+@student.route('/student_dashboard',methods=['GET', 'POST'])
 @student_required
 def student_dashboard():
     if session.get('role') != 'student':
         return redirect(url_for('main_view'))
-    student_id = session['student_id']
-    courses = StudentModel.get_enrolled_courses_by_student_id(student_id)
+    
+    student_id=session['student_id']
+    courses=StudentModel.get_enrolled_courses_by_student_id(student_id)
     if not courses:
         return render_template('student_dashboard.html', message="You are not enrolled in any courses yet.")
 
-    course_ids = [course['course_id'] for course in courses]
+    course_ids=[course['course_id'] for course in courses]
     course_data = StudentModel.get_course_details_by_ids(course_ids)
     course_names = {course['course_id']: course['course_name'] for course in course_data}
 
