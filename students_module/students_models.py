@@ -4,19 +4,19 @@ from utils.db import mysql
 class UserModel:
     @staticmethod
     def get_user_by_email(email):
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT user_id, password FROM users WHERE email = %s', (email,))
-        user = cursor.fetchone()
+        cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('SELECT user_id,password FROM users WHERE email=%s',(email,))
+        user=cursor.fetchone()
         cursor.close()
         return user
 
 
     @staticmethod
-    def create_user(email, password_hash):
-        cursor = mysql.connection.cursor()
-        cursor.execute('INSERT INTO users (email, password) VALUES (%s, %s)', (email, password_hash))
+    def create_user(email,password_hash):
+        cursor=mysql.connection.cursor()
+        cursor.execute('INSERT INTO users(email,password) VALUES (%s,%s)',(email,password_hash))
         mysql.connection.commit()
-        user_id = cursor.lastrowid
+        user_id=cursor.lastrowid
         cursor.close()
         return user_id
 
@@ -715,8 +715,8 @@ class StudentModel:
 
     @staticmethod
     def get_fyp_project(student_id):
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        query = """
+        cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        query="""
             SELECT f.*, t.first_name as t_fname, t.last_name as t_lname
             FROM fyp_groups f
             LEFT JOIN teachers t ON f.teacher_id = t.teacher_id
