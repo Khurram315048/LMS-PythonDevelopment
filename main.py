@@ -32,7 +32,7 @@ app.register_blueprint(admin)
 
 app.config['MAX_CONTENT_LENGTH']=5 * 1024 * 1024
 
-EMAIL_PATTERN=r'^[a-zA-Z0-9._%+-]+@gmail\.com$'
+EMAIL_PATTERN=r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 
 
 @app.route('/main_view',methods=['GET', 'POST'])
