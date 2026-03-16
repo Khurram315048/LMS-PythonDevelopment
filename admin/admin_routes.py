@@ -57,11 +57,19 @@ def admin_dashboard():
     fyp_count=cursor.fetchone()['total_fyp']
     cursor.execute('SELECT COUNT(*) AS total_complaints FROM complaint_suggestion')
     complaints_count=cursor.fetchone()['total_complaints']
+    cursor.execute('SELECT COUNT(*) AS freeze_count FROM semester_freeze_students WHERE status=%s', ('Pending',))
+    freeze_count=cursor.fetchone()['freeze_count']
+
+    cursor.execute('SELECT COUNT(*) AS notif_count FROM notifications WHERE status=%s AND is_deleted=0', ('Pending',))
+    notifications_count=cursor.fetchone()['notif_count']
+
+    helpdesk_count = 0
     return render_template(
         'admin_dashboard.html',
         students_count=students,
         teachers_count=teachers,complaints_count=complaints_count,
-        pending_count=pending,courses_count=courses_count,fyp_count=fyp_count)
+        notifications_count=notifications_count,helpdesk_count=helpdesk_count,
+        pending_count=pending,courses_count=courses_count,fyp_count=fyp_count,freeze_count=freeze_count)
 
 
 @admin.route('/admin_profile', methods=['GET', 'POST'])
@@ -1257,7 +1265,7 @@ def send_notification():
     title=request.form['title']
     description=request.form['description']
     sender_id=session['user_id']
-    sender_role='Admin'
+    sender_role='admin'
 
     cursor.execute('''INSERT INTO notifications(sender_id,sender_role,receiver_id,receiver_role,title,description,related_course_id,status)
     VALUES(%s,%s,%s,%s,%s,%s,%s,%s)
