@@ -26,6 +26,7 @@
                     <th>Email</th>
                     <th>Contact</th>
                     <th>Program</th>
+                    <th>Current Semester</th>
                     <th>Admission Session</th>
                     <th>Admission Date</th>
                     <th>Action</th>
@@ -39,6 +40,7 @@
                     <td>{{ student.email }}</td>
                     <td>{{ student.contact }}</td>
                     <td>{{ student.program_name }}</td>
+                    <td>{{ student.current_semester }}</td>
                     <td>{{ student.admission_session }}</td>
                     <td>{{ student.admission_date }}</td>
                     <td>
@@ -137,6 +139,14 @@
                         <label class="form-label">Admission Date</label>
                         <input type="date" class="form-control" name="admission_date">
                     </div>
+                    <div class="col-md-6 mb-3">
+                    <label class="form-label">Current Semester</label>
+                    <select class="form-select" name="current_semester" required>
+                        {% for i in range(1, 9) %}
+                        <option value="{{ i }}">Semester {{ i }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
                     <button type="submit" class="btn btn-primary">Register Student</button>
                 </form>
             </div>

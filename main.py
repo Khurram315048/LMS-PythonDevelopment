@@ -86,7 +86,7 @@ def user_signup():
     return render_template('user_signup.html',error=None)
 
 
-@app.route('/reset_password',methods=['GET','POST'])
+@app.route('/reset_password',methods=['GET', 'POST'])
 def reset_password():
     if request.method=='POST':
         email=request.form['email']
@@ -97,10 +97,22 @@ def reset_password():
             return redirect('/user_signup')
 
         MainModel.update_password(email,new_password)
-        if session.get('user_type')=='student':
+        role=session.get('role')
+        if role == 'student':
             return redirect(url_for('student.student_login'))
-        else:
+        elif role == 'teacher':
             return redirect(url_for('teacher.teacher_login'))
+        elif role == 'admin':
+            return redirect(url_for('admin.admin_login'))
+        else:
+            user_data=MainModel.get_user_by_email(email)
+            if user_data:
+                if user_data['role_id']==2:
+                    return redirect(url_for('student.student_login'))
+                elif user_data['role_id']==1:
+                    return redirect(url_for('teacher.teacher_login'))
+                elif user_data['role_id']==3:
+                    return redirect(url_for('admin.admin_login'))
 
     return render_template('reset_password.html')
 

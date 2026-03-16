@@ -250,6 +250,7 @@ def add_student():
         admission_session=request.form['admission_session']
         last_qual=request.form['last_qualification']
         admission_date=request.form['admission_date']
+        current_semester=request.form['current_semester']
 
         cursor.execute('SELECT user_id FROM users WHERE email=%s AND is_deleted=%s', (email,0,))
         existing=cursor.fetchone()
@@ -258,16 +259,16 @@ def add_student():
             return redirect(url_for('admin.register_student'))
 
         hashed_password=generate_password_hash(password)
-        cursor.execute('INSERT INTO users (email,password,role_id) VALUES (%s,%s,%s)',
+        cursor.execute('INSERT INTO users(email,password,role_id) VALUES (%s,%s,%s)',
                     (email,hashed_password,2))
         mysql.connection.commit()
         user_id=cursor.lastrowid
 
         cursor.execute('''
             INSERT INTO students 
-            (user_id,first_name,last_name,email,contact,program_id,admission_session,last_qualification,admission_date)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
-        ''', (user_id,first_name,last_name,email,contact,program_id,admission_session,last_qual,admission_date))
+            (user_id,first_name,last_name,email,contact,program_id,admission_session,last_qualification,admission_date,current_semester)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        ''', (user_id,first_name,last_name,email,contact,program_id,admission_session,last_qual,admission_date,current_semester))
         mysql.connection.commit()
         flash('Student registered successfully.', 'success')
         return redirect(url_for('admin.register_student'))
@@ -1158,7 +1159,7 @@ def get_proposals():
         JOIN programs p ON s.program_id=p.program_id
         LEFT JOIN student_section ss ON s.student_id=ss.student_id AND ss.is_deleted=0
         LEFT JOIN sections sec ON ss.section_id=sec.section_id
-        WHERE fy.is_deleted=%s AND fy.`status`='Pending Approval'
+        WHERE fy.is_deleted=%s AND fy.`status`='In Progress'
         """, (0,))
     fyp_groups=cursor.fetchall()
     cursor.execute('SELECT teacher_id,first_name,last_name FROM teachers WHERE is_deleted=%s',(0,))

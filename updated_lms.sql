@@ -865,7 +865,7 @@ CREATE TABLE `teacher_course` (
   KEY `course_id` (`course_id`),
   CONSTRAINT `teacher_course_ibfk_1` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`teacher_id`),
   CONSTRAINT `teacher_course_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `courses` (`course_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -874,7 +874,7 @@ CREATE TABLE `teacher_course` (
 
 LOCK TABLES `teacher_course` WRITE;
 /*!40000 ALTER TABLE `teacher_course` DISABLE KEYS */;
-INSERT INTO `teacher_course` VALUES (1,1,1,0),(2,1,2,0),(3,3,5,0),(4,3,6,0),(8,4,1,0),(9,4,2,1),(10,4,6,0);
+INSERT INTO `teacher_course` VALUES (1,1,1,0),(2,1,2,0),(3,3,5,0),(4,3,6,0),(8,4,1,0),(9,4,2,1),(10,4,6,0),(11,4,4,0);
 /*!40000 ALTER TABLE `teacher_course` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1013,4 +1013,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-16 13:16:35
+-- Dump completed on 2026-03-16 15:41:49

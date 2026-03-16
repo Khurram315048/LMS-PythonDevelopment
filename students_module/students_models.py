@@ -736,7 +736,7 @@ class StudentModel:
         cursor=mysql.connection.cursor()
         query="""INSERT INTO fyp_groups 
                    (project_title, description,teacher_id,student_id,status,progress,last_submission) 
-                   VALUES (%s,%s,%s,%s, 'Pending Approval',0, %s)"""
+                   VALUES (%s,%s,%s,%s, 'In Progress',0, %s)"""
         cursor.execute(query, (title,description,teacher_id,student_id,filename))
         mysql.connection.commit()
         cursor.close()    
