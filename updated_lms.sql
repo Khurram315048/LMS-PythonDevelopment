@@ -730,6 +730,7 @@ CREATE TABLE `students` (
   `admission_session` varchar(50) DEFAULT NULL,
   `admission_date` date DEFAULT NULL,
   `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `current_semester` int(11) DEFAULT 1,
   PRIMARY KEY (`student_id`),
   UNIQUE KEY `user_id` (`user_id`),
   KEY `program_id` (`program_id`),
@@ -744,7 +745,7 @@ CREATE TABLE `students` (
 
 LOCK TABLES `students` WRITE;
 /*!40000 ALTER TABLE `students` DISABLE KEYS */;
-INSERT INTO `students` VALUES (2,3,'Umair','Ullah','923150484043','ullahcentral123@gmail.com','FSC-PreMedical',1,'Fall-2023','2023-10-01',0),(3,5,'Muhammad','Huzaifa','923047698099','huzaifacentral123@gmail.com','ICS',1,'Fall-2023','2025-12-31',0),(4,6,'Muhammad','Hammad','923047698098','hammadcentral123@gmail.com','FSC-PreMedical',1,'Fall-2023','2025-12-31',0),(5,7,'Mubeen','khurram','923057698092','mubeenmuzaffar123@gmail.com','ICS',3,'Fall-2026','2026-03-04',0),(6,9,'Haris','Rizwan','03047698099','hariscentral123@gmail.com','Intermediate',4,'Spring 2026','2026-03-04',1),(7,10,'Aiman','Rizwan','923047698099','aiman123@gmail.com','FSC-Engrineering',3,'Spring 2026','2026-04-03',0);
+INSERT INTO `students` VALUES (2,3,'Umair','Ullah','923150484043','ullahcentral123@gmail.com','FSC-PreMedical',1,'Fall-2023','2023-10-01',0,1),(3,5,'Muhammad','Huzaifa','923047698099','huzaifacentral123@gmail.com','ICS',1,'Fall-2023','2025-12-31',0,4),(4,6,'Muhammad','Hammad','923047698098','hammadcentral123@gmail.com','FSC-PreMedical',1,'Fall-2023','2025-12-31',0,1),(5,7,'Mubeen','khurram','923057698092','mubeenmuzaffar123@gmail.com','ICS',3,'Fall-2026','2026-03-04',0,3),(6,9,'Haris','Rizwan','03047698099','hariscentral123@gmail.com','Intermediate',4,'Spring 2026','2026-03-04',1,1),(7,10,'Aiman','Rizwan','923047698099','aiman123@gmail.com','FSC-Engrineering',3,'Spring 2026','2026-04-03',0,1);
 /*!40000 ALTER TABLE `students` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1006,4 +1007,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-14 16:58:07
+-- Dump completed on 2026-03-16 13:05:13

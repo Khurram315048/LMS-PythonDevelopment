@@ -1290,6 +1290,66 @@ def exam_dates():
     return render_template('exam_dates.html')
 
 
+@admin.route('/promote_students',methods=['GET'])
+@login_required
+def promote_students():
+    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    cursor.execute('''
+        SELECT s.student_id,s.first_name,s.last_name,s.current_semester,
+               sr.result_status,sr.overall_gpa,sr.student_semester,
+               p.program_name
+        FROM students s
+        JOIN programs p ON s.program_id=p.program_id
+        LEFT JOIN student_results sr 
+            ON s.student_id=sr.student_id
+            AND sr.student_semester=(
+                SELECT MAX(sr2.student_semester) 
+                FROM student_results sr2 
+                WHERE sr2.student_id=s.student_id
+            )
+        WHERE s.is_deleted=0
+        ORDER BY s.student_id ASC
+    ''')
+    students=cursor.fetchall()
+
+    return render_template('promote_students.html',students=students)
+
+
+@admin.route('/promote_student/<int:student_id>',methods=['POST'])
+@login_required
+def promote_student(student_id):
+    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    cursor.execute('''
+        SELECT result_status,student_semester 
+        FROM student_results 
+        WHERE student_id=%s 
+        ORDER BY student_semester ASC 
+        LIMIT 1
+    ''',(student_id,))
+    result=cursor.fetchone()
+
+    if not result:
+        flash('No result found for this student.', 'warning')
+        return redirect(url_for('admin.promote_students'))
+
+    if result['result_status'] != 'Pass':
+        flash('Student has not passed. Cannot promote.', 'danger')
+        return redirect(url_for('admin.promote_students'))
+
+
+    cursor.execute('''
+        UPDATE students 
+        SET current_semester=current_semester + 1 
+        WHERE student_id=%s
+    ''', (student_id,))
+    mysql.connection.commit()
+
+    flash('Student promoted to next semester successfully!', 'success')
+    return redirect(url_for('admin.promote_students'))    
+
+
     
     
 
