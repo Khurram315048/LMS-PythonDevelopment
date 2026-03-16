@@ -29,7 +29,7 @@ CREATE TABLE `admins` (
   `last_name` varchar(50) DEFAULT NULL,
   `contact` varchar(100) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`admin_id`),
   UNIQUE KEY `email` (`email`),
   KEY `user_id` (`user_id`),
@@ -61,11 +61,12 @@ CREATE TABLE `attendance` (
   `attendance_date` date NOT NULL,
   `attendance_status` enum('Present','Absent') DEFAULT 'Absent',
   `student_id` int(11) DEFAULT NULL,
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`attendance_id`),
   KEY `student_course_id` (`student_course_id`),
   KEY `course_schedule_id` (`course_schedule_id`),
   KEY `fk_attendance_student` (`student_id`),
+  KEY `idx_attendance_date` (`attendance_date`),
   CONSTRAINT `attendance_ibfk_1` FOREIGN KEY (`student_course_id`) REFERENCES `student_course` (`student_course_id`),
   CONSTRAINT `attendance_ibfk_2` FOREIGN KEY (`course_schedule_id`) REFERENCES `course_schedule` (`course_schedule_id`),
   CONSTRAINT `fk_attendance_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`)
@@ -93,10 +94,10 @@ CREATE TABLE `complaint_suggestion` (
   `complt_sugst_id` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(100) DEFAULT NULL,
   `description` text DEFAULT NULL,
-  `iamge_name` varchar(255) DEFAULT NULL,
+  `image_name` varchar(255) DEFAULT NULL,
   `user_id` int(11) DEFAULT NULL,
-  `is_status` varchar(50) NOT NULL DEFAULT 'Pending',
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_status` enum('Pending','Solved','Rejected') NOT NULL DEFAULT 'Pending',
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`complt_sugst_id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `complaint_suggestion_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
@@ -130,7 +131,7 @@ CREATE TABLE `course_attendance_log` (
   `total_present` int(11) DEFAULT 0,
   `total_absent` int(11) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   `semester` int(11) DEFAULT NULL,
   PRIMARY KEY (`log_id`),
   KEY `teacher_id` (`teacher_id`),
@@ -167,7 +168,7 @@ CREATE TABLE `course_schedule` (
   `location` varchar(100) DEFAULT NULL,
   `course_id` int(11) NOT NULL,
   `section_id` int(11) DEFAULT NULL,
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`course_schedule_id`),
   KEY `course_id` (`course_id`),
   KEY `section_id` (`section_id`),
@@ -202,7 +203,7 @@ CREATE TABLE `courses` (
   `no_of_lectures` int(11) DEFAULT NULL,
   `assignments_enabled` tinyint(1) DEFAULT 1,
   `quizzes_enabled` tinyint(1) DEFAULT 1,
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`course_id`),
   KEY `program_id` (`program_id`),
   CONSTRAINT `courses_ibfk_1` FOREIGN KEY (`program_id`) REFERENCES `programs` (`program_id`)
@@ -232,11 +233,11 @@ CREATE TABLE `fyp_groups` (
   `description` text DEFAULT NULL,
   `teacher_id` int(11) DEFAULT NULL,
   `student_id` int(11) NOT NULL,
-  `status` text DEFAULT 'In Progress',
+  `status` enum('In Progress','Approved','Completed','Rejected') NOT NULL DEFAULT 'In Progress',
   `progress` int(11) DEFAULT 0,
-  `last_submission` text DEFAULT NULL,
+  `last_submission` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`fyp_id`),
   KEY `teacher_id` (`teacher_id`),
   KEY `student_id` (`student_id`),
@@ -270,7 +271,7 @@ CREATE TABLE `fyp_messages` (
   `sender_role` enum('teacher','student') NOT NULL,
   `message` text NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`message_id`),
   KEY `fyp_id` (`fyp_id`),
   CONSTRAINT `fyp_messages_ibfk_1` FOREIGN KEY (`fyp_id`) REFERENCES `fyp_groups` (`fyp_id`) ON DELETE CASCADE
@@ -305,7 +306,7 @@ CREATE TABLE `notifications` (
   `related_course_id` int(11) DEFAULT NULL,
   `status` enum('Pending','Resolved','Rejected') DEFAULT 'Pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   KEY `related_course_id` (`related_course_id`),
   KEY `sender_id` (`sender_id`),
@@ -335,7 +336,7 @@ CREATE TABLE `programs` (
   `program_id` int(11) NOT NULL AUTO_INCREMENT,
   `program_name` varchar(100) NOT NULL,
   `program_coordinator` varchar(100) NOT NULL,
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`program_id`),
   UNIQUE KEY `program_name` (`program_name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -366,7 +367,7 @@ CREATE TABLE `sections` (
   `semester` int(11) NOT NULL,
   `assignments_enabled` tinyint(1) DEFAULT 1,
   `quizzes_enabled` tinyint(1) DEFAULT 1,
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`section_id`),
   KEY `course_id` (`course_id`),
   KEY `program_id` (`program_id`),
@@ -399,7 +400,7 @@ CREATE TABLE `semester` (
   `start_date` date DEFAULT NULL,
   `end_date` date DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `is_deleted` int(11) DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`semester_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -428,7 +429,7 @@ CREATE TABLE `semester_freeze_students` (
   `reason` text NOT NULL,
   `status` enum('Pending','Approved','Rejected') DEFAULT 'Pending',
   `applied_date` datetime DEFAULT current_timestamp(),
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`freeze_id`),
   KEY `student_id` (`student_id`),
   CONSTRAINT `semester_freeze_students_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`)
@@ -456,7 +457,8 @@ CREATE TABLE `student_course` (
   `student_course_id` int(11) NOT NULL AUTO_INCREMENT,
   `student_id` int(11) NOT NULL,
   `course_id` int(11) NOT NULL,
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`student_course_id`),
   KEY `student_id` (`student_id`),
   KEY `course_id` (`course_id`),
@@ -471,7 +473,7 @@ CREATE TABLE `student_course` (
 
 LOCK TABLES `student_course` WRITE;
 /*!40000 ALTER TABLE `student_course` DISABLE KEYS */;
-INSERT INTO `student_course` VALUES (1,2,1,0),(2,3,1,0),(3,4,1,0),(4,5,1,0),(5,7,3,0);
+INSERT INTO `student_course` VALUES (1,2,1,0,'2026-03-16 08:16:08'),(2,3,1,0,'2026-03-16 08:16:08'),(3,4,1,0,'2026-03-16 08:16:08'),(4,5,1,0,'2026-03-16 08:16:08'),(5,7,3,0,'2026-03-16 08:16:08');
 /*!40000 ALTER TABLE `student_course` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -486,9 +488,9 @@ CREATE TABLE `student_fail_subjects` (
   `student_fail_id` int(11) NOT NULL AUTO_INCREMENT,
   `student_id` int(11) NOT NULL,
   `course_id` int(11) NOT NULL,
-  `status` varchar(50) DEFAULT 'pending',
+  `status` enum('Pending','Approved','Rejected') NOT NULL DEFAULT 'Pending',
   `create_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`student_fail_id`),
   KEY `student_id` (`student_id`),
   KEY `course_id` (`course_id`),
@@ -523,7 +525,7 @@ CREATE TABLE `student_fees` (
   `program_id` int(11) NOT NULL,
   `fee_month` varchar(20) DEFAULT NULL,
   `student_id` int(11) NOT NULL,
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`student_fees_id`),
   KEY `program_id` (`program_id`),
   KEY `student_id` (`student_id`),
@@ -553,9 +555,9 @@ CREATE TABLE `student_improvement` (
   `improvement_id` int(11) NOT NULL AUTO_INCREMENT,
   `student_id` int(11) NOT NULL,
   `course_id` int(11) NOT NULL,
-  `status` varchar(50) DEFAULT 'Pending',
+  `status` enum('Pending','Approved','Rejected') NOT NULL DEFAULT 'Pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`improvement_id`),
   KEY `student_id` (`student_id`),
   KEY `course_id` (`course_id`),
@@ -588,12 +590,12 @@ CREATE TABLE `student_result_marks` (
   `total_marks` int(11) DEFAULT 0,
   `student_grade` varchar(10) NOT NULL,
   `status` varchar(50) NOT NULL,
-  `student_semester` varchar(50) DEFAULT NULL,
+  `student_semester` int(11) DEFAULT NULL,
   `sessional_marks` int(11) DEFAULT 0,
   `mid_marks` int(11) DEFAULT 0,
   `final_marks` int(11) DEFAULT 0,
   `subject_gpa` decimal(3,2) DEFAULT 0.00,
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`marks_id`),
   KEY `student_course_id` (`student_course_id`),
   KEY `student_result_id` (`student_result_id`),
@@ -608,7 +610,7 @@ CREATE TABLE `student_result_marks` (
 
 LOCK TABLES `student_result_marks` WRITE;
 /*!40000 ALTER TABLE `student_result_marks` DISABLE KEYS */;
-INSERT INTO `student_result_marks` VALUES (1,1,2,83,'B+','Pass','5',17,23,43,3.40,0),(2,1,2,83,'B+','Pass','5',19,21,43,3.40,0),(3,1,2,92,'A-','Pass','5',19,26,47,3.80,0),(4,2,3,81,'B+','Pass','5',14,23,44,3.40,0),(5,2,3,95,'A+','Pass','5',18,28,49,4.00,0),(6,4,4,84,'B+','Pass','5',18,23,43,3.40,0),(7,3,5,81,'B+','Pass','5',13,23,45,3.40,0);
+INSERT INTO `student_result_marks` VALUES (1,1,2,83,'B+','Pass',5,17,23,43,3.40,0),(2,1,2,83,'B+','Pass',5,19,21,43,3.40,0),(3,1,2,92,'A-','Pass',5,19,26,47,3.80,0),(4,2,3,81,'B+','Pass',5,14,23,44,3.40,0),(5,2,3,95,'A+','Pass',5,18,28,49,4.00,0),(6,4,4,84,'B+','Pass',5,18,23,43,3.40,0),(7,3,5,81,'B+','Pass',5,13,23,45,3.40,0);
 /*!40000 ALTER TABLE `student_result_marks` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -622,12 +624,15 @@ DROP TABLE IF EXISTS `student_results`;
 CREATE TABLE `student_results` (
   `student_result_id` int(11) NOT NULL AUTO_INCREMENT,
   `student_id` int(11) NOT NULL,
-  `student_semester` varchar(50) NOT NULL,
+  `student_semester` int(11) NOT NULL,
   `overall_gpa` decimal(3,2) NOT NULL CHECK (`overall_gpa` between 0.00 and 4.00),
   `result_status` enum('Pass','Fail') NOT NULL,
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`student_result_id`),
+  UNIQUE KEY `unique_student_semester` (`student_id`,`student_semester`),
   KEY `student_id` (`student_id`),
+  KEY `idx_student_semester` (`student_id`,`student_semester`),
   CONSTRAINT `student_results_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -638,7 +643,7 @@ CREATE TABLE `student_results` (
 
 LOCK TABLES `student_results` WRITE;
 /*!40000 ALTER TABLE `student_results` DISABLE KEYS */;
-INSERT INTO `student_results` VALUES (2,2,'5',1.27,'Fail',0),(3,3,'5',3.70,'Pass',0),(4,5,'5',3.20,'Pass',0),(5,4,'5',3.10,'Pass',0);
+INSERT INTO `student_results` VALUES (2,2,5,1.27,'Fail',0,'2026-03-16 08:16:08'),(3,3,5,3.70,'Pass',0,'2026-03-16 08:16:08'),(4,5,5,3.20,'Pass',0,'2026-03-16 08:16:08'),(5,4,5,3.10,'Pass',0,'2026-03-16 08:16:08');
 /*!40000 ALTER TABLE `student_results` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -653,7 +658,8 @@ CREATE TABLE `student_section` (
   `student_section_id` int(11) NOT NULL AUTO_INCREMENT,
   `student_id` int(11) NOT NULL,
   `section_id` int(11) NOT NULL,
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`student_section_id`),
   KEY `fk_ss_student` (`student_id`),
   KEY `fk_ss_section` (`section_id`),
@@ -668,7 +674,7 @@ CREATE TABLE `student_section` (
 
 LOCK TABLES `student_section` WRITE;
 /*!40000 ALTER TABLE `student_section` DISABLE KEYS */;
-INSERT INTO `student_section` VALUES (1,2,1,0),(2,3,3,0),(3,4,4,0),(4,5,2,0);
+INSERT INTO `student_section` VALUES (1,2,1,0,'2026-03-16 08:16:08'),(2,3,3,0,'2026-03-16 08:16:08'),(3,4,4,0,'2026-03-16 08:16:08'),(4,5,2,0,'2026-03-16 08:16:08');
 /*!40000 ALTER TABLE `student_section` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -690,7 +696,7 @@ CREATE TABLE `student_submissions` (
   `submission_status` enum('Best','Average','Worst','Pending') DEFAULT 'Pending',
   `marks` int(11) DEFAULT NULL,
   `total_marks` int(11) DEFAULT NULL,
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`submission_id`),
   KEY `fk_sub_student` (`student_id`),
   KEY `fk_sub_course` (`course_id`),
@@ -729,7 +735,7 @@ CREATE TABLE `students` (
   `program_id` int(11) NOT NULL,
   `admission_session` varchar(50) DEFAULT NULL,
   `admission_date` date DEFAULT NULL,
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   `current_semester` int(11) DEFAULT 1,
   PRIMARY KEY (`student_id`),
   UNIQUE KEY `user_id` (`user_id`),
@@ -762,7 +768,7 @@ CREATE TABLE `summer_registration` (
   `course_id` int(11) NOT NULL,
   `summer_semesters_id` int(11) NOT NULL,
   `registration_date` timestamp NOT NULL DEFAULT current_timestamp(),
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`registration_id`),
   KEY `fk_summer_student` (`student_id`),
   KEY `fk_summer_course` (`course_id`),
@@ -799,7 +805,7 @@ CREATE TABLE `summer_semesters` (
   `previous_semester_id` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `status` enum('Open','Closed') NOT NULL DEFAULT 'Open',
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`summer_semesters_id`),
   KEY `previous_semester_id` (`previous_semester_id`),
   CONSTRAINT `summer_semesters_ibfk_1` FOREIGN KEY (`previous_semester_id`) REFERENCES `semester` (`semester_id`) ON DELETE SET NULL ON UPDATE CASCADE
@@ -827,7 +833,7 @@ CREATE TABLE `system_settings` (
   `setting_key` varchar(50) NOT NULL,
   `setting_value` varchar(255) DEFAULT NULL,
   `description` text DEFAULT NULL,
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`setting_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -853,7 +859,7 @@ CREATE TABLE `teacher_course` (
   `teacher_course_id` int(11) NOT NULL AUTO_INCREMENT,
   `teacher_id` int(11) NOT NULL,
   `course_id` int(11) NOT NULL,
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`teacher_course_id`),
   KEY `teacher_id` (`teacher_id`),
   KEY `course_id` (`course_id`),
@@ -921,7 +927,7 @@ CREATE TABLE `teachers` (
   `contact_num` varchar(100) NOT NULL,
   `qualification` varchar(100) DEFAULT NULL,
   `joining_date` date DEFAULT NULL,
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`teacher_id`),
   UNIQUE KEY `user_id` (`user_id`),
   CONSTRAINT `teachers_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
@@ -950,7 +956,7 @@ CREATE TABLE `users` (
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
   `role_id` int(11) NOT NULL,
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `email` (`email`),
   KEY `role_id` (`role_id`),
@@ -978,7 +984,7 @@ DROP TABLE IF EXISTS `users_role`;
 CREATE TABLE `users_role` (
   `role_id` int(11) NOT NULL AUTO_INCREMENT,
   `role_type` varchar(100) NOT NULL,
-  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`role_id`),
   UNIQUE KEY `role_type` (`role_type`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -1007,4 +1013,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-16 13:05:13
+-- Dump completed on 2026-03-16 13:16:35
