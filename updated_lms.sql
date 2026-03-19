@@ -70,7 +70,7 @@ CREATE TABLE `attendance` (
   CONSTRAINT `attendance_ibfk_1` FOREIGN KEY (`student_course_id`) REFERENCES `student_course` (`student_course_id`),
   CONSTRAINT `attendance_ibfk_2` FOREIGN KEY (`course_schedule_id`) REFERENCES `course_schedule` (`course_schedule_id`),
   CONSTRAINT `fk_attendance_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -79,7 +79,7 @@ CREATE TABLE `attendance` (
 
 LOCK TABLES `attendance` WRITE;
 /*!40000 ALTER TABLE `attendance` DISABLE KEYS */;
-INSERT INTO `attendance` VALUES (1,2,3,'2025-12-31','Absent',3,0),(2,3,4,'2025-12-31','Absent',4,0),(3,2,3,'2026-02-04','Absent',3,0),(4,2,3,'2026-02-04','Present',3,0),(5,3,4,'2026-02-04','Present',4,0),(6,2,3,'2026-03-04','Absent',3,0),(7,3,4,'2026-03-04','Present',4,0),(10,2,3,'2026-03-11','Present',3,0),(11,3,4,'2026-03-11','Present',4,0),(12,2,3,'2026-03-13','Present',3,0);
+INSERT INTO `attendance` VALUES (1,2,3,'2025-12-31','Absent',3,0),(2,3,4,'2025-12-31','Absent',4,0),(3,2,3,'2026-02-04','Absent',3,0),(4,2,3,'2026-02-04','Present',3,0),(5,3,4,'2026-02-04','Present',4,0),(6,2,3,'2026-03-04','Absent',3,0),(7,3,4,'2026-03-04','Present',4,0),(10,2,3,'2026-03-11','Present',3,0),(11,3,4,'2026-03-11','Present',4,0),(12,2,3,'2026-03-13','Present',3,0),(13,3,4,'2026-03-19','Present',4,0);
 /*!40000 ALTER TABLE `attendance` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -140,7 +140,7 @@ CREATE TABLE `course_attendance_log` (
   CONSTRAINT `cal_ibfk_1` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`teacher_id`),
   CONSTRAINT `cal_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `courses` (`course_id`),
   CONSTRAINT `cal_ibfk_3` FOREIGN KEY (`course_schedule_id`) REFERENCES `course_schedule` (`course_schedule_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -149,7 +149,7 @@ CREATE TABLE `course_attendance_log` (
 
 LOCK TABLES `course_attendance_log` WRITE;
 /*!40000 ALTER TABLE `course_attendance_log` DISABLE KEYS */;
-INSERT INTO `course_attendance_log` VALUES (3,1,1,3,'2026-03-11',91,41,50,'2026-03-11 07:37:21',0,5),(4,1,1,4,'2026-03-11',1,1,0,'2026-03-11 07:37:26',0,5),(5,1,1,3,'2026-03-13',1,1,0,'2026-03-13 06:38:50',0,5);
+INSERT INTO `course_attendance_log` VALUES (3,1,1,3,'2026-03-11',91,41,50,'2026-03-11 07:37:21',0,5),(4,1,1,4,'2026-03-11',1,1,0,'2026-03-11 07:37:26',0,5),(5,1,1,3,'2026-03-13',1,1,0,'2026-03-13 06:38:50',0,5),(6,1,1,4,'2026-03-19',1,1,0,'2026-03-19 05:57:07',0,5);
 /*!40000 ALTER TABLE `course_attendance_log` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -174,7 +174,7 @@ CREATE TABLE `course_schedule` (
   KEY `section_id` (`section_id`),
   CONSTRAINT `course_schedule_ibfk_1` FOREIGN KEY (`course_id`) REFERENCES `courses` (`course_id`),
   CONSTRAINT `course_schedule_ibfk_2` FOREIGN KEY (`section_id`) REFERENCES `sections` (`section_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -183,7 +183,7 @@ CREATE TABLE `course_schedule` (
 
 LOCK TABLES `course_schedule` WRITE;
 /*!40000 ALTER TABLE `course_schedule` DISABLE KEYS */;
-INSERT INTO `course_schedule` VALUES (1,'Monday','09:00:00','11:00:00','Class Room',1,1,1),(2,'Monday','11:00:00','01:00:00','Class Room',1,2,0),(3,'Friday','15:00:00','17:00:00','B-Lab-1',1,3,0),(4,'Wednesday','11:00:00','02:00:00','Lab 02',1,4,0),(5,'Monday','18:25:00','20:25:00','BTF-10',3,3,0);
+INSERT INTO `course_schedule` VALUES (1,'Monday','09:00:00','11:00:00','Class Room',1,1,1),(2,'Monday','11:00:00','01:00:00','Class Room',1,2,0),(3,'Friday','15:00:00','17:00:00','B-Lab-1',1,3,0),(4,'Wednesday','11:00:00','02:00:00','Lab 02',1,4,0),(5,'Monday','18:25:00','20:25:00','BTF-10',3,3,0),(6,'Thursday','09:00:00','12:00:00','BTF-11',5,4,0);
 /*!40000 ALTER TABLE `course_schedule` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -218,6 +218,41 @@ LOCK TABLES `courses` WRITE;
 /*!40000 ALTER TABLE `courses` DISABLE KEYS */;
 INSERT INTO `courses` VALUES (1,'Introduction to Computing','Regular',1,3,17,1,1,0),(2,'Programming Fundamentals','Regular',1,4,19,1,1,0),(3,'IT Infrastructure','Regular',2,3,12,1,1,0),(4,'Network Administration','Regular',2,3,19,1,1,0),(5,'Introduction to AI','Regular',3,3,22,1,1,0),(6,'Machine Learning','Regular',3,4,20,1,1,0);
 /*!40000 ALTER TABLE `courses` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `exams`
+--
+
+DROP TABLE IF EXISTS `exams`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `exams` (
+  `exam_id` int(11) NOT NULL AUTO_INCREMENT,
+  `program_id` int(11) NOT NULL,
+  `exam_category` enum('Mid','Final') NOT NULL,
+  `exam_date` date NOT NULL,
+  `exam_semester` tinyint(3) unsigned NOT NULL CHECK (`exam_semester` between 1 and 8),
+  `start_time` time NOT NULL,
+  `end_time` time NOT NULL,
+  `location` varchar(100) DEFAULT NULL,
+  `mode` enum('Online','On Campus') NOT NULL,
+  `status` enum('Concluded','Ongoing') NOT NULL DEFAULT 'Ongoing',
+  `is_deleted` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`exam_id`),
+  KEY `fk_exam_program` (`program_id`),
+  CONSTRAINT `fk_exam_program` FOREIGN KEY (`program_id`) REFERENCES `programs` (`program_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `exams`
+--
+
+LOCK TABLES `exams` WRITE;
+/*!40000 ALTER TABLE `exams` DISABLE KEYS */;
+INSERT INTO `exams` VALUES (1,1,'Mid','2026-03-20',5,'10:00:00','12:00:00','BTF-11','On Campus','Ongoing',1),(2,2,'Mid','2026-03-17',3,'11:30:00','12:33:00','B-Lab-11','Online','Concluded',0);
+/*!40000 ALTER TABLE `exams` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -742,7 +777,7 @@ CREATE TABLE `students` (
   KEY `program_id` (`program_id`),
   CONSTRAINT `students_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
   CONSTRAINT `students_ibfk_2` FOREIGN KEY (`program_id`) REFERENCES `programs` (`program_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -751,7 +786,7 @@ CREATE TABLE `students` (
 
 LOCK TABLES `students` WRITE;
 /*!40000 ALTER TABLE `students` DISABLE KEYS */;
-INSERT INTO `students` VALUES (2,3,'Umair','Ullah','923150484043','ullahcentral123@gmail.com','FSC-PreMedical',1,'Fall-2023','2023-10-01',0,1),(3,5,'Muhammad','Huzaifa','923047698099','huzaifacentral123@gmail.com','ICS',1,'Fall-2023','2025-12-31',0,4),(4,6,'Muhammad','Hammad','923047698098','hammadcentral123@gmail.com','FSC-PreMedical',1,'Fall-2023','2025-12-31',0,1),(5,7,'Mubeen','khurram','923057698092','mubeenmuzaffar123@gmail.com','ICS',3,'Fall-2026','2026-03-04',0,3),(6,9,'Haris','Rizwan','03047698099','hariscentral123@gmail.com','Intermediate',4,'Spring 2026','2026-03-04',1,1),(7,10,'Aiman','Rizwan','923047698099','aiman123@gmail.com','FSC-Engrineering',3,'Spring 2026','2026-04-03',0,1);
+INSERT INTO `students` VALUES (2,3,'Umair','Ullah','923150484043','ullahcentral123@gmail.com','FSC-PreMedical',1,'Fall-2023','2023-10-01',0,1),(3,5,'Muhammad','Huzaifa','923047698099','huzaifacentral123@gmail.com','ICS',1,'Fall-2023','2025-12-31',0,4),(4,6,'Muhammad','Hammad','923047698098','hammadcentral123@gmail.com','FSC-PreMedical',1,'Fall-2023','2025-12-31',0,1),(5,7,'Mubeen','khurram','923057698092','mubeenmuzaffar123@gmail.com','ICS',3,'Fall-2026','2026-03-04',0,3),(6,9,'Haris','Rizwan','03047698099','hariscentral123@gmail.com','Intermediate',4,'Spring 2026','2026-03-04',1,1),(7,10,'Aiman','Rizwan','923047698099','aiman123@gmail.com','FSC-Engrineering',3,'Spring 2026','2026-04-03',0,1),(8,15,'New ','student','923047698091','newstudent@gmail.com','Intermediate',3,'Spring 2026','2026-03-17',0,2);
 /*!40000 ALTER TABLE `students` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -844,7 +879,7 @@ CREATE TABLE `system_settings` (
 
 LOCK TABLES `system_settings` WRITE;
 /*!40000 ALTER TABLE `system_settings` DISABLE KEYS */;
-INSERT INTO `system_settings` VALUES ('current_term','1','Fall 2026',0),('is_admission_open','0','Controls if the signup/admission page is accessible',0),('is_course_reg_open','1','Controls if students can register for new courses',0),('is_summer_app_open','0','Controls if summer semester applications are enabled',0);
+INSERT INTO `system_settings` VALUES ('current_term','1','Fall 2026',0),('is_admission_open','1','Controls if the signup/admission page is accessible',0),('is_course_reg_open','1','Controls if students can register for new courses',0),('is_summer_app_open','1','Controls if summer semester applications are enabled',0);
 /*!40000 ALTER TABLE `system_settings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -961,7 +996,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `email` (`email`),
   KEY `role_id` (`role_id`),
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `users_role` (`role_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -970,7 +1005,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'teacher@gmail.com','12345',1,0),(2,'student@gmail.com','54321',2,0),(3,'ullahcentral123@gmail.com','scrypt:32768:8:1$7jPlgi083yfmCTVX$09d66e8cbbcb7df85dba9cc78052ab9d547244815938d89dcbcd01f00d58ff2a7be80bd3a4ad9bc57f84125a3affb624b32a0c0c8a32e85b628f3908fdd59e4c',2,0),(4,'sanacentral123@gmail.com','scrypt:32768:8:1$S7vfbzBO2aRNJpRd$6ffe5515c5085614610d0af9e13e005cfad46755406334ec6804562c60a3511112b3f61fe9f700d8b3a6a315ec1179c8d0377dc0f9bfab76cfd3bc2db693b951',1,0),(5,'huzaifacentral123@gmail.com','scrypt:32768:8:1$I9n0FGjNKaqHRaC4$3e9a48dd81365bda10cf83a4ab1e1eab8c15ac930da13bc1742efef4f4ea57274842f7ab41d824c2c8f135c5f214071ac911d9dd1a334ff553388ab2d0369575',2,0),(6,'hammadcentral123@gmail.com','scrypt:32768:8:1$jfSOWTiPsrWqazKQ$221c31ec18f224255ea2dff9eaf531a035cf704e27918fa7e4364a89d54eeae8af42701c759ba68cd5e7f49c9cf5bb690e8768725f11e63fc7b848f0f2e3de0f',2,0),(7,'mubeenmuzaffar123@gmail.com','scrypt:32768:8:1$ZhqrixLR5MGq8CS2$163df37b57801281972e50959c569da0d91ce77390944d9c2e81729f9a8feab0e9eaa3502ff59bdc825898746268da597de329eeebc9049ff365302bcfb74634',2,0),(8,'saleemkhurram420@gmail.com','scrypt:32768:8:1$skIzf7LpmeXDV7We$46816137a770b3c6ca5f90f7a3c5e03d772807aada70e450473f15803ebf2c5793b04ca86e78101e5da1272c80919b4e8a49d2540aabc7bd51e84d68b91e5e70',3,0),(9,'hariscentral123@gmail.com','scrypt:32768:8:1$R3WyGmnp0WVq4Yr6$3f666a241ec267a81464d1b8ba5efc3937e99b14d0970339055853ed23fb6c024978199950cd6c93e3d97d00d8999db3d286b43a1bf47b30c66cc8f09b55471e',2,0),(10,'aiman123@gmail.com','scrypt:32768:8:1$5K9YM4nseB8f0CJ6$2b429fd8fcb38a2d5611110452b2f1929b785ce2923b3885fd6efa75e0740f70fa0df8f057f47292ae1ea1dcb3d6b5c1cb370e7526ae69a64a1f8e7eab00ddbb',2,0),(11,'asimcentral123@gmail.com','scrypt:32768:8:1$VTMHhurPtwATVk7Q$ad65121463944b4b1c731e815ea9d1a5e09b128f71273a68d9358d46d4ae811a74c12595b23579b676cc5d8306ae955809d942dc1f68f97370759e3ca3dde27f',1,1),(13,'alicentral123@gmal.com','scrypt:32768:8:1$yZ1ibSvuXtajO9Wy$635b6089201d227ff298af507a2b311e5a87382c5054a37d760b808d5e491e80bb0d3d3f0c3af8234731c8360a23b71ba5402dd41b340325e221865c8ad5f920',1,1),(14,'bashir123@gmail.com','scrypt:32768:8:1$IQjPszk5IyxicfEQ$57ec53dbbf405f881f2bfda1422a9cc11f5df4fcae9cea10a3971e88abe7e410f625536e523fc4e8579e49bfeff5314645a10a16b1ee6d48cfa88be27d03d3ce',1,0);
+INSERT INTO `users` VALUES (1,'teacher@gmail.com','12345',1,0),(2,'student@gmail.com','54321',2,0),(3,'ullahcentral123@gmail.com','scrypt:32768:8:1$7jPlgi083yfmCTVX$09d66e8cbbcb7df85dba9cc78052ab9d547244815938d89dcbcd01f00d58ff2a7be80bd3a4ad9bc57f84125a3affb624b32a0c0c8a32e85b628f3908fdd59e4c',2,0),(4,'sanacentral123@gmail.com','scrypt:32768:8:1$S7vfbzBO2aRNJpRd$6ffe5515c5085614610d0af9e13e005cfad46755406334ec6804562c60a3511112b3f61fe9f700d8b3a6a315ec1179c8d0377dc0f9bfab76cfd3bc2db693b951',1,0),(5,'huzaifacentral123@gmail.com','scrypt:32768:8:1$I9n0FGjNKaqHRaC4$3e9a48dd81365bda10cf83a4ab1e1eab8c15ac930da13bc1742efef4f4ea57274842f7ab41d824c2c8f135c5f214071ac911d9dd1a334ff553388ab2d0369575',2,0),(6,'hammadcentral123@gmail.com','scrypt:32768:8:1$jfSOWTiPsrWqazKQ$221c31ec18f224255ea2dff9eaf531a035cf704e27918fa7e4364a89d54eeae8af42701c759ba68cd5e7f49c9cf5bb690e8768725f11e63fc7b848f0f2e3de0f',2,0),(7,'mubeenmuzaffar123@gmail.com','scrypt:32768:8:1$ZhqrixLR5MGq8CS2$163df37b57801281972e50959c569da0d91ce77390944d9c2e81729f9a8feab0e9eaa3502ff59bdc825898746268da597de329eeebc9049ff365302bcfb74634',2,0),(8,'saleemkhurram420@gmail.com','scrypt:32768:8:1$skIzf7LpmeXDV7We$46816137a770b3c6ca5f90f7a3c5e03d772807aada70e450473f15803ebf2c5793b04ca86e78101e5da1272c80919b4e8a49d2540aabc7bd51e84d68b91e5e70',3,0),(9,'hariscentral123@gmail.com','scrypt:32768:8:1$R3WyGmnp0WVq4Yr6$3f666a241ec267a81464d1b8ba5efc3937e99b14d0970339055853ed23fb6c024978199950cd6c93e3d97d00d8999db3d286b43a1bf47b30c66cc8f09b55471e',2,0),(10,'aiman123@gmail.com','scrypt:32768:8:1$5K9YM4nseB8f0CJ6$2b429fd8fcb38a2d5611110452b2f1929b785ce2923b3885fd6efa75e0740f70fa0df8f057f47292ae1ea1dcb3d6b5c1cb370e7526ae69a64a1f8e7eab00ddbb',2,0),(11,'asimcentral123@gmail.com','scrypt:32768:8:1$VTMHhurPtwATVk7Q$ad65121463944b4b1c731e815ea9d1a5e09b128f71273a68d9358d46d4ae811a74c12595b23579b676cc5d8306ae955809d942dc1f68f97370759e3ca3dde27f',1,1),(13,'alicentral123@gmal.com','scrypt:32768:8:1$yZ1ibSvuXtajO9Wy$635b6089201d227ff298af507a2b311e5a87382c5054a37d760b808d5e491e80bb0d3d3f0c3af8234731c8360a23b71ba5402dd41b340325e221865c8ad5f920',1,1),(14,'bashir123@gmail.com','scrypt:32768:8:1$IQjPszk5IyxicfEQ$57ec53dbbf405f881f2bfda1422a9cc11f5df4fcae9cea10a3971e88abe7e410f625536e523fc4e8579e49bfeff5314645a10a16b1ee6d48cfa88be27d03d3ce',1,0),(15,'newstudent@gmail.com','scrypt:32768:8:1$t1ZpuexMy2VJZasa$abe1b7915e8dbc3483a747fdab5874b0359970788c0ec9315639df56247d51d0443028ec43224995ccc9f4fd6f8bfcbf3087aeca1e2e41315ae0eb6d733f199b',2,0);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1013,4 +1048,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-16 15:41:49
+-- Dump completed on 2026-03-19 11:00:19

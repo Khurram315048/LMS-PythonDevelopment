@@ -1296,7 +1296,101 @@ def delete_notification():
 @admin.route('/exam_dates',methods=['GET'])
 @admin_required
 def exam_dates():
-    return render_template('exam_dates.html')
+    cursor=mysql.connection.cursor()
+
+    cursor.execute("""
+        SELECT ex.exam_id,ex.exam_category,ex.exam_date,ex.exam_semester,ex.start_time,ex.end_time,ex.location,
+                   ex.mode,ex.status,ps.program_name
+        FROM exams ex
+        JOIN programs ps ON ex.program_id=ps.program_id
+        WHERE ex.is_deleted=%s
+    """,(0,))
+    exams=cursor.fetchall()
+    cursor.execute('SELECT * FROM programs WHERE is_deleted=%s',(0,))
+    programs=cursor.fetchall()
+
+    return render_template('exam_dates.html',exams=exams,programs=programs)
+
+
+@admin.route('/add_exams',methods=['GET','POST'])
+@admin_required
+def add_exams():
+    if request.method=='POST':
+        cursor=mysql.connection.cursor()
+
+        program_id=request.form.get('program_id')
+        exam_catgry=request.form.get('exam_category')
+        exam_smstr=request.form.get('exam_semester')
+        exam_date=request.form.get('exam_date')
+        start_time=request.form.get('start_time')
+        end_time=request.form.get('end_time')
+        location=request.form.get('location')
+        exam_mode=request.form.get('exam_mode')
+
+        cursor.execute('''SELECT exam_id FROM exams WHERE program_id=%s AND exam_category=%s AND exam_semester=%s
+                 AND exam_date=%s''',
+            (program_id,exam_catgry,exam_smstr,exam_date)
+        )
+        exam_exists=cursor.fetchone()
+
+        if exam_exists:
+            flash('Exam date already exists for this program, category and semester.', 'danger')
+            cursor.close()
+            return redirect(url_for('admin.exam_dates'))
+
+        cursor.execute(
+            '''INSERT INTO exams (program_id,exam_category,exam_date,exam_semester,start_time,end_time,location,mode,status)
+               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)''',
+            (program_id,exam_catgry,exam_date,exam_smstr,
+             start_time,end_time,location,exam_mode,'Ongoing')
+        )
+        mysql.connection.commit()
+        cursor.close()
+        flash('Exam added successfully.', 'success')
+
+    return redirect(url_for('admin.exam_dates'))
+
+
+
+
+@admin.route('/update_exams',methods=['GET','POST'])
+@admin_required
+def update_exams():
+    if request.method=='POST':
+        cursor=mysql.connection.cursor()
+
+        exam_id=request.form.get('exam_id')
+        exam_catgry=request.form.get('exam_category')
+        exam_smstr=request.form.get('exam_semester')
+        exam_date=request.form.get('exam_date')
+        start_time=request.form.get('start_time')
+        end_time=request.form.get('end_time')
+        location=request.form.get('location')
+        exam_mode=request.form.get('mode')
+        exam_status=request.form.get('status')
+
+        cursor.execute(
+            '''UPDATE exams SET exam_category=%s,exam_date=%s,exam_semester=%s,
+            start_time=%s,end_time=%s,location=%s,mode=%s,status=%s WHERE exam_id=%s AND is_deleted=%s''',
+            (exam_catgry,exam_date,exam_smstr,start_time,end_time,location,exam_mode,exam_status,exam_id,0))
+        mysql.connection.commit()
+        cursor.close()
+        flash('Exam updated successfully.', 'success')
+
+    return redirect(url_for('admin.exam_dates'))
+
+
+@admin.route('/delete_exams',methods=['POST'])
+@admin_required
+def delete_exams():
+    cursor=mysql.connection.cursor()
+    
+    exam_id=request.form.get('exam_id')
+    cursor.execute('UPDATE exams SET is_deleted=%s WHERE exam_id=%s',(1,exam_id))
+    mysql.connection.commit()
+    cursor.close()
+    flash('Exam Deleted Successfully','success')
+    return redirect(url_for('admin.exam_dates'))    
 
 
 @admin.route('/promote_students',methods=['GET'])

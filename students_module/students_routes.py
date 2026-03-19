@@ -5,7 +5,8 @@ from werkzeug.utils import secure_filename
 from students_module.students_models import UserModel,StudentModel,NotificationModel
 import os
 from utils.db import mysql 
-from datetime import datetime
+from datetime import datetime,date
+import MySQLdb.cursors
 
 ALLOWED_EXTENSIONS={'pdf'}
 
@@ -29,6 +30,7 @@ def student_login():
                 session['user_id']=user['user_id']
                 session['role']='student'
                 session['student_id']=student_obj['student_id']
+                session['date']=datetime.now()
                 session.permanent=remember
                 return redirect(url_for('student.student_dashboard'))
             else:
@@ -63,6 +65,8 @@ def student_profile():
 @student.route('/student_dashboard',methods=['GET', 'POST'])
 @student_required
 def student_dashboard():
+    cursor=mysql.connection.cursor()
+
     if session.get('role') != 'student':
         return redirect(url_for('main_view'))
     
@@ -91,10 +95,64 @@ def student_dashboard():
         s['course_name'] = course_names.get(s['course_id'], 'Unknown Course')
 
     active_notifications=NotificationModel.get_active_notifications(session['user_id'],'student')
-    
+
+    exam_data=None
+    admit_card=None
+    show_marquee=False
+    cursor.execute('SELECT program_id FROM students WHERE student_id=%s',(student_id,))
+    student_row=cursor.fetchone()
+    if student_row:
+        program_id=student_row['program_id'] 
+        cursor.execute("""SELECT ex.exam_id,ex.exam_category,ex.exam_date,ex.exam_semester,
+                   ex.start_time,ex.end_time,ex.location,ex.mode,ex.status,ps.program_name
+                FROM exams ex
+            JOIN programs ps ON ex.program_id=ps.program_id
+            WHERE ex.program_id=%s
+            AND ex.is_deleted =0
+        """, (program_id,))
+        exam_details=cursor.fetchall()
+        today=date.today()
+        upcoming=[ex for ex in exam_details if ex['exam_date'] >= today]  
+        if upcoming:
+            exam_data=upcoming
+            show_marquee=True
+            cursor.execute("""SELECT s.student_id,s.first_name,s.last_name,s.current_semester,
+                       p.program_name
+                FROM students s
+                JOIN programs p ON s.program_id=p.program_id
+                WHERE s.student_id=%s
+            """, (student_id,))
+            student_info=cursor.fetchone()
+            exam_category=upcoming[0]['exam_category']
+            exam_location=upcoming[0]['location'] or 'Class Room'
+
+            admit_courses=[
+                {
+                    'course_id':c['course_id'],
+                    'course_name':c['course_name'],
+                    'exam_type':exam_category,
+                    'location':exam_location,
+                    'status':'Allowed',
+                }
+                for c in course_data
+            ]
+
+            admit_card={
+                'student':student_info,
+                'courses':admit_courses,
+                'exam_date':upcoming[0]['exam_date'],
+                'start_time':upcoming[0]['start_time'],
+                'end_time':upcoming[0]['end_time'],
+            }
+        else:
+            flash('No upcoming exams available.', 'info')
+
+    cursor.close()
     return render_template(
         'student_dashboard.html', schedule=schedule, teacher=teacher_info, teacher_ids=teacher_ids_by_course,
-         uploaded_assignments=uploaded_assignments,uploaded_quizzes=uploaded_quizzes,active_notifications=active_notifications)
+        uploaded_assignments=uploaded_assignments,uploaded_quizzes=uploaded_quizzes,
+        active_notifications=active_notifications,exam_data=exam_data,admit_card=admit_card,
+        show_marquee=show_marquee)
 
 
 @student.route('/student_fee', methods=['GET', 'POST'])
