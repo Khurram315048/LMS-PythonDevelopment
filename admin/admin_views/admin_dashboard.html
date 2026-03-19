@@ -72,15 +72,15 @@
 
         <div class="pending-card">
             <div class="pending-card-left">
-                <i class="fa-solid fa-headset"></i>
+                <i class="fa-solid fa-file-pen"></i>
                 <div>
-                    <span class="pending-label">Help Desk Tickets</span>
-                    <span class="pending-sub">Unresolved tickets</span>
+                    <span class="pending-label">Exams Management</span>
+                    <span class="pending-sub">Exams Ongoing</span>
                 </div>
             </div>
             <div class="pending-card-right">
-                <span class="pending-count">{{ helpdesk_count }}</span>
-                <a href="#" class="pending-link">View All <i class="fa-solid fa-arrow-right"></i></a>
+                <span class="pending-count">{{ exam_count }}</span>
+                <a href="{{url_for('admin.exam_dates')}}" class="pending-link">View All <i class="fa-solid fa-arrow-right"></i></a>
             </div>
         </div>
 

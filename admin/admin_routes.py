@@ -59,16 +59,17 @@ def admin_dashboard():
     complaints_count=cursor.fetchone()['total_complaints']
     cursor.execute('SELECT COUNT(*) AS freeze_count FROM semester_freeze_students WHERE status=%s', ('Pending',))
     freeze_count=cursor.fetchone()['freeze_count']
+    cursor.execute('SELECT COUNT(*) AS exam_count FROM exams WHERE status=%s AND is_deleted=0', ('Ongoing',))
+    exam_count=cursor.fetchone()['exam_count']
 
     cursor.execute('SELECT COUNT(*) AS notif_count FROM notifications WHERE status=%s AND is_deleted=0', ('Pending',))
     notifications_count=cursor.fetchone()['notif_count']
 
-    helpdesk_count = 0
     return render_template(
         'admin_dashboard.html',
         students_count=students,
         teachers_count=teachers,complaints_count=complaints_count,
-        notifications_count=notifications_count,helpdesk_count=helpdesk_count,
+        notifications_count=notifications_count,exam_count=exam_count,
         pending_count=pending,courses_count=courses_count,fyp_count=fyp_count,freeze_count=freeze_count)
 
 
