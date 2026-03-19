@@ -9,7 +9,7 @@ from utils.db import mysql
 teacher =Blueprint('teacher', __name__, template_folder='teachers_views')
 
 
-@teacher.route('/teacher_login', methods=['GET', 'POST'])
+@teacher.route('/teacher_login',methods=['GET', 'POST'])
 def teacher_login():
     if request.method=='POST':
         email=request.form.get('email')
@@ -17,11 +17,11 @@ def teacher_login():
         
         user_data,logged_user=TeacherModel.get_by_email(email)
         
-        if user_data and check_password_hash(logged_user['password'], password):
+        if user_data and check_password_hash(logged_user['password'],password):
             session.update({
-                'user_id': logged_user['user_id'], 
-                'role': 'teacher', 
-                'teacher_id': user_data['teacher_id']
+                'user_id':logged_user['user_id'], 
+                'role':'teacher', 
+                'teacher_id':user_data['teacher_id']
             })
             return redirect(url_for('teacher.teacher_dashboard'))
         else:
@@ -37,8 +37,8 @@ def teacher_profile():
     if session.get('role') != 'teacher': 
         return redirect(url_for('main_view'))
     
-    details = TeacherModel.get_profile(session['teacher_id'])
-    return render_template('teacher_profile.html', teacher_details=details)
+    details=TeacherModel.get_profile(session['teacher_id'])
+    return render_template('teacher_profile.html',teacher_details=details)
 
 
 
@@ -48,11 +48,11 @@ def teacher_dashboard():
     if session.get('role') != 'teacher':
         return redirect(url_for('main_view'))
         
-    tid = session.get('teacher_id')
-    today = datetime.datetime.now().strftime('%A')
+    tid=session.get('teacher_id')
+    today=datetime.datetime.now().strftime('%A')
     
-    full_schedule = TeacherModel.get_full_schedule(tid)
-    today_list = [row for row in full_schedule if row['day_of_week'] == today]
+    full_schedule=TeacherModel.get_full_schedule(tid)
+    today_list=[row for row in full_schedule if row['day_of_week']==today]
     
     active_notifications=Notifications.get_active_notifications(session['user_id'],'teacher')
     return render_template('teacher_dashboard.html', 
@@ -65,11 +65,11 @@ def teacher_dashboard():
 @teacher.route("/class_attendance")
 @teacher_required
 def class_attendance():
-    tid = session.get('teacher_id')
-    today = datetime.datetime.now().strftime('%A')
+    tid=session.get('teacher_id')
+    today=datetime.datetime.now().strftime('%A')
     
-    full_schedule = TeacherModel.get_full_schedule(tid)
-    today_list = [row for row in full_schedule if row['day_of_week'] == today]
+    full_schedule=TeacherModel.get_full_schedule(tid)
+    today_list=[row for row in full_schedule if row['day_of_week']==today]
     
     return render_template('class_attendance.html', 
                            full_schedule=full_schedule, 
@@ -115,7 +115,7 @@ def marked_attendance(section_id):
         )
         return redirect(url_for('teacher.class_attendance'))
 
-    student_list = TeacherModel.get_student_list_for_attendance(section_id, meta['course_id'])
+    student_list=TeacherModel.get_student_list_for_attendance(section_id,meta['course_id'])
     return render_template('marked_attendance.html', 
                            course_name=meta['course_name'], 
                            students=student_list, 
@@ -130,12 +130,12 @@ def marked_attendance(section_id):
 @teacher.route("/class_structure/<int:section_id>")
 @teacher_required
 def class_structure(section_id):
-    info = TeacherModel.get_class_structure(section_id)
-    return render_template('class_structure.html', class_info=info)
+    info=TeacherModel.get_class_structure(section_id)
+    return render_template('class_structure.html',class_info=info)
 
 
 
-@teacher.route("/generate_result/<int:section_id>", methods=['GET', 'POST'])
+@teacher.route("/generate_result/<int:section_id>",methods=['GET', 'POST'])
 @teacher_required
 def generate_result(section_id):
     if session.get('role') != 'teacher':
@@ -175,22 +175,22 @@ def generate_result(section_id):
                     gpa=0.0           
                 
                 result_data={
-                    'sessional': s, 
-                    'mids': m, 
-                    'final': f, 
-                    'total': total, 
-                    'grade': g, 
-                    'gpa': gpa, 
-                    'status': 'Pass' if total >= 50 else 'Fail'
+                    'sessional':s, 
+                    'mids':m, 
+                    'final':f, 
+                    'total':total, 
+                    'grade':g, 
+                    'gpa':gpa, 
+                    'status':'Pass' if total >= 50 else 'Fail'
                 }
                 
-                TeacherModel.process_student_result(sid, section_id, details['course_id'], details['semester'], result_data)
+                TeacherModel.process_student_result(sid,section_id,details['course_id'],details['semester'],result_data)
         
         flash("Results updated successfully!", "success")
         return redirect(url_for('teacher.teacher_dashboard'))
 
-    grading_list = TeacherModel.get_grading_data(details['course_id'], section_id)
-    return render_template('generate_result.html', students=grading_list, info=details)
+    grading_list=TeacherModel.get_grading_data(details['course_id'],section_id)
+    return render_template('generate_result.html',students=grading_list,info=details)
 
 
 
@@ -198,23 +198,23 @@ def generate_result(section_id):
 @teacher.route('/fyp_management')
 @teacher_required
 def fyp_management():
-    tid = session.get('teacher_id')
-    groups = TeacherModel.get_fyp_groups(tid)
+    tid=session.get('teacher_id')
+    groups=TeacherModel.get_fyp_groups(tid)
     
     
     for g in groups:
-        if g['messages'] and g['messages'][-1]['sender_role'] == 'student':
-            g['has_unread'] = True
+        if g['messages'] and g['messages'][-1]['sender_role']=='student':
+            g['has_unread']=True
         else:
-            g['has_unread'] = False
+            g['has_unread']=False
     
-    stats = {
+    stats={
         'total': len(groups), 
-        'completed': len([g for g in groups if g['status'] == 'Approved']), 
-        'pending': len([g for g in groups if g['status'] == 'Pending Approval'])
+        'completed': len([g for g in groups if g['status']=='Approved']), 
+        'pending': len([g for g in groups if g['status']=='Pending Approval'])
     }
     
-    return render_template('fyp_management.html', fyp_data=groups, **stats)
+    return render_template('fyp_management.html',fyp_data=groups, **stats)
 
 
 @teacher.route('/approve_fyp/<int:fyp_id>/<string:status>')
@@ -291,10 +291,10 @@ def toggle_upload(section_id, upload_type):
 @teacher.route('/complaint_suggestion', methods=['GET', 'POST'])
 @teacher_required
 def complaint_suggestion():
-    if request.method == 'POST':
-        title = request.form['title']
-        description = request.form['description']
-        user_id = session['user_id']
+    if request.method=='POST':
+        title=request.form['title']
+        description=request.form['description']
+        user_id=session['user_id']
         TeacherModel.insert_complaint_suggestion(title, description, user_id)
         return redirect(url_for('teacher.teacher_dashboard'))
     return render_template('complaint_suggestion.html')    

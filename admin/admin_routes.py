@@ -10,7 +10,7 @@ from utils.db import mysql
 admin=Blueprint('admin', __name__, template_folder='admin_views')
 
 
-@admin.route('/admin_login', methods=['GET','POST'])
+@admin.route('/admin_login',methods=['GET','POST'])
 def admin_login():
     cursor=mysql.connection.cursor()
     if request.method=='POST':
@@ -41,7 +41,7 @@ def admin_login():
     return render_template('admin_login.html')  
     
 
-@admin.route('/admin_dashboard', methods=['GET', 'POST'])
+@admin.route('/admin_dashboard',methods=['GET', 'POST'])
 @admin_required
 def admin_dashboard():
     cursor=mysql.connection.cursor()
@@ -73,7 +73,7 @@ def admin_dashboard():
         pending_count=pending,courses_count=courses_count,fyp_count=fyp_count,freeze_count=freeze_count)
 
 
-@admin.route('/admin_profile', methods=['GET', 'POST'])
+@admin.route('/admin_profile',methods=['GET', 'POST'])
 @admin_required
 def admin_profile():
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -124,7 +124,7 @@ def system_settings():
     
 
 
-@admin.route('/edit_settings', methods=['GET', 'POST'])
+@admin.route('/edit_settings',methods=['GET', 'POST'])
 @admin_required
 def edit_settings():
     cursor=mysql.connection.cursor()
@@ -225,7 +225,7 @@ def delete_semester():
 
 
 
-@admin.route('/register_student', methods=['GET','POST'])
+@admin.route('/register_student',methods=['GET','POST'])
 @admin_required
 def register_student():
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -261,7 +261,7 @@ def add_student():
         admission_date=request.form['admission_date']
         current_semester=request.form['current_semester']
 
-        cursor.execute('SELECT user_id FROM users WHERE email=%s AND is_deleted=%s', (email,0,))
+        cursor.execute('SELECT user_id FROM users WHERE email=%s AND is_deleted=%s',(email,0,))
         existing=cursor.fetchone()
         if existing:
             flash('Email already registered.', 'danger')
@@ -331,14 +331,14 @@ def update_student():
     return redirect(url_for('admin.register_student'))    
 
 
-@admin.route('/manage_attendance', methods=['GET', 'POST'])
+@admin.route('/manage_attendance',methods=['GET', 'POST'])
 @admin_required
 def manage_attendance():
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
 
     query='''
-        SELECT a.attendance_id, a.attendance_date, a.attendance_status,
-               s.first_name, s.last_name,
+        SELECT a.attendance_id,a.attendance_date,a.attendance_status,
+               s.first_name,s.last_name,
                c.course_name,
                sec.section_name
         FROM attendance a
@@ -351,9 +351,9 @@ def manage_attendance():
     '''
     cursor.execute(query,(0,))
     attendance=cursor.fetchall()
-    cursor.execute('SELECT course_id, course_name FROM courses')
+    cursor.execute('SELECT course_id,course_name FROM courses')
     courses=cursor.fetchall()
-    cursor.execute('SELECT section_id, section_name FROM sections')
+    cursor.execute('SELECT section_id,section_name FROM sections')
     sections=cursor.fetchall()
 
     return render_template('manage_attendance.html',attendance=attendance,courses=courses,sections=sections,)   
@@ -408,13 +408,13 @@ def manage_grades():
         cursor.execute('''
             SELECT srm.*, c.course_name
             FROM student_result_marks srm
-            JOIN student_course sc ON srm.student_course_id = sc.student_course_id
-            JOIN courses c ON sc.course_id = c.course_id
-            WHERE srm.student_result_id = %s
+            JOIN student_course sc ON srm.student_course_id=sc.student_course_id
+            JOIN courses c ON sc.course_id=c.course_id
+            WHERE srm.student_result_id=%s
         ''', (result['student_result_id'],))
         result['marks']=cursor.fetchall()
 
-    cursor.execute('SELECT program_id, program_name FROM programs')
+    cursor.execute('SELECT program_id,program_name FROM programs')
     programs=cursor.fetchall()
 
     return render_template('manage_grades.html',
@@ -467,7 +467,7 @@ def fee_management():
 
 
 
-@admin.route('/update_fee_status', methods=['POST'])
+@admin.route('/update_fee_status',methods=['POST'])
 @admin_required
 def update_fee_status():
     cursor=mysql.connection.cursor()
@@ -481,7 +481,7 @@ def update_fee_status():
 
 
 
-@admin.route('/add_fee_record', methods=['POST'])
+@admin.route('/add_fee_record',methods=['POST'])
 @admin_required
 def add_fee_record():
     cursor=mysql.connection.cursor()
@@ -500,7 +500,7 @@ def add_fee_record():
 
 
 
-@admin.route('/course_registration', methods=['GET'])
+@admin.route('/course_registration',methods=['GET'])
 @admin_required
 def course_registration():
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -591,7 +591,7 @@ def enroll_student():
 
 
 
-@admin.route('/remove_enrollment', methods=['POST'])
+@admin.route('/remove_enrollment',methods=['POST'])
 @admin_required
 def remove_enrollment():
     cursor=mysql.connection.cursor()
@@ -612,7 +612,7 @@ def remove_enrollment():
             AND section_id IN (
             SELECT section_id FROM sections WHERE course_id=%s
             )
-            ''', (record['student_id'], record['course_id']))
+            ''', (record['student_id'],record['course_id']))
     mysql.connection.commit()
 
     flash('Enrollment removed.','danger')
@@ -620,7 +620,7 @@ def remove_enrollment():
 
 
 
-@admin.route('/stSemester_freeze', methods=['GET'])
+@admin.route('/stSemester_freeze',methods=['GET'])
 @admin_required
 def stSemester_freeze():
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -635,12 +635,12 @@ def stSemester_freeze():
 
 
 
-@admin.route('/approve_request/<int:freeze_id>', methods=['POST'])
+@admin.route('/approve_request/<int:freeze_id>',methods=['POST'])
 @admin_required
 def approve_request(freeze_id):
     cursor=mysql.connection.cursor()
     cursor.execute('UPDATE semester_freeze_students SET status=%s WHERE freeze_id=%s',
-                   ('Approved', freeze_id))
+                   ('Approved',freeze_id))
     mysql.connection.commit()
     flash('Request approved.', 'success')
     return redirect(url_for('admin.stSemester_freeze'))
@@ -652,7 +652,7 @@ def approve_request(freeze_id):
 def reject_request(freeze_id):
     cursor=mysql.connection.cursor()
     cursor.execute('UPDATE semester_freeze_students SET status=%s WHERE freeze_id=%s',
-                   ('Rejected', freeze_id))
+                   ('Rejected',freeze_id))
     mysql.connection.commit()
     flash('Request rejected.', 'success')
     return redirect(url_for('admin.stSemester_freeze'))
@@ -677,12 +677,10 @@ def stSummer_semester():
         sem['registrations']=cursor.fetchall()
 
 
-    cursor.execute('SELECT semester_id, name, year FROM semester ORDER BY year DESC')
+    cursor.execute('SELECT semester_id,name,year FROM semester ORDER BY year DESC')
     semesters=cursor.fetchall()
 
-    return render_template('stSummer_semester.html',
-                           summer_semesters=summer_semesters,
-                           semesters=semesters)
+    return render_template('stSummer_semester.html',summer_semesters=summer_semesters,semesters=semesters)
 
 
 
@@ -698,14 +696,14 @@ def add_summer_semester():
     previous_semester_id=request.form.get('previous_semester_id') or None
     cursor.execute('''
         INSERT INTO summer_semesters(name,year,start_date,end_date,status,previous_semester_id)
-        VALUES (%s, %s, %s, %s, %s, %s)
+        VALUES (%s,%s,%s,%s,%s,%s)
     ''', (name,year,start_date,end_date,status,previous_semester_id))
     mysql.connection.commit()
     flash('Summer semester added successfully.', 'success')
     return redirect(url_for('admin.stSummer_semester'))
 
 
-@admin.route('/delete_summer_semester', methods=['POST'])
+@admin.route('/delete_summer_semester',methods=['POST'])
 @admin_required
 def delete_summer_semester():
     cursor=mysql.connection.cursor()
@@ -716,7 +714,7 @@ def delete_summer_semester():
     return redirect(url_for('admin.stSummer_semester'))       
 
 
-@admin.route('/view_teachers', methods=['GET', 'POST'])
+@admin.route('/view_teachers',methods=['GET', 'POST'])
 @admin_required
 def view_teachers():
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -755,7 +753,7 @@ def delete_teacher():
     return redirect(url_for('admin.view_teachers'))
 
 
-@admin.route('/add_teacher', methods=['GET', 'POST'])
+@admin.route('/add_teacher',methods=['GET', 'POST'])
 @admin_required
 def add_teacher():
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -801,7 +799,7 @@ def add_teacher():
 
 
 
-@admin.route('/edit_teacher', methods=['GET', 'POST'])
+@admin.route('/edit_teacher',methods=['GET', 'POST'])
 @admin_required
 def edit_teacher():
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -924,7 +922,7 @@ def delete_salary():
 
 
 
-@admin.route('/assign_classes', methods=['GET'])
+@admin.route('/assign_classes',methods=['GET'])
 @admin_required
 def assign_classes():
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -1026,7 +1024,7 @@ def course_attendance():
 
 
 
-@admin.route('/mark_course_attendance', methods=['POST'])
+@admin.route('/mark_course_attendance',methods=['POST'])
 @admin_required
 def mark_course_attendance():
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -1178,7 +1176,7 @@ def get_proposals():
 
 
 
-@admin.route('/fyp_proposals', methods=['GET'])
+@admin.route('/fyp_proposals',methods=['GET'])
 @admin_required
 def fyp_proposals():
     cursor=mysql.connection.cursor()
@@ -1340,7 +1338,7 @@ def add_exams():
             return redirect(url_for('admin.exam_dates'))
 
         cursor.execute(
-            '''INSERT INTO exams (program_id,exam_category,exam_date,exam_semester,start_time,end_time,location,mode,status)
+            '''INSERT INTO exams(program_id,exam_category,exam_date,exam_semester,start_time,end_time,location,mode,status)
                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)''',
             (program_id,exam_catgry,exam_date,exam_smstr,
              start_time,end_time,location,exam_mode,'Ongoing')
@@ -1381,6 +1379,7 @@ def update_exams():
     return redirect(url_for('admin.exam_dates'))
 
 
+
 @admin.route('/delete_exams',methods=['POST'])
 @admin_required
 def delete_exams():
@@ -1392,6 +1391,7 @@ def delete_exams():
     cursor.close()
     flash('Exam Deleted Successfully','success')
     return redirect(url_for('admin.exam_dates'))    
+
 
 
 @admin.route('/promote_students',methods=['GET'])
@@ -1418,6 +1418,7 @@ def promote_students():
     students=cursor.fetchall()
 
     return render_template('promote_students.html',students=students)
+
 
 
 @admin.route('/promote_student/<int:student_id>',methods=['POST'])
