@@ -451,7 +451,7 @@ class StudentModel:
     def add_notification(sender_id,sender_role,receiver_id,receiver_role,title,description,related_course_id,status):
         cursor=mysql.connection.cursor()
         cursor.execute("""
-            INSERT INTO notifications(sender_id,sender_role,receiver_id,receiver_role,title,description related_course_id,status)
+            INSERT INTO notifications(sender_id,sender_role,receiver_id,receiver_role,title,description,related_course_id,status)
             VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
         """, (sender_id,sender_role,receiver_id,receiver_role,title,description,related_course_id,status))
         mysql.connection.commit()

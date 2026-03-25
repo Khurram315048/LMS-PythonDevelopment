@@ -76,12 +76,15 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <select name="section_id" required>
+                    <div class="mb-3">
+                    <label class="form-label">Course</label>
+                    <select name="section_id" class="form-select" required>
                     <option value="" disabled selected>Select Section</option>
                         {% for sec in sections %}
                         <option value="{{ sec.section_id }}">{{ sec.section_name }} (Semester {{ sec.semester }})</option>
                         {% endfor %}
                     </select>
+                    </div>
                     <button type="submit" class="btn btn-primary">Enroll</button>
                 </form>
             </div>

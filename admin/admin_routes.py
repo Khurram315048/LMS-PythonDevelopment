@@ -5,7 +5,11 @@ from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
 import MySQLdb.cursors
-from utils.db import mysql 
+from utils.db import mysql
+from .admin_models import (UserModel, AdminModel, SystemModel, ComplaintModel, StudentModel, 
+                           TeacherModel, SalaryModel, EnrollmentModel, AttendanceModel, 
+                           GradeModel, FeeModel, SemesterModel, TimetableModel, FYPModel, 
+                           ExamModel, NotificationModel) 
 
 admin=Blueprint('admin', __name__, template_folder='admin_views')
 
@@ -44,43 +48,27 @@ def admin_login():
 @admin.route('/admin_dashboard',methods=['GET', 'POST'])
 @admin_required
 def admin_dashboard():
-    cursor=mysql.connection.cursor()
-    cursor.execute('SELECT COUNT(*) AS total_students FROM students WHERE is_deleted=0')
-    students=cursor.fetchone()['total_students']
-    cursor.execute('SELECT COUNT(*) AS total_teachers FROM teachers WHERE is_deleted=0')
-    teachers=cursor.fetchone()['total_teachers']
-    cursor.execute('SELECT COUNT(*) AS pending_fee FROM student_fees WHERE fee_status=%s',("due",))
-    pending=cursor.fetchone()['pending_fee']
-    cursor.execute('SELECT COUNT(*) AS total_courses FROM courses WHERE is_deleted=0')
-    courses_count=cursor.fetchone()['total_courses']
-    cursor.execute('SELECT COUNT(*) AS total_fyp FROM fyp_groups WHERE is_deleted=0')
-    fyp_count=cursor.fetchone()['total_fyp']
-    cursor.execute('SELECT COUNT(*) AS total_complaints FROM complaint_suggestion')
-    complaints_count=cursor.fetchone()['total_complaints']
-    cursor.execute('SELECT COUNT(*) AS freeze_count FROM semester_freeze_students WHERE status=%s', ('Pending',))
-    freeze_count=cursor.fetchone()['freeze_count']
-    cursor.execute('SELECT COUNT(*) AS exam_count FROM exams WHERE status=%s AND is_deleted=0', ('Ongoing',))
-    exam_count=cursor.fetchone()['exam_count']
-
-    cursor.execute('SELECT COUNT(*) AS notif_count FROM notifications WHERE status=%s AND is_deleted=0', ('Pending',))
-    notifications_count=cursor.fetchone()['notif_count']
-
+    counts=AdminModel.get_dashboard_counts()
+    
     return render_template(
         'admin_dashboard.html',
-        students_count=students,
-        teachers_count=teachers,complaints_count=complaints_count,
-        notifications_count=notifications_count,exam_count=exam_count,
-        pending_count=pending,courses_count=courses_count,fyp_count=fyp_count,freeze_count=freeze_count)
+        students_count=counts['students'],
+        teachers_count=counts['teachers'],
+        complaints_count=counts['complaints'],
+        notifications_count=counts['notifications'],
+        exam_count=counts['exams'],
+        pending_count=counts['pending_fees'],
+        courses_count=counts['courses'],
+        fyp_count=counts['fyp'],
+        freeze_count=counts['freeze'])
 
 
 @admin.route('/admin_profile',methods=['GET', 'POST'])
 @admin_required
 def admin_profile():
-    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     admin_id=session.get('admin_id')
+    admin_data=AdminModel.get_by_id(admin_id)
     
-    cursor.execute('SELECT * FROM admins WHERE admin_id=%s',(admin_id,))
-    admin_data=cursor.fetchone()
     if request.method=='POST':
         return redirect(url_for('admin.admin_edit'))
     
@@ -90,50 +78,36 @@ def admin_profile():
 @admin.route('/admin_edit',methods=['GET', 'POST'])
 @admin_required
 def admin_edit():
-    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    id=session.get('admin_id')
+    admin_id=session.get('admin_id')
 
     if request.method=='POST':
         email=request.form['email']
         first_name=request.form['first_name']
         last_name=request.form['last_name']
         contact=request.form['contact']
-
-        cursor.execute('''
-            UPDATE admins 
-            SET email=%s,first_name=%s,last_name=%s,contact=%s 
-            WHERE admin_id=%s
-        ''',(email,first_name,last_name,contact, id))
         
-        mysql.connection.commit()
+        AdminModel.update(admin_id,email,first_name,last_name,contact)
         flash("Profile updated successfully!", "success")
         return redirect(url_for('admin.admin_profile'))
 
-    cursor.execute('SELECT * FROM admins WHERE admin_id=%s',(id,))
-    admin_data=cursor.fetchone()
+    admin_data=AdminModel.get_by_id(admin_id)
     return render_template('admin_edit.html',admin=admin_data)
 
 
 @admin.route('/system_settings',methods=['GET','POST'])
 @admin_required
 def system_settings():
-    cursor=mysql.connection.cursor()
-    cursor.execute('SELECT * FROM system_settings')
-    settings=cursor.fetchall()
-    return render_template('system_settings.html',settings=settings)    
-    
+    settings=SystemModel.get_all_settings()
+    return render_template('system_settings.html',settings=settings)
 
 
 @admin.route('/edit_settings',methods=['GET', 'POST'])
 @admin_required
 def edit_settings():
-    cursor=mysql.connection.cursor()
     if request.method=='POST':
         setting_key=request.form.get('setting_key')
         new_value=request.form.get('setting_value')
-        cursor.execute('UPDATE system_settings SET setting_value=%s WHERE setting_key=%s',(new_value,setting_key))
-        mysql.connection.commit()
-        cursor.close()
+        SystemModel.update_setting(setting_key, new_value)
         flash(f"Setting '{setting_key}' updated successfully!", "success")
     return redirect(url_for('admin.system_settings'))   
 
@@ -141,24 +115,15 @@ def edit_settings():
 @admin.route('/complaints',methods=['GET', 'POST'])
 @admin_required
 def complaints():
-    cursor=mysql.connection.cursor()
-    cursor.execute('''
-        SELECT cs.*, u.email
-        FROM complaint_suggestion cs
-        JOIN users u ON cs.user_id=u.user_id
-    ''')
-    complaints=cursor.fetchall()
-    return render_template('complaints.html',complaints=complaints)
-
+    complaints_list=ComplaintModel.get_all()
+    return render_template('complaints.html',complaints=complaints_list)
 
 
 @admin.route('/solve_complaint',methods=['POST'])
 @admin_required
 def solve_complaint():
-    cursor=mysql.connection.cursor()
-    complt_sugst_id=request.form.get('complt_sugst_id') 
-    cursor.execute('UPDATE complaint_suggestion SET is_status=%s WHERE complt_sugst_id=%s',("Solved",complt_sugst_id))
-    mysql.connection.commit()
+    complt_sugst_id=request.form.get('complt_sugst_id')
+    ComplaintModel.mark_solved(complt_sugst_id)
     flash('Complaint marked as solved.', 'success')
     return redirect(url_for('admin.complaints'))  
 
@@ -167,9 +132,7 @@ def solve_complaint():
 @admin.route('/system_controls',methods=['GET','POST'])
 @admin_required
 def system_controls():
-    cursor=mysql.connection.cursor()
-    cursor.execute('SELECT * FROM semester WHERE is_deleted=%s',(0,))
-    semesters=cursor.fetchall()
+    semesters=SemesterModel.get_all()
     return render_template('system_controls.html',semesters=semesters)
 
 
@@ -177,15 +140,12 @@ def system_controls():
 @admin.route('/add_semester',methods=['GET','POST'])
 @admin_required
 def add_semester():
-    cursor=mysql.connection.cursor()
     if request.method=='POST':
         sem_name=request.form['name']
         sem_year=request.form['year']
         sm_start=request.form['start_date']
         sm_end=request.form['end_date']
-        cursor.execute('INSERT INTO semester(name,year,start_date,end_date,created_at) VALUES'
-        '(%s,%s,%s,%s,%s)',(sem_name,sem_year,sm_start,sm_end,datetime.now()))
-        mysql.connection.commit()
+        SemesterModel.create(sem_name,sem_year,sm_start,sm_end)
         flash('Semester added successfully.', 'success')
         return redirect(url_for('admin.system_controls'))
     return redirect(url_for('admin.system_controls'))
@@ -195,16 +155,13 @@ def add_semester():
 @admin.route('/edit_semester',methods=['GET','POST'])
 @admin_required
 def edit_semester():
-    cursor=mysql.connection.cursor()
     semester_id=request.form.get('semester_id')
     if request.method=='POST':
         sem_name=request.form['name']
         sem_year=request.form['year']
         sm_start=request.form['start_date']
         sm_end=request.form['end_date']
-        cursor.execute('UPDATE semester SET name=%s,year=%s,start_date=%s,end_date=%s,created_at=%s WHERE ' \
-        'semester_id=%s',(sem_name,sem_year,sm_start,sm_end,datetime.now(),semester_id))
-        mysql.connection.commit()
+        SemesterModel.update(semester_id,sem_name,sem_year,sm_start,sm_end)
         flash('Semester Updated successfully.', 'success')
         return redirect(url_for('admin.system_controls'))
     return redirect(url_for('admin.system_controls'))
@@ -214,11 +171,9 @@ def edit_semester():
 @admin.route('/delete_semester',methods=['GET','POST'])
 @admin_required
 def delete_semester():
-    cursor=mysql.connection.cursor()
     semester_id=request.form.get('semester_id')
     if request.method=='POST':
-        cursor.execute('UPDATE semester SET is_deleted=%s  WHERE semester_id=%s',(1,semester_id,))
-        mysql.connection.commit()
+        SemesterModel.soft_delete(semester_id)
         flash('Semester Deleted successfully.', 'success')
         return redirect(url_for('admin.system_controls'))
     return redirect(url_for('admin.system_controls'))
@@ -229,18 +184,12 @@ def delete_semester():
 @admin_required
 def register_student():
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('''
-        SELECT ss.*, p.program_name,u.email
-        FROM students ss 
-        JOIN programs p ON ss.program_id=p.program_id
-        JOIN users u ON ss.user_id=u.user_id
-                   WHERE ss.is_deleted=%s
-    ''',(0,))
-    students=cursor.fetchall()
+    students=StudentModel.get_all()
+    
     cursor.execute('SELECT * FROM programs')
     programs=cursor.fetchall()
-    cursor.execute('SELECT DISTINCT admission_session FROM students WHERE admission_session IS NOT NULL')
-    sessions=cursor.fetchall()
+    
+    sessions=StudentModel.get_admission_sessions()
     return render_template('register_student.html',students=students,programs=programs,sessions=sessions)
 
 
@@ -248,7 +197,6 @@ def register_student():
 @admin.route('/add_student', methods=['POST'])
 @admin_required
 def add_student():
-    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     if request.method=='POST':
         first_name=request.form['first_name']
         last_name=request.form['last_name']
@@ -261,24 +209,15 @@ def add_student():
         admission_date=request.form['admission_date']
         current_semester=request.form['current_semester']
 
-        cursor.execute('SELECT user_id FROM users WHERE email=%s AND is_deleted=%s',(email,0,))
-        existing=cursor.fetchone()
-        if existing:
+        if UserModel.email_exists(email):
             flash('Email already registered.', 'danger')
             return redirect(url_for('admin.register_student'))
 
         hashed_password=generate_password_hash(password)
-        cursor.execute('INSERT INTO users(email,password,role_id) VALUES (%s,%s,%s)',
-                    (email,hashed_password,2))
-        mysql.connection.commit()
-        user_id=cursor.lastrowid
+        user_id=UserModel.create(email, hashed_password, 2)
 
-        cursor.execute('''
-            INSERT INTO students 
-            (user_id,first_name,last_name,email,contact,program_id,admission_session,last_qualification,admission_date,current_semester)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-        ''', (user_id,first_name,last_name,email,contact,program_id,admission_session,last_qual,admission_date,current_semester))
-        mysql.connection.commit()
+        StudentModel.create(user_id,first_name,last_name,email,contact,program_id, 
+                           admission_session,last_qual,admission_date,current_semester)
         flash('Student registered successfully.', 'success')
         return redirect(url_for('admin.register_student'))
     
@@ -288,11 +227,9 @@ def add_student():
 @admin.route('/delete_student',methods=['GET','POST'])
 @admin_required
 def delete_student():
-    cursor=mysql.connection.cursor()
     student_id=request.form.get('student_id')
     if request.method=='POST':
-        cursor.execute('UPDATE students SET is_deleted=%s WHERE student_id=%s',(1,student_id,))
-        mysql.connection.commit()
+        StudentModel.soft_delete(student_id)
         flash('Student Deleted successfully.', 'success')
         return redirect(url_for('admin.register_student'))
     return redirect(url_for('admin.register_student'))   
@@ -302,7 +239,6 @@ def delete_student():
 @admin.route('/update_student', methods=['POST'])
 @admin_required
 def update_student():
-    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     student_id=request.form.get('student_id')
     if request.method=='POST':
         first_name=request.form['first_name']
@@ -314,17 +250,10 @@ def update_student():
         last_qual=request.form['last_qualification']
         admission_date=request.form['admission_date']
 
-        cursor.execute('SELECT user_id FROM students WHERE student_id=%s',(student_id,))
-        student=cursor.fetchone()
-        user_id=student['user_id']
-
-        cursor.execute('''
-            UPDATE  students SET first_name=%s,last_name=%s,email=%s,contact=%s,program_id=%s,admission_session=%s,
-                       last_qualification=%s,admission_date=%s 
-                       WHERE student_id=%s ''',(first_name,last_name,email,contact,program_id,admission_session,last_qual,admission_date,student_id))
-        mysql.connection.commit()
-        cursor.execute('UPDATE users SET email=%s WHERE user_id=%s',(email,user_id))
-        mysql.connection.commit()
+        user_id=StudentModel.get_user_id(student_id)
+        StudentModel.update(student_id,first_name,last_name,email,contact,program_id, 
+                           admission_session,last_qual,admission_date)
+        UserModel.update_email(user_id,email)
         flash('Student Updated successfully.', 'success')
         return redirect(url_for('admin.register_student'))
     
@@ -334,23 +263,8 @@ def update_student():
 @admin.route('/manage_attendance',methods=['GET', 'POST'])
 @admin_required
 def manage_attendance():
+    attendance=AttendanceModel.get_all()
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-
-    query='''
-        SELECT a.attendance_id,a.attendance_date,a.attendance_status,
-               s.first_name,s.last_name,
-               c.course_name,
-               sec.section_name
-        FROM attendance a
-        JOIN students s ON a.student_id=s.student_id
-        JOIN student_course sc ON a.student_course_id=sc.student_course_id
-        JOIN courses c ON sc.course_id=c.course_id
-        JOIN course_schedule cs ON a.course_schedule_id=cs.course_schedule_id
-        JOIN sections sec ON cs.section_id=sec.section_id
-        WHERE  a.is_deleted=%s
-    '''
-    cursor.execute(query,(0,))
-    attendance=cursor.fetchall()
     cursor.execute('SELECT course_id,course_name FROM courses')
     courses=cursor.fetchall()
     cursor.execute('SELECT section_id,section_name FROM sections')
@@ -362,12 +276,9 @@ def manage_attendance():
 @admin.route('/update_attendance',methods=['POST'])
 @admin_required
 def update_attendance():
-    cursor=mysql.connection.cursor()
     attendance_id=request.form.get('attendance_id')
     attendance_status=request.form.get('attendance_status')
-    cursor.execute('UPDATE attendance SET attendance_status=%s WHERE attendance_id=%s',
-                   (attendance_status,attendance_id))
-    mysql.connection.commit()
+    AttendanceModel.update(attendance_id, attendance_status)
     flash('Attendance updated.', 'success')
     return redirect(url_for('admin.manage_attendance'))
 
@@ -377,43 +288,15 @@ def update_attendance():
 @admin.route('/manage_grades',methods=['GET'])
 @admin_required
 def manage_grades():
-    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-
     program_id=request.args.get('program_id', '')
     selected_semester=request.args.get('semester', '')
 
-    query= '''
-        SELECT sr.student_result_id, sr.student_id, sr.student_semester,
-               sr.overall_gpa, sr.result_status,
-               s.first_name, s.last_name
-        FROM student_results sr
-        JOIN students s ON sr.student_id=s.student_id
-        JOIN programs p ON s.program_id=p.program_id
-        WHERE 1=1
-    '''
-    params=[]
-
-    if program_id:
-        query += ' AND p.program_id = %s'
-        params.append(program_id)
-    if selected_semester:
-        query += ' AND sr.student_semester = %s'
-        params.append(selected_semester)
-
-    query += ' ORDER BY sr.student_semester ASC'
-    cursor.execute(query, params)
-    results=cursor.fetchall()
+    results=GradeModel.get_results(program_id, selected_semester)
 
     for result in results:
-        cursor.execute('''
-            SELECT srm.*, c.course_name
-            FROM student_result_marks srm
-            JOIN student_course sc ON srm.student_course_id=sc.student_course_id
-            JOIN courses c ON sc.course_id=c.course_id
-            WHERE srm.student_result_id=%s
-        ''', (result['student_result_id'],))
-        result['marks']=cursor.fetchall()
+        result['marks']=GradeModel.get_marks(result['student_result_id'])
 
+    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute('SELECT program_id,program_name FROM programs')
     programs=cursor.fetchall()
 
@@ -428,15 +311,10 @@ def manage_grades():
 @admin.route('/update_result',methods=['POST'])
 @admin_required
 def update_result():
-    cursor=mysql.connection.cursor()
     student_result_id=request.form.get('student_result_id')
     overall_gpa=request.form.get('overall_gpa')
     result_status=request.form.get('result_status')
-    cursor.execute('''
-        UPDATE student_results SET overall_gpa=%s,result_status=%s
-        WHERE student_result_id=%s
-    ''', (overall_gpa,result_status,student_result_id))
-    mysql.connection.commit()
+    GradeModel.update(student_result_id,overall_gpa,result_status)
     flash('Result updated successfully.', 'success')
     return redirect(url_for('admin.manage_grades'))    
 
@@ -445,21 +323,10 @@ def update_result():
 @admin.route('/fee_management',methods=['GET'])
 @admin_required
 def fee_management():
+    fees=FeeModel.get_all()
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-
-    query='''
-        SELECT sf.*, p.program_name,s.first_name,s.last_name
-        FROM student_fees sf
-        JOIN students s ON sf.student_id=s.student_id
-        JOIN programs p ON sf.program_id=p.program_id
-        WHERE 1=1
-    '''
-    cursor.execute(query)
-    fees=cursor.fetchall()
-
     cursor.execute('SELECT program_id,program_name FROM programs')
     programs=cursor.fetchall()
-
     cursor.execute('SELECT student_id,first_name,last_name FROM students WHERE is_deleted=0')
     students=cursor.fetchall()
 
@@ -470,12 +337,9 @@ def fee_management():
 @admin.route('/update_fee_status',methods=['POST'])
 @admin_required
 def update_fee_status():
-    cursor=mysql.connection.cursor()
     student_fees_id=request.form.get('student_fees_id')
     fee_status=request.form.get('fee_status')
-    cursor.execute('UPDATE student_fees SET fee_status=%s WHERE student_fees_id=%s',
-                   (fee_status, student_fees_id))
-    mysql.connection.commit()
+    FeeModel.update_status(student_fees_id, fee_status)
     flash('Fee status updated.', 'success')
     return redirect(url_for('admin.fee_management'))
 
@@ -484,17 +348,12 @@ def update_fee_status():
 @admin.route('/add_fee_record',methods=['POST'])
 @admin_required
 def add_fee_record():
-    cursor=mysql.connection.cursor()
     student_id=request.form.get('student_id')
     program_id=request.form.get('program_id')
     fee_amount=request.form.get('fee_amount')
     fee_month=request.form.get('fee_month')
     fee_status=request.form.get('fee_status')
-    cursor.execute('''
-        INSERT INTO student_fees(student_id,program_id,fee_amount,fee_month,fee_status,update_date)
-        VALUES (%s,%s,%s,%s,%s, NOW())
-    ''', (student_id,program_id,fee_amount,fee_month,fee_status))
-    mysql.connection.commit()
+    FeeModel.create(student_id,program_id,fee_amount,fee_month,fee_status)
     flash('Fee record added.', 'success')
     return redirect(url_for('admin.fee_management'))
 
@@ -503,25 +362,13 @@ def add_fee_record():
 @admin.route('/course_registration',methods=['GET'])
 @admin_required
 def course_registration():
+    enrollments=EnrollmentModel.get_all()
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('''
-        SELECT sc.student_course_id,s.first_name,s.last_name,s.student_id,
-               c.course_name,p.program_name
-        FROM student_course sc
-        JOIN students s ON sc.student_id=s.student_id
-        JOIN courses c ON sc.course_id=c.course_id
-        JOIN programs p ON s.program_id=p.program_id
-        WHERE sc.is_deleted=%s
-    ''',(0,))
-    enrollments=cursor.fetchall()
-
     cursor.execute('SELECT student_id,first_name,last_name FROM students WHERE is_deleted=%s',(0,))
     students=cursor.fetchall()
-
     cursor.execute('SELECT course_id,course_name FROM courses WHERE is_deleted=%s',(0,))
     courses=cursor.fetchall()
-    cursor.execute('SELECT section_id,section_name,semester,course_id FROM sections')
-    sections=cursor.fetchall()
+    sections=EnrollmentModel.get_all_sections()
 
     return render_template('course_registration.html',
                            enrollments=enrollments,
@@ -530,10 +377,9 @@ def course_registration():
 
 
 
-@admin.route('/enroll_student', methods=['POST'])
+@admin.route('/enroll_student',methods=['POST'])
 @admin_required
 def enroll_student():
-    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     student_id=request.form.get('student_id')
     course_id=request.form.get('course_id')
     section_id=request.form.get('section_id')
@@ -542,50 +388,12 @@ def enroll_student():
         flash('Please select a section.', 'danger')
         return redirect(url_for('admin.course_registration'))
 
-    
-    cursor.execute(
-        'SELECT * FROM student_course WHERE student_id=%s AND course_id=%s AND is_deleted=%s',
-        (student_id,course_id, 0)
-    )
-    if cursor.fetchone():
+    if EnrollmentModel.exists(student_id, course_id):
         flash('Student is already enrolled in this course.', 'warning')
         return redirect(url_for('admin.course_registration'))
 
-
-    cursor.execute(
-        'INSERT INTO student_course(student_id,course_id) VALUES (%s,%s)',
-        (student_id,course_id)
-    )
-    mysql.connection.commit()
-
-    cursor.execute(
-        'SELECT * FROM student_section WHERE student_id=%s AND section_id=%s AND is_deleted=0',
-        (student_id,section_id)
-    )
-    active_record=cursor.fetchone()
-
-    if active_record:
-        pass
-    else:
-        
-        cursor.execute(
-            'SELECT * FROM student_section WHERE student_id=%s AND section_id=%s AND is_deleted=1',
-            (student_id,section_id)
-        )
-        deleted_record=cursor.fetchone()
-
-        if deleted_record:
-            cursor.execute(
-                'UPDATE student_section SET is_deleted=0 WHERE student_id=%s AND section_id=%s',
-                (student_id, section_id)
-            )
-        else:
-            cursor.execute(
-                'INSERT INTO student_section (student_id,section_id) VALUES (%s,%s)',
-                (student_id,section_id)
-            )
-        mysql.connection.commit()
-
+    EnrollmentModel.enroll(student_id, course_id)
+    EnrollmentModel.add_or_restore_section(student_id, section_id)
     flash('Student enrolled successfully in course and section.', 'success')
     return redirect(url_for('admin.course_registration'))
 
@@ -594,27 +402,8 @@ def enroll_student():
 @admin.route('/remove_enrollment',methods=['POST'])
 @admin_required
 def remove_enrollment():
-    cursor=mysql.connection.cursor()
     student_course_id=request.form.get('student_course_id')
-
-    cursor.execute(
-        'SELECT student_id,course_id FROM student_course WHERE student_course_id=%s',
-        (student_course_id,)
-    )
-    record=cursor.fetchone()
-    cursor.execute('UPDATE student_course SET is_deleted=%s WHERE student_course_id=%s',(1,student_course_id,))
-    mysql.connection.commit()
-    if record:
-        cursor.execute('''
-            UPDATE student_section 
-            SET is_deleted=1
-            WHERE student_id=%s 
-            AND section_id IN (
-            SELECT section_id FROM sections WHERE course_id=%s
-            )
-            ''', (record['student_id'],record['course_id']))
-    mysql.connection.commit()
-
+    EnrollmentModel.remove(student_course_id)
     flash('Enrollment removed.','danger')
     return redirect(url_for('admin.course_registration'))
 
@@ -623,14 +412,7 @@ def remove_enrollment():
 @admin.route('/stSemester_freeze',methods=['GET'])
 @admin_required
 def stSemester_freeze():
-    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('''
-        SELECT sfr.freeze_id,sfr.semester,sfr.reason,sfr.status,sfr.applied_date,
-               s.first_name,s.last_name,s.student_id
-        FROM semester_freeze_students sfr
-        JOIN students s ON sfr.student_id=s.student_id
-    ''')
-    freeze_requests=cursor.fetchall()
+    freeze_requests=SemesterModel.get_all_freeze_requests()
     return render_template('stSemester_freeze.html',freeze_requests=freeze_requests)
 
 
@@ -638,10 +420,7 @@ def stSemester_freeze():
 @admin.route('/approve_request/<int:freeze_id>',methods=['POST'])
 @admin_required
 def approve_request(freeze_id):
-    cursor=mysql.connection.cursor()
-    cursor.execute('UPDATE semester_freeze_students SET status=%s WHERE freeze_id=%s',
-                   ('Approved',freeze_id))
-    mysql.connection.commit()
+    SemesterModel.update_freeze_status(freeze_id, 'Approved')
     flash('Request approved.', 'success')
     return redirect(url_for('admin.stSemester_freeze'))
 
@@ -650,10 +429,7 @@ def approve_request(freeze_id):
 @admin.route('/reject_request/<int:freeze_id>',methods=['POST'])
 @admin_required
 def reject_request(freeze_id):
-    cursor=mysql.connection.cursor()
-    cursor.execute('UPDATE semester_freeze_students SET status=%s WHERE freeze_id=%s',
-                   ('Rejected',freeze_id))
-    mysql.connection.commit()
+    SemesterModel.update_freeze_status(freeze_id, 'Rejected')
     flash('Request rejected.', 'success')
     return redirect(url_for('admin.stSemester_freeze'))
          
@@ -662,21 +438,12 @@ def reject_request(freeze_id):
 @admin.route('/stSummer_semester',methods=['GET'])
 @admin_required
 def stSummer_semester():
-    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('SELECT * FROM summer_semesters ORDER BY year DESC,summer_semesters_id DESC')
-    summer_semesters=cursor.fetchall()
+    summer_semesters=SemesterModel.get_all_summer()
 
     for sem in summer_semesters:
-        cursor.execute('''
-            SELECT s.first_name,s.last_name,c.course_name,sr.registration_date
-            FROM summer_registration sr
-            JOIN students s ON sr.student_id=s.student_id
-            JOIN courses c ON sr.course_id=c.course_id
-            WHERE sr.summer_semesters_id=%s
-        ''', (sem['summer_semesters_id'],))
-        sem['registrations']=cursor.fetchall()
+        sem['registrations']=SemesterModel.get_summer_registrations(sem['summer_semesters_id'])
 
-
+    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute('SELECT semester_id,name,year FROM semester ORDER BY year DESC')
     semesters=cursor.fetchall()
 
@@ -687,18 +454,13 @@ def stSummer_semester():
 @admin.route('/add_summer_semester',methods=['POST'])
 @admin_required
 def add_summer_semester():
-    cursor=mysql.connection.cursor()
     name=request.form.get('name')
     year=request.form.get('year')
     start_date=request.form.get('start_date')
     end_date=request.form.get('end_date')
     status=request.form.get('status')
     previous_semester_id=request.form.get('previous_semester_id') or None
-    cursor.execute('''
-        INSERT INTO summer_semesters(name,year,start_date,end_date,status,previous_semester_id)
-        VALUES (%s,%s,%s,%s,%s,%s)
-    ''', (name,year,start_date,end_date,status,previous_semester_id))
-    mysql.connection.commit()
+    SemesterModel.create_summer(name,year,start_date,end_date,status,previous_semester_id)
     flash('Summer semester added successfully.', 'success')
     return redirect(url_for('admin.stSummer_semester'))
 
@@ -706,10 +468,8 @@ def add_summer_semester():
 @admin.route('/delete_summer_semester',methods=['POST'])
 @admin_required
 def delete_summer_semester():
-    cursor=mysql.connection.cursor()
     summer_semesters_id=request.form.get('summer_semesters_id')
-    cursor.execute('DELETE FROM summer_semesters WHERE summer_semesters_id=%s',(summer_semesters_id,))
-    mysql.connection.commit()
+    SemesterModel.delete_summer(summer_semesters_id)
     flash('Summer semester deleted.', 'danger')
     return redirect(url_for('admin.stSummer_semester'))       
 
@@ -717,46 +477,29 @@ def delete_summer_semester():
 @admin.route('/view_teachers',methods=['GET', 'POST'])
 @admin_required
 def view_teachers():
-    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('''
-        SELECT teacher_id,first_name,last_name,email, 
-               contact_num,qualification,joining_date
-        FROM teachers
-        WHERE is_deleted=%s
-    ''', (0,))
-    teachers=cursor.fetchall()
+    teachers=TeacherModel.get_all()
     for teacher in teachers:
-        cursor.execute('''
-            SELECT c.course_name
-            FROM teacher_course tc
-            JOIN courses c ON tc.course_id=c.course_id
-            WHERE tc.teacher_id=%s AND tc.is_deleted=%s
-        ''', (teacher['teacher_id'], 0))
-        teacher['courses']=cursor.fetchall()
+        teacher['courses']=TeacherModel.get_courses(teacher['teacher_id'])
         
+    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute('SELECT course_id,course_name FROM courses WHERE is_deleted=%s',(0,))
     all_courses=cursor.fetchall()
-    cursor.close()
     return render_template('view_teachers.html',teachers=teachers,all_courses=all_courses)
 
 
 @admin.route('/delete_teacher',methods=['GET','POST'])
 @admin_required
 def delete_teacher():
-    cursor=mysql.connection.cursor()
     teacher_id=request.form.get('teacher_id')
     teacher_email=request.form.get('email')
-    cursor.execute('UPDATE teachers SET is_deleted=%s WHERE teacher_id=%s',(1,teacher_id))
-    mysql.connection.commit()
-    cursor.execute('UPDATE users SET is_deleted=%s WHERE email=%s',(1,teacher_email))
-    mysql.connection.commit()
+    TeacherModel.soft_delete(teacher_id)
+    UserModel.soft_delete(teacher_email)
     return redirect(url_for('admin.view_teachers'))
 
 
 @admin.route('/add_teacher',methods=['GET', 'POST'])
 @admin_required
 def add_teacher():
-    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     if request.method=='POST':
         first_name=request.form['first_name']
         last_name=request.form['last_name']
@@ -765,32 +508,22 @@ def add_teacher():
         contact_num=request.form['contact_num']
         qualification=request.form['qualification']
         joining_date=request.form['joining_date']
-        course_ids=request.form.getlist('course_ids') 
+        course_ids=request.form.getlist('course_ids')
 
-        cursor.execute('SELECT email FROM teachers WHERE email=%s AND is_deleted=0',(email,))
-        if cursor.fetchone():
+        if TeacherModel.email_exists(email):
             flash('Teacher with this email already exists.', 'warning')
             return redirect(url_for('admin.view_teachers'))
 
         hashed_password=generate_password_hash(password)
-        cursor.execute('INSERT INTO users(email,password,role_id) VALUES(%s,%s,%s)',
-                       (email,hashed_password,1))
-        mysql.connection.commit()
-        user_id=cursor.lastrowid  
-
-        cursor.execute('''
-            INSERT INTO teachers(user_id,first_name,last_name,email,contact_num,qualification,joining_date)
-            VALUES(%s,%s,%s,%s,%s,%s,%s)
-        ''', (user_id,first_name,last_name,email,contact_num,qualification,joining_date))
-        mysql.connection.commit()
-        teacher_id=cursor.lastrowid  
+        user_id=UserModel.create(email,hashed_password,1)
+        teacher_id=TeacherModel.create(user_id,first_name,last_name,email,contact_num,qualification,joining_date)
 
         for cid in course_ids:
+            cursor=mysql.connection.cursor()
             cursor.execute('INSERT INTO teacher_course(teacher_id,course_id) VALUES(%s,%s)',
                            (teacher_id,cid))
         mysql.connection.commit()
 
-        cursor.close()
         flash('Teacher added successfully.', 'success')
         return redirect(url_for('admin.view_teachers'))
 
@@ -799,10 +532,9 @@ def add_teacher():
 
 
 
-@admin.route('/edit_teacher',methods=['GET', 'POST'])
+@admin.route('/edit_teacher',methods=['GET','POST'])
 @admin_required
 def edit_teacher():
-    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     teacher_id=request.form.get('teacher_id')
     if request.method=='POST':
         first_name=request.form['first_name']
@@ -811,24 +543,12 @@ def edit_teacher():
         contact_num=request.form['contact_num']
         qualification=request.form['qualification']
         joining_date=request.form['joining_date']
-        course_ids=request.form.getlist('course_ids') 
+        course_ids=request.form.getlist('course_ids')
 
-        cursor.execute('SELECT user_id FROM teachers WHERE teacher_id=%s',(teacher_id,))
-        user_id=cursor.fetchone()['user_id']
-
-        cursor.execute('UPDATE  users SET email=%s WHERE user_id=%s',(email,user_id))
-        mysql.connection.commit()  
-
-        cursor.execute('UPDATE teachers SET first_name=%s,last_name=%s,email=%s,contact_num=%s,qualification=%s,joining_date=%s WHERE user_id=%s',
-                       (first_name,last_name,email,contact_num,qualification,joining_date,user_id))
-        mysql.connection.commit()
-
-        cursor.execute('DELETE FROM teacher_course WHERE teacher_id=%s',(teacher_id,))
-        for cid in course_ids:
-            cursor.execute('INSERT INTO teacher_course(teacher_id,course_id) VALUES(%s,%s)',
-                           (teacher_id,cid))
-        mysql.connection.commit()
-        cursor.close()
+        user_id=TeacherModel.get_user_id(teacher_id)
+        UserModel.update_email(user_id, email)
+        TeacherModel.update(user_id,first_name,last_name,email,contact_num,qualification,joining_date)
+        TeacherModel.set_courses(teacher_id,course_ids)
         flash('Teacher Updated successfully.', 'success')
         return redirect(url_for('admin.view_teachers'))
 
@@ -840,22 +560,9 @@ def edit_teacher():
 @admin_required
 def salary_record():
     cursor=mysql.connection.cursor()
-
     cursor.execute("SELECT teacher_id,first_name,last_name FROM teachers WHERE is_deleted=%s",(0,))
     teachers=cursor.fetchall()
-
-    query="""
-        SELECT s.salary_id,t.first_name,t.last_name,s.month,s.year,
-               s.basic_salary,s.bonus,s.deductions,
-               (s.basic_salary + s.bonus - s.deductions) AS net_salary,s.status
-        FROM teacher_salary s
-        JOIN teachers t ON s.teacher_id=t.teacher_id
-        WHERE s.is_deleted=%s
-        ORDER BY s.salary_id ASC
-    """
-    cursor.execute(query,(0,))
-    salary_records=cursor.fetchall()
-    cursor.close()
+    salary_records=SalaryModel.get_all()
 
     return render_template('salary_record.html',teachers=teachers,salary_records=salary_records)
 
@@ -863,8 +570,6 @@ def salary_record():
 @admin.route('/add_record',methods=['POST'])
 @admin_required
 def add_record():
-    cursor=mysql.connection.cursor()
-
     teacher_id=request.form.get('teacher_id')
     month=request.form['month']
     year=request.form['year']
@@ -873,16 +578,11 @@ def add_record():
     deduct=request.form['deductions']
     status=request.form['status']
 
-    cursor.execute('SELECT salary_id FROM teacher_salary WHERE teacher_id=%s AND month=%s AND year=%s',
-                   (teacher_id,month,year))
-    if cursor.fetchone():
+    if SalaryModel.exists(teacher_id,month,year):
         flash('Salary Record Already Exists','danger')
         return redirect(url_for('admin.salary_record'))
 
-    cursor.execute('''INSERT INTO teacher_salary(teacher_id,month,year,basic_salary,bonus,deductions,status)
-                   VALUES(%s,%s,%s,%s,%s,%s,%s)''',(teacher_id,month,year,basic_sal,bonus,deduct,status))
-    mysql.connection.commit()
-    cursor.close()
+    SalaryModel.create(teacher_id,month,year,basic_sal,bonus,deduct,status)
     flash('Record Added Successfully', 'success')
     return redirect(url_for('admin.salary_record'))
    
@@ -891,18 +591,13 @@ def add_record():
 @admin.route('/update_salary',methods=['POST'])
 @admin_required
 def update_salary():
-    cursor=mysql.connection.cursor()
     salary_id=request.form.get('salary_id')
-
     basic_sal=request.form['basic_salary']
     bonus=request.form['bonus']
     deduct=request.form['deductions']
     status=request.form['status']
 
-    cursor.execute('UPDATE teacher_salary SET basic_salary=%s,bonus=%s,deductions=%s,status=%s WHERE salary_id=%s',
-    (basic_sal,bonus,deduct,status,salary_id))
-    mysql.connection.commit()
-    cursor.close()
+    SalaryModel.update(salary_id,basic_sal,bonus,deduct,status)
     flash('Record Updated Successfully','success')
     return redirect(url_for('admin.salary_record'))
 
@@ -911,11 +606,8 @@ def update_salary():
 @admin.route('/delete_salary',methods=['POST'])
 @admin_required
 def delete_salary():
-    cursor=mysql.connection.cursor()
-
     salary_id=request.form.get('salary_id')
-    cursor.execute('UPDATE teacher_salary SET is_deleted=%s WHERE salary_id=%s',(1,salary_id))
-    mysql.connection.commit()
+    SalaryModel.soft_delete(salary_id)
     flash('Record Deleted Successfully','success')
     return redirect(url_for('admin.salary_record'))
 
@@ -925,21 +617,10 @@ def delete_salary():
 @admin.route('/assign_classes',methods=['GET'])
 @admin_required
 def assign_classes():
+    assignments=TeacherModel.get_all_assignments()
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('''
-        SELECT tc.teacher_course_id,t.first_name,t.last_name,
-               c.course_name,c.credit_hours,p.program_name
-        FROM teacher_course tc
-        JOIN teachers t ON tc.teacher_id=t.teacher_id
-        JOIN courses c ON tc.course_id=c.course_id
-        JOIN programs p ON c.program_id=p.program_id
-        WHERE tc.is_deleted=0 AND t.is_deleted=0 AND c.is_deleted=0
-    ''')
-    assignments=cursor.fetchall()
-
     cursor.execute('SELECT teacher_id,first_name,last_name FROM teachers WHERE is_deleted=0')
     teachers=cursor.fetchall()
-
     cursor.execute('''
         SELECT c.course_id,c.course_name,p.program_name
         FROM courses c
@@ -948,7 +629,6 @@ def assign_classes():
     ''')
     courses=cursor.fetchall()
 
-    cursor.close()
     return render_template('assign_classes.html',
                            assignments=assignments,
                            teachers=teachers,
@@ -959,14 +639,10 @@ def assign_classes():
 @admin.route('/assign_course',methods=['GET','POST'])
 @admin_required
 def assign_course():
-    cursor=mysql.connection.cursor()
     if request.method=='POST':
         teacher_id=request.form.get('teacher_id')
         course_id=request.form.get('course_id')
-
-        cursor.execute('INSERT INTO teacher_course(course_id,teacher_id) VALUES(%s,%s)',(course_id,teacher_id))
-        mysql.connection.commit()
-        cursor.close()
+        TeacherModel.assign_course(teacher_id, course_id)
         return redirect(url_for('admin.assign_classes'))
 
     return redirect(url_for('admin.assign_classes'))    
@@ -976,11 +652,9 @@ def assign_course():
 @admin.route('/delete_course',methods=['GET','POST'])
 @admin_required
 def delete_course():
-    cursor=mysql.connection.cursor()
     teacher_course_id=request.form.get('teacher_course_id')
     if request.method=='POST':
-        cursor.execute('UPDATE teacher_course SET is_deleted=%s  WHERE teacher_course_id=%s',(1,teacher_course_id,))
-        mysql.connection.commit()
+        TeacherModel.remove_assignment(teacher_course_id)
         flash('Course Deleted successfully.', 'success')
         return redirect(url_for('admin.assign_classes'))
     
@@ -991,24 +665,12 @@ def delete_course():
 @admin.route('/course_attendance', methods=['GET'])
 @admin_required
 def course_attendance():
+    attendance_records=AttendanceModel.get_all_course_logs()
     cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-
-    cursor.execute('''
-        SELECT cal.log_id,cal.attendance_date,cal.total_students,cal.total_present,cal.total_absent,
-            t.first_name, t.last_name,c.course_name,cs.day_of_week
-        FROM course_attendance_log cal
-        JOIN teachers t  ON cal.teacher_id=t.teacher_id
-        JOIN courses c   ON cal.course_id=c.course_id
-        JOIN course_schedule cs ON cal.course_schedule_id=cs.course_schedule_id
-        WHERE cal.is_deleted=0
-    ''')
-    attendance_records=cursor.fetchall()
     cursor.execute('SELECT teacher_id,first_name,last_name FROM teachers WHERE is_deleted=0')
     teachers=cursor.fetchall()
-
     cursor.execute('SELECT course_id,course_name FROM courses WHERE is_deleted=0')
     courses=cursor.fetchall()
-
     cursor.execute('''
         SELECT s.section_id,s.section_name,s.semester,c.course_name
         FROM sections s
@@ -1027,24 +689,15 @@ def course_attendance():
 @admin.route('/mark_course_attendance',methods=['POST'])
 @admin_required
 def mark_course_attendance():
-    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-
     teacher_id=request.form.get('teacher_id')
     course_id=request.form.get('course_id')
     section_id=request.form.get('section_id')
     attendance_date=request.form.get('attendance_date')
-    semester=request.form.get('semester')
     total_present=int(request.form.get('total_present', 0))
     total_absent=int(request.form.get('total_absent', 0))
     total_students=total_present + total_absent
 
-    cursor.execute('''
-            SELECT cs.course_schedule_id, s.semester 
-            FROM course_schedule cs
-            JOIN sections s ON cs.section_id=s.section_id
-            WHERE cs.section_id=%s LIMIT 1
-        ''',(section_id,))
-    schedule=cursor.fetchone()
+    schedule=AttendanceModel.get_schedule_by_section(section_id)
 
     if not schedule:
         flash('No schedule found for this section.', 'danger')
@@ -1053,15 +706,9 @@ def mark_course_attendance():
     course_schedule_id=schedule['course_schedule_id']
     semester=schedule['semester']
 
-    cursor.execute('''
-        INSERT INTO course_attendance_log
-        (teacher_id,course_id,course_schedule_id,attendance_date,semester,total_students,total_present,total_absent)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
-        ''', (teacher_id,course_id,course_schedule_id,attendance_date,
-            semester,total_students,total_present,total_absent))
+    AttendanceModel.insert_course_log(teacher_id,course_id,course_schedule_id,attendance_date, 
+                                      semester,total_students,total_present,total_absent)
     flash('Attendance record added.', 'success')
-
-    mysql.connection.commit()
     return redirect(url_for('admin.course_attendance'))
 
 
@@ -1069,16 +716,8 @@ def mark_course_attendance():
 @admin.route('/class_timetable', methods=['GET'])
 @admin_required
 def class_timetable():
+    schedules=TimetableModel.get_all()
     cursor=mysql.connection.cursor()
-    cursor.execute("""
-        SELECT cs.course_schedule_id,cs.day_of_week,cs.start_time,cs.end_time,cs.location,
-               c.course_name,s.section_name
-        FROM course_schedule cs
-        JOIN courses c ON cs.course_id=c.course_id
-        JOIN sections s ON cs.section_id=s.section_id
-        WHERE cs.is_deleted=%s
-    """,(0,))
-    schedules=cursor.fetchall()
     cursor.execute('SELECT course_id,course_name FROM courses')
     courses=cursor.fetchall()
     cursor.execute('SELECT section_id,section_name FROM sections')
@@ -1091,8 +730,6 @@ def class_timetable():
 @admin.route('/add_schedule',methods=['POST'])
 @admin_required
 def add_schedule():
-    cursor=mysql.connection.cursor()
-
     course_id=request.form.get('course_id')
     section_id=request.form.get('section_id')
     day_of_week=request.form['day_of_week']
@@ -1100,16 +737,11 @@ def add_schedule():
     end_time=request.form['end_time']
     location=request.form['location']
 
-    cursor.execute('SELECT course_id FROM course_schedule WHERE course_id=%s',(course_id,))
-    exist=cursor.fetchone()
-    if exist:
+    if TimetableModel.exists(course_id):
         flash('Schedule Already Exist','danger')
         return redirect(url_for('admin.class_timetable'))
     
-    cursor.execute('''INSERT INTO course_schedule(day_of_week,start_time,end_time,location,course_id,section_id) 
-                   VALUES (%s,%s,%s,%s,%s,%s)''',(day_of_week,start_time,end_time,location,course_id,section_id))
-    mysql.connection.commit()
-    cursor.close()
+    TimetableModel.create(day_of_week,start_time,end_time,location,course_id,section_id)
     flash('Schedule Added to the System','success')
     return redirect(url_for('admin.class_timetable'))
 
@@ -1118,18 +750,13 @@ def add_schedule():
 @admin.route('/update_schedule',methods=['POST'])
 @admin_required
 def update_schedule():
-    cursor=mysql.connection.cursor()
     course_schedule_id=request.form.get('course_schedule_id')
     day_of_week=request.form['day_of_week']
     start_time=request.form['start_time']
     end_time=request.form['end_time']
     location=request.form['location']
 
-    cursor.execute('''
-    UPDATE course_schedule SET day_of_week=%s,start_time=%s,end_time=%s,location=%s WHERE course_schedule_id=%s
-    ''',(day_of_week,start_time,end_time,location,course_schedule_id))
-    mysql.connection.commit()
-    cursor.close()
+    TimetableModel.update(course_schedule_id,day_of_week,start_time,end_time,location)
     flash('Schedule Updated Successfully','success')
     return redirect(url_for('admin.class_timetable'))
 
@@ -1138,11 +765,8 @@ def update_schedule():
 @admin.route('/delete_schedule',methods=['POST'])
 @admin_required
 def delete_schedule():
-    cursor=mysql.connection.cursor()
     course_schedule_id=request.form.get('course_schedule_id')
-    cursor.execute('UPDATE course_schedule SET is_deleted=%s WHERE course_schedule_id=%s',(1,course_schedule_id))
-    mysql.connection.commit()
-    cursor.close()
+    TimetableModel.soft_delete(course_schedule_id)
     flash('Schedule Deleted Successfully','success')
     return redirect(url_for('admin.class_timetable'))    
 
@@ -1153,22 +777,8 @@ def delete_schedule():
 @admin.route('/get_proposals',methods=['GET'])
 @admin_required
 def get_proposals():
+    fyp_groups=FYPModel.get_all('In Progress')
     cursor=mysql.connection.cursor()
-    cursor.execute("""
-        SELECT fy.fyp_id,fy.project_title,fy.description,fy.`status`,fy.last_submission,fy.created_at,
-           fy.student_id,fy.teacher_id,
-           CONCAT(s.first_name,' ',s.last_name) AS student_name,
-           s.email AS student_email, s.contact AS student_contact,
-           p.program_name AS program,
-           sec.semester
-        FROM fyp_groups fy
-        JOIN students s ON fy.student_id=s.student_id
-        JOIN programs p ON s.program_id=p.program_id
-        LEFT JOIN student_section ss ON s.student_id=ss.student_id AND ss.is_deleted=0
-        LEFT JOIN sections sec ON ss.section_id=sec.section_id
-        WHERE fy.is_deleted=%s AND fy.`status`='In Progress'
-        """, (0,))
-    fyp_groups=cursor.fetchall()
     cursor.execute('SELECT teacher_id,first_name,last_name FROM teachers WHERE is_deleted=%s',(0,))
     teachers=cursor.fetchall()
     
@@ -1179,28 +789,7 @@ def get_proposals():
 @admin.route('/fyp_proposals',methods=['GET'])
 @admin_required
 def fyp_proposals():
-    cursor=mysql.connection.cursor()
-
-    cursor.execute("""
-    SELECT fy.fyp_id, fy.project_title,fy.progress,fy.description,fy.status,fy.last_submission,fy.created_at,
-           fy.student_id,fy.teacher_id,
-           CONCAT(s.first_name,' ',s.last_name) AS student_name,
-           s.email AS student_email, s.contact AS student_contact,
-           p.program_name AS program,
-           sec.semester,
-           CONCAT(t.first_name,' ',t.last_name) AS teacher_name,
-           t.email AS teacher_email, t.contact_num AS teacher_contact
-    FROM fyp_groups fy
-    JOIN students s ON fy.student_id=s.student_id
-    JOIN teachers t ON fy.teacher_id=t.teacher_id
-    JOIN programs p ON s.program_id=p.program_id
-    LEFT JOIN student_section ss ON s.student_id=ss.student_id AND ss.is_deleted=0
-    LEFT JOIN sections sec ON ss.section_id=sec.section_id
-    WHERE fy.is_deleted=%s
-    """,(0,))
-    fyp_groups=cursor.fetchall()
-    cursor.close()
-
+    fyp_groups=FYPModel.get_all()
     return render_template('fyp_proposals.html',fyp_groups=fyp_groups)
 
 
@@ -1208,14 +797,9 @@ def fyp_proposals():
 @admin.route('/updated_fyp',methods=['POST'])
 @admin_required
 def updated_fyp():
-    cursor=mysql.connection.cursor()
-
     fyp_id=request.form.get('fyp_id')
     fyp_status=request.form['status']
-
-    cursor.execute('UPDATE fyp_groups SET status=%s WHERE fyp_id=%s',(fyp_status,fyp_id))
-    mysql.connection.commit()
-    cursor.close()
+    FYPModel.update_status(fyp_id, fyp_status)
     return redirect(url_for('admin.fyp_proposals'))
 
 
@@ -1223,13 +807,9 @@ def updated_fyp():
 @admin.route('/assign_supervisor', methods=['POST'])
 @admin_required
 def assign_supervisor():
-    cursor=mysql.connection.cursor()
     fyp_id=request.form.get('fyp_id')
     teacher_id=request.form.get('teacher_id')
-
-    cursor.execute("UPDATE fyp_groups SET teacher_id=%s WHERE fyp_id=%s",(teacher_id,fyp_id))
-    mysql.connection.commit()
-    cursor.close()
+    FYPModel.assign_supervisor(fyp_id, teacher_id)
     flash('Supervisor assigned successfully.', 'success')
     return redirect(url_for('admin.fyp_proposals'))
 
@@ -1238,9 +818,8 @@ def assign_supervisor():
 @admin.route('/admin_notifications',methods=['GET'])
 @admin_required
 def admin_notifications():
+    notifications=NotificationModel.get_all()
     cursor=mysql.connection.cursor()
-    cursor.execute('SELECT id,title,sender_role,receiver_role,status,created_at FROM notifications WHERE is_deleted=%s',(0,))
-    notifications=cursor.fetchall()
     cursor.execute('SELECT course_id,course_name FROM courses WHERE is_deleted=%s',(0,))
     courses=cursor.fetchall()
     cursor.execute("""
@@ -1257,7 +836,6 @@ def admin_notifications():
 @admin.route('/send_notification',methods=['POST'])
 @admin_required
 def send_notification():
-    cursor=mysql.connection.cursor()
     receiver_role=request.form['receiver_role']
     receiver_id=request.form.get('receiver_id') or None
     related_course_id=request.form.get('related_course_id') or None
@@ -1266,11 +844,7 @@ def send_notification():
     sender_id=session['user_id']
     sender_role='admin'
 
-    cursor.execute('''INSERT INTO notifications(sender_id,sender_role,receiver_id,receiver_role,title,description,related_course_id,status)
-    VALUES(%s,%s,%s,%s,%s,%s,%s,%s)
-    ''',(sender_id,sender_role,receiver_id,receiver_role,title,description,related_course_id,'Pending'))
-    mysql.connection.commit()
-    cursor.close()
+    NotificationModel.send(sender_id,sender_role,receiver_id,receiver_role,title,description,related_course_id)
     flash('Notification Send Successfully','success')
     return redirect(url_for('admin.admin_notifications'))    
 
@@ -1279,14 +853,8 @@ def send_notification():
 @admin.route('/delete_notification',methods=['POST'])
 @admin_required
 def delete_notification():
-    cursor=mysql.connection.cursor()
-
     notify_id=request.form.get('notif_id')
-    current_status='Rejected'
-
-    cursor.execute('UPDATE notifications SET is_deleted=%s,`status`=%s WHERE id=%s',(1,current_status,notify_id))
-    mysql.connection.commit()
-    cursor.close()
+    NotificationModel.soft_delete(notify_id)
     flash('Nofitication Deleted Successfully','success')
     return redirect(url_for('admin.admin_notifications'))    
 
@@ -1295,16 +863,8 @@ def delete_notification():
 @admin.route('/exam_dates',methods=['GET'])
 @admin_required
 def exam_dates():
+    exams=ExamModel.get_all()
     cursor=mysql.connection.cursor()
-
-    cursor.execute("""
-        SELECT ex.exam_id,ex.exam_category,ex.exam_date,ex.exam_semester,ex.start_time,ex.end_time,ex.location,
-                   ex.mode,ex.status,ps.program_name
-        FROM exams ex
-        JOIN programs ps ON ex.program_id=ps.program_id
-        WHERE ex.is_deleted=%s
-    """,(0,))
-    exams=cursor.fetchall()
     cursor.execute('SELECT * FROM programs WHERE is_deleted=%s',(0,))
     programs=cursor.fetchall()
 
@@ -1315,8 +875,6 @@ def exam_dates():
 @admin_required
 def add_exams():
     if request.method=='POST':
-        cursor=mysql.connection.cursor()
-
         program_id=request.form.get('program_id')
         exam_catgry=request.form.get('exam_category')
         exam_smstr=request.form.get('exam_semester')
@@ -1326,25 +884,11 @@ def add_exams():
         location=request.form.get('location')
         exam_mode=request.form.get('exam_mode')
 
-        cursor.execute('''SELECT exam_id FROM exams WHERE program_id=%s AND exam_category=%s AND exam_semester=%s
-                 AND exam_date=%s''',
-            (program_id,exam_catgry,exam_smstr,exam_date)
-        )
-        exam_exists=cursor.fetchone()
-
-        if exam_exists:
+        if ExamModel.exists(program_id,exam_catgry,exam_smstr,exam_date):
             flash('Exam date already exists for this program, category and semester.', 'danger')
-            cursor.close()
             return redirect(url_for('admin.exam_dates'))
 
-        cursor.execute(
-            '''INSERT INTO exams(program_id,exam_category,exam_date,exam_semester,start_time,end_time,location,mode,status)
-               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)''',
-            (program_id,exam_catgry,exam_date,exam_smstr,
-             start_time,end_time,location,exam_mode,'Ongoing')
-        )
-        mysql.connection.commit()
-        cursor.close()
+        ExamModel.create(program_id,exam_catgry,exam_date,exam_smstr,start_time,end_time,location,exam_mode)
         flash('Exam added successfully.', 'success')
 
     return redirect(url_for('admin.exam_dates'))
@@ -1356,8 +900,6 @@ def add_exams():
 @admin_required
 def update_exams():
     if request.method=='POST':
-        cursor=mysql.connection.cursor()
-
         exam_id=request.form.get('exam_id')
         exam_catgry=request.form.get('exam_category')
         exam_smstr=request.form.get('exam_semester')
@@ -1368,12 +910,7 @@ def update_exams():
         exam_mode=request.form.get('mode')
         exam_status=request.form.get('status')
 
-        cursor.execute(
-            '''UPDATE exams SET exam_category=%s,exam_date=%s,exam_semester=%s,
-            start_time=%s,end_time=%s,location=%s,mode=%s,status=%s WHERE exam_id=%s AND is_deleted=%s''',
-            (exam_catgry,exam_date,exam_smstr,start_time,end_time,location,exam_mode,exam_status,exam_id,0))
-        mysql.connection.commit()
-        cursor.close()
+        ExamModel.update(exam_id,exam_catgry,exam_date,exam_smstr,start_time,end_time,location,exam_mode,exam_status)
         flash('Exam updated successfully.', 'success')
 
     return redirect(url_for('admin.exam_dates'))
@@ -1383,12 +920,8 @@ def update_exams():
 @admin.route('/delete_exams',methods=['POST'])
 @admin_required
 def delete_exams():
-    cursor=mysql.connection.cursor()
-    
     exam_id=request.form.get('exam_id')
-    cursor.execute('UPDATE exams SET is_deleted=%s WHERE exam_id=%s',(1,exam_id))
-    mysql.connection.commit()
-    cursor.close()
+    ExamModel.soft_delete(exam_id)
     flash('Exam Deleted Successfully','success')
     return redirect(url_for('admin.exam_dates'))    
 
@@ -1397,43 +930,14 @@ def delete_exams():
 @admin.route('/promote_students',methods=['GET'])
 @login_required
 def promote_students():
-    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-
-    cursor.execute('''
-        SELECT s.student_id,s.first_name,s.last_name,s.current_semester,
-               sr.result_status,sr.overall_gpa,sr.student_semester,
-               p.program_name
-        FROM students s
-        JOIN programs p ON s.program_id=p.program_id
-        LEFT JOIN student_results sr 
-            ON s.student_id=sr.student_id
-            AND sr.student_semester=(
-                SELECT MAX(sr2.student_semester) 
-                FROM student_results sr2 
-                WHERE sr2.student_id=s.student_id
-            )
-        WHERE s.is_deleted=0
-        ORDER BY s.student_id ASC
-    ''')
-    students=cursor.fetchall()
-
+    students=StudentModel.get_with_results()
     return render_template('promote_students.html',students=students)
-
 
 
 @admin.route('/promote_student/<int:student_id>',methods=['POST'])
 @login_required
 def promote_student(student_id):
-    cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-
-    cursor.execute('''
-        SELECT result_status,student_semester 
-        FROM student_results 
-        WHERE student_id=%s 
-        ORDER BY student_semester ASC 
-        LIMIT 1
-    ''',(student_id,))
-    result=cursor.fetchone()
+    result=StudentModel.get_result_by_id(student_id)
 
     if not result:
         flash('No result found for this student.', 'warning')
@@ -1443,14 +947,7 @@ def promote_student(student_id):
         flash('Student has not passed. Cannot promote.', 'danger')
         return redirect(url_for('admin.promote_students'))
 
-
-    cursor.execute('''
-        UPDATE students 
-        SET current_semester=current_semester + 1 
-        WHERE student_id=%s
-    ''', (student_id,))
-    mysql.connection.commit()
-
+    StudentModel.promote(student_id)
     flash('Student promoted to next semester successfully!', 'success')
     return redirect(url_for('admin.promote_students'))    
 

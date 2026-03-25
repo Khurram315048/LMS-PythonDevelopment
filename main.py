@@ -61,15 +61,15 @@ def user_signup():
 
         user=MainModel.get_user_by_email(email)
         if user:
-            if user['role_id']==1:
+            if user['role_id']==2:
                 return redirect(url_for('student.student_login'))
-            elif user['role_id']==2:
+            elif user['role_id']==1:
                 return redirect(url_for('teacher.teacher_login'))
         else:
             if user_type=='student':
-                role_id=1
-            elif user_type=='teacher':
                 role_id=2
+            elif user_type=='teacher':
+                role_id=1
             elif user_type=='admin':
                 role_id=3
             else:
