@@ -1,12 +1,43 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import check_password_hash
 from utils.auth import login_required ,teacher_required
-from .teachers_models import TeacherModel  ,Notifications
+from .teachers_models import TeacherModel,Notifications,ActivityModel
 import datetime
 import MySQLdb.cursors
 from utils.db import mysql
 
 teacher =Blueprint('teacher', __name__, template_folder='teachers_views')
+
+@teacher.before_request
+def track_student_activity():
+    teacher_id=session.get('teacher_id')
+    if not teacher_id:
+        return
+    
+    if request.path.startswith('/static'):
+        return
+    
+    log_id=session.pop('current_log_id',None)
+
+    if log_id:
+        ActivityModel.log_exit(log_id)
+
+    new_log_id=ActivityModel.log_enter(
+        teacher_id=teacher_id,
+        page_name=request.endpoint or request.path,
+        page_url=request.path,
+        ip_address=request.remote_addr
+    )
+    session['current_log_id']=new_log_id
+
+
+@teacher.route('/track_exit',methods=['POST'])
+def track_exit():
+    log_id=session.pop('current_log_id',None)
+
+    if log_id:
+        ActivityModel.log_exit(log_id)
+    return '',204
 
 
 @teacher.route('/teacher_login',methods=['GET', 'POST'])

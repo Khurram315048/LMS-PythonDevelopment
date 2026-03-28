@@ -69,3 +69,22 @@
     margin-right: 10px;
     flex-shrink: 0;
 }
+
+
+
+.search-box {
+    width: 220px;
+    position: relative;
+}
+.search-box .search-icon {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    color: #276ce4;
+    pointer-events: none;
+}
+.search-box input {
+    padding-left: 35px !important;
+    border-radius: 25px;
+}

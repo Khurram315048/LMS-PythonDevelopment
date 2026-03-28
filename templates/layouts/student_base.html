@@ -214,6 +214,11 @@
             </div>
         </div>
     </div>
+    <script>
+    window.addEventListener('beforeunload',function(){
+        navigator.sendBeacon('/track_exit');
+    });
+    </script>
     {% endif %}
 
     <footer>

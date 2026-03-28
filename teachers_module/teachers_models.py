@@ -308,3 +308,77 @@ class Notifications:
         notifications=cursor.fetchall()
         cursor.close()
         return notifications    
+
+
+
+class ActivityModel:
+
+    @staticmethod
+    def log_enter(teacher_id,page_name,page_url,ip_address):
+        cursor=mysql.connection.cursor()
+        cursor.execute('''INSERT INTO teacher_activity_log(teacher_id,page_name,page_url,entered_at,ip_address)
+                       VALUES(%s,%s,%s,NOW(),%s)''',(teacher_id,page_name,page_url,ip_address))
+        mysql.connection.commit()
+        return cursor.lastrowid
+
+    @staticmethod
+    def log_exit(log_id):
+        cursor=mysql.connection.cursor()
+        cursor.execute('''UPDATE teacher_activity_log
+                       SET exited_at=NOW(),
+                       time_spent_seconds=TIMESTAMPDIFF(SECOND,entered_at,NOW())
+                       WHERE log_id=%s''',(log_id,))
+        mysql.connection.commit()
+
+    @staticmethod
+    def get_all_activity():
+        cursor=mysql.connection.cursor()
+        cursor.execute('''SELECT tal.log_id,tal.page_name,tal.page_url,tal.entered_at,
+                       tal.exited_at,tal.time_spent_seconds,tal.ip_address,
+                       t.first_name,t.last_name,t.teacher_id
+                       FROM teacher_activity_log tal
+                       JOIN teachers t ON tal.teacher_id=t.teacher_id
+                       ORDER BY tal.entered_at DESC''')
+        return cursor.fetchall()
+
+    @staticmethod
+    def get_activity_by_student(teacher_id):
+        cursor=mysql.connection.cursor()
+        cursor.execute('''SELECT log_id,page_name,page_url,entered_at,exited_at,time_spent_seconds
+                       FROM teacher_activity_log
+                       WHERE teacher_id=%s ORDER BY entered_at DESC''',(teacher_id,))
+        return cursor.fetchall()
+
+
+    @staticmethod
+    def get_page_summary():
+        cursor=mysql.connection.cursor()
+        cursor.execute('''SELECT page_name,COUNT(*) AS total_visits,
+                       AVG(time_spent_seconds) AS avg_seconds,
+                       MAX(time_spent_seconds) AS max_seconds
+                       FROM teacher_activity_log
+                       WHERE time_spent_seconds IS NOT NULL
+                       GROUP BY page_name ORDER BY total_visits DESC''')
+        return cursor.fetchall()
+
+    @staticmethod
+    def get_teacher_page_summary(teacher_id):
+        cursor=mysql.connection.cursor()
+        cursor.execute('''SELECT page_name,COUNT(*) AS total_visits,
+                       SUM(time_spent_seconds) AS total_seconds,
+                       AVG(time_spent_seconds) AS avg_seconds
+                       FROM teacher_activity_log
+                       WHERE teacher_id=%s AND time_spent_seconds IS NOT NULL
+                       GROUP BY page_name ORDER BY total_seconds DESC''',(teacher_id,))
+        return cursor.fetchall()
+
+    @staticmethod
+    def get_active_now():
+        cursor=mysql.connection.cursor()
+        cursor.execute('''SELECT tal.log_id,tal.page_name,tal.entered_at,tal.ip_address,
+                       t.first_name,t.last_name,t.teacher_id
+                       FROM teacher_activity_log tal
+                       JOIN teachers t ON tal.teacher_id=t.teacher_id
+                       WHERE tal.exited_at IS NULL
+                       ORDER BY tal.entered_at DESC''')
+        return cursor.fetchall()

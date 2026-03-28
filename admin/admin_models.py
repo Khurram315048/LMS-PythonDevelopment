@@ -747,3 +747,61 @@ class CourseModel:
         cursor=mysql.connection.cursor()
         cursor.execute('SELECT course_id,course_name FROM courses WHERE is_deleted=%s',(0,))
         return cursor.fetchall()
+
+
+class StudentLogModel:
+
+    @staticmethod
+    def get_student_log():
+        cursor=mysql.connection.cursor()
+        cursor.execute('''SELECT DISTINCT s.student_id,s.first_name,s.last_name,
+                   COUNT(sl.log_id) AS total_visits,
+                   MAX(sl.entered_at) AS last_seen,
+                   SUM(sl.time_spent_seconds) AS total_time
+                   FROM student_activity_log sl
+                   JOIN students s ON s.student_id=sl.student_id
+                   GROUP BY s.student_id,s.first_name,s.last_name
+                   ORDER BY last_seen DESC''')
+        students=cursor.fetchall()
+        return students
+
+    @staticmethod
+    def acivity_log_student():  
+        cursor=mysql.connection.cursor()  
+        cursor.execute('''SELECT sl.*,s.first_name,s.last_name
+                   FROM student_activity_log sl
+                   JOIN students s ON s.student_id=sl.student_id
+                   ORDER BY sl.entered_at DESC''')
+        all_logs=cursor.fetchall()  
+
+        return all_logs    
+
+
+class TeacherLogModel:
+
+    @staticmethod
+    def get_teacher_log():
+        cursor=mysql.connection.cursor()
+        cursor.execute('''SELECT DISTINCT t.teacher_id,t.first_name,t.last_name,
+                   COUNT(tl.log_id) AS total_visits,
+                   MAX(tl.entered_at) AS last_seen,
+                   SUM(tl.time_spent_seconds) AS total_time
+                   FROM teacher_activity_log tl
+                   JOIN teachers t ON t.teacher_id=tl.teacher_id
+                   GROUP BY t.teacher_id,t.first_name,t.last_name
+                   ORDER BY last_seen DESC''')
+        teachers=cursor.fetchall()
+
+        return teachers
+    
+    @staticmethod
+    def activity_log_teacher():
+        cursor=mysql.connection.cursor()
+        cursor.execute('''SELECT tl.*,t.first_name,t.last_name
+                   FROM teacher_activity_log tl
+                   JOIN teachers t ON t.teacher_id=tl.teacher_id
+                   ORDER BY tl.entered_at DESC''')
+        all_logs=cursor.fetchall()
+        
+        return all_logs
+                

@@ -44,6 +44,14 @@
                     </ul>
                 </li>
                 <li class="has-submenu">
+                    <a href="#"><i class="fas fa-network-wired"></i> <span>Activity Log</span></a>
+                    <ul class="submenu">
+                        <li><a href="{{url_for('admin.student_log')}}"><i class="fas fa-user-clock"></i>Student Log</a></li>
+                        <li><a href="{{url_for('admin.teacher_log')}}"><i class="fas fa-person-chalkboard"></i>Teacher Log</a></li>
+                        
+                    </ul>
+                </li>
+                <li class="has-submenu">
                     <a href="#"><i class="fa-solid fa-user-graduate"></i> <span>Student Management</span></a>
                     <ul class="submenu">
                         <li><a href="{{url_for('admin.register_student')}}"><i class="fa-solid fa-user-plus"></i> Register Student</a></li>

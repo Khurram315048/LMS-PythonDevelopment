@@ -2,11 +2,11 @@ from flask import Blueprint,render_template,request,redirect,url_for,session,fla
 from utils.auth import login_required,student_required
 from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
-from students_module.students_models import UserModel,StudentModel,NotificationModel
+from students_module.students_models import UserModel,StudentModel,NotificationModel,ActivityModel
 import os
 from utils.db import mysql 
 from datetime import datetime,date
-import MySQLdb.cursors
+
 
 ALLOWED_EXTENSIONS={'pdf'}
 
@@ -14,6 +14,37 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 student=Blueprint('student', __name__, template_folder='students_views')
+
+@student.before_request
+def track_student_activity():
+    student_id=session.get('student_id')
+    if not student_id:
+        return
+    
+    if request.path.startswith('/static'):
+        return
+    
+    log_id=session.pop('current_log_id',None)
+
+    if log_id:
+        ActivityModel.log_exit(log_id)
+
+    new_log_id=ActivityModel.log_enter(
+        student_id=student_id,
+        page_name=request.endpoint or request.path,
+        page_url=request.path,
+        ip_address=request.remote_addr
+    )
+    session['current_log_id']=new_log_id
+
+
+@student.route('/track_exit',methods=['POST'])
+def track_exit():
+    log_id=session.pop('current_log_id',None)
+
+    if log_id:
+        ActivityModel.log_exit(log_id)
+    return '',204
 
 
 @student.route('/student_login',methods=['GET','POST'])
@@ -45,6 +76,7 @@ def student_login():
 def base():
     if session.get('role') != 'student':
         return redirect(url_for('main_view'))
+    
     student_name=StudentModel.get_student_name_by_user_id(session['user_id'])
     return render_template('student_base.html',student_name=student_name)
 

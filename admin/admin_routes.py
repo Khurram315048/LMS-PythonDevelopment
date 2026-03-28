@@ -9,7 +9,7 @@ from utils.db import mysql
 from .admin_models import (UserModel, AdminModel, SystemModel, ComplaintModel, StudentModel, 
                            TeacherModel, SalaryModel, EnrollmentModel, AttendanceModel, 
                            GradeModel, FeeModel, SemesterModel, TimetableModel, FYPModel, 
-                           ExamModel, NotificationModel) 
+                           ExamModel, NotificationModel,StudentLogModel,TeacherLogModel) 
 
 admin=Blueprint('admin', __name__, template_folder='admin_views')
 
@@ -781,7 +781,7 @@ def get_proposals():
     cursor=mysql.connection.cursor()
     cursor.execute('SELECT teacher_id,first_name,last_name FROM teachers WHERE is_deleted=%s',(0,))
     teachers=cursor.fetchall()
-    
+        
     return render_template('get_proposals.html',fyp_groups=fyp_groups,teachers=teachers) 
 
 
@@ -952,7 +952,22 @@ def promote_student(student_id):
     return redirect(url_for('admin.promote_students'))    
 
 
-    
+
+@admin.route('/student_log',methods=['GET'])
+@admin_required
+def student_log():
+    students=StudentLogModel.get_student_log()
+    all_logs=StudentLogModel.acivity_log_student()
+    return render_template('student_log.html',students=students,all_logs=all_logs)   
+
+
+
+@admin.route('/teacher_log',methods=['GET'])
+@admin_required
+def teacher_log():
+    teachers=TeacherLogModel.get_teacher_log()
+    all_logs=TeacherLogModel.activity_log_teacher()    
+    return render_template('teacher_log.html',teachers=teachers,all_logs=all_logs)      
     
 
         
