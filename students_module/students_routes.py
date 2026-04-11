@@ -108,23 +108,23 @@ def student_dashboard():
         return render_template('student_dashboard.html', message="You are not enrolled in any courses yet.")
 
     course_ids=[course['course_id'] for course in courses]
-    course_data = StudentModel.get_course_details_by_ids(course_ids)
-    course_names = {course['course_id']: course['course_name'] for course in course_data}
+    course_data=StudentModel.get_course_details_by_ids(course_ids)
+    course_names={course['course_id']: course['course_name'] for course in course_data}
 
-    submissions = StudentModel.get_student_submission_status(student_id)
-    uploaded_assignments = [sub['course_id'] for sub in submissions if sub['submission_type'] == 'assignment']
-    uploaded_quizzes = [sub['course_id'] for sub in submissions if sub['submission_type'] == 'quiz']
+    submissions=StudentModel.get_student_submission_status(student_id)
+    uploaded_assignments=[sub['course_id'] for sub in submissions if sub['submission_type'] == 'assignment']
+    uploaded_quizzes=[sub['course_id'] for sub in submissions if sub['submission_type'] == 'quiz']
 
-    teacher_rows = StudentModel.get_teachers_by_course_ids(course_ids)
-    teacher_ids_by_course = {}
+    teacher_rows=StudentModel.get_teachers_by_course_ids(course_ids)
+    teacher_ids_by_course={}
     for row in teacher_rows:
         teacher_ids_by_course.setdefault(row['course_id'], []).append(row['teacher_id'])
-    all_teacher_ids = list(set(tid for tids in teacher_ids_by_course.values() for tid in tids))
-    teacher_info = StudentModel.get_teacher_info_by_ids(all_teacher_ids)
+    all_teacher_ids=list(set(tid for tids in teacher_ids_by_course.values() for tid in tids))
+    teacher_info=StudentModel.get_teacher_info_by_ids(all_teacher_ids)
 
-    schedule = StudentModel.get_course_schedule_by_course_ids(course_ids)
+    schedule=StudentModel.get_course_schedule_by_course_ids(course_ids)
     for s in schedule:
-        s['course_name'] = course_names.get(s['course_id'], 'Unknown Course')
+        s['course_name']=course_names.get(s['course_id'], 'Unknown Course')
 
     active_notifications=NotificationModel.get_active_notifications(session['user_id'],'student')
 

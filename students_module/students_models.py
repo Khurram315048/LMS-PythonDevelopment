@@ -95,7 +95,7 @@ class StudentModel:
         cursor=mysql.connection.cursor()
         course_placeholders=','.join(['%s'] * len(course_ids))
         cursor.execute(f'''
-            SELECT course_id, teacher_id
+            SELECT course_id,teacher_id
             FROM teacher_course
             WHERE course_id IN ({course_placeholders})
         ''', tuple(course_ids))
