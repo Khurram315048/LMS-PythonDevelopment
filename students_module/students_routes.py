@@ -47,6 +47,7 @@ def track_exit():
     return '',204
 
 
+
 @student.route('/student_login',methods=['GET','POST'])
 def student_login():
     if request.method=='POST':
