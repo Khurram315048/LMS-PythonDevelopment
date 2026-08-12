@@ -15,6 +15,12 @@ def allowed_file(filename):
 
 student=Blueprint('student', __name__, template_folder='students_views')
 
+
+def get_role():
+    if session.get('role') != 'student':
+        return redirect(url_for('main_view'))
+    return True    
+    
 @student.before_request
 def track_student_activity():
     student_id=session.get('student_id')
