@@ -19,20 +19,20 @@ class LoginResponse(BaseModel):
     student_name:str
 
 
-    
+
 
 class StudentProfileHelper(BaseModel):
-    studet_id:int
+    student_id:int
     user_id:int
     first_name:str
     last_name:str
     email:str
     roll_number:str
     current_semester:int
-    cgpa=float
+    cgpa:float
     program_id:int
 
-    class Cofig:
+    class Config:
         from_attributes=True
 
 
@@ -72,7 +72,7 @@ class CourseScheduleHelper(BaseModel):
     start_time:str
     end_time:str
     room_number:Optional[str]=None
-    assignment_enabled:bool=False
+    assignments_enabled:bool=False
     quizzes_enabled:bool=False
 
 
@@ -106,7 +106,7 @@ class SubmissionHelper(BaseModel):
     submission_type:str
     marks:Optional[float]=None
     total_marks:Optional[float]=None
-    uploade_date:Optional[datetime]=None
+    uploaded_date:Optional[datetime]=None
     file_path:Optional[str]=None
 
 
@@ -285,7 +285,7 @@ class ImprovementListResponse(BaseModel):
 
 
 class SemesterFreezeRequest(BaseModel):
-    reason:str=Field(...,mi_length=10,max_length=1000) 
+    reason:str=Field(...,min_length=10,max_length=1000) 
 
 
 class SemesterFreezeResponse(BaseModel):
@@ -295,7 +295,7 @@ class SemesterFreezeResponse(BaseModel):
     status:str
 
 
-class   ComplaintSuggesstionRequest(BaseModel):
+class  ComplaintSuggesstionRequest(BaseModel):
     title:str=Field(...,min_length=5,max_length=200)
     description:str=Field(...,min_length=10,max_length=2000)
 
