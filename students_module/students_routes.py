@@ -6,6 +6,10 @@ from students_module.students_models import UserModel,StudentModel,NotificationM
 import os
 from utils.db import mysql 
 from datetime import datetime,date
+from fastapi import APIRouter,Depends,HTTPException
+from students_module.schema import *
+
+
 
 
 ALLOWED_EXTENSIONS={'pdf'}
@@ -81,7 +85,7 @@ def base():
     return render_template('student_base.html',student_name=student_name)
 
 
-@student.route('/student_profile',methods=['GET', 'POST'])
+@student.route('/student_profile',methods=['GET','POST'])
 @student_required
 def student_profile():
     if session.get('role') != 'student':
