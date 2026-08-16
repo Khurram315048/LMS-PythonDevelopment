@@ -819,7 +819,7 @@ def update_fyp():
 # @student.route('/upload_submission', methods=['POST'])
 # @student_required
 @router.post("/{student_id}/submissions",response_model=UploadResponse,tags=["Submission"])
-def upload_submission(student_id:int,course_id:int=Form(...),section_id:int=Form(...),submission_type:str=Form(...),file:UploadFilr=File(...)):
+def upload_submission(student_id:int,course_id:int=Form(...),section_id:int=Form(...),submission_type:str=Form(...),file:UploadFile=File(...)):
     try:
         if submission_type not in['assignment','quiz']:
             raise HTTPException(status_code=400,detail="Submission must be assignmnent or quiz")
