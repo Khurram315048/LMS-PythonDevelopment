@@ -5,11 +5,11 @@ from werkzeug.utils import secure_filename
 from students_module.students_models import UserModel,StudentModel,NotificationModel,ActivityModel
 import os
 from utils.db import mysql 
+from utils.auth import * 
 from datetime import datetime,date
 from fastapi import APIRouter,Depends,HTTPException
 from students_module.schema import *
-
-
+from fastapi import APIRouter,Depends,HTTPException,Form,UploadFile,File,Request
 
 
 ALLOWED_EXTENSIONS={'pdf'}
@@ -19,11 +19,9 @@ def allowed_file(filename):
 
 student=Blueprint('student', __name__, template_folder='students_views')
 
+router=APIRouter()
 
-def get_role():
-    if session.get('role') != 'student':
-        return redirect(url_for('main_view'))
-    return True    
+   
     
 @student.before_request
 def track_student_activity():
@@ -48,38 +46,41 @@ def track_student_activity():
     session['current_log_id']=new_log_id
 
 
-@student.route('/track_exit',methods=['POST'])
-def track_exit():
-    log_id=session.pop('current_log_id',None)
+# @student.route('/track_exit',methods=['POST'])
+# def track_exit():
+#     log_id=session.pop('current_log_id',None)
 
-    if log_id:
-        ActivityModel.log_exit(log_id)
-    return '',204
+#     if log_id:
+#         ActivityModel.log_exit(log_id)
+#     return '',204
 
 
 
-@student.route('/student_login',methods=['GET','POST'])
-def student_login():
-    if request.method=='POST':
-        email=request.form['email']
-        password=request.form['password']
-        remember='remember_me' in request.form
+# @student.route('/student_login',methods=['GET','POST'])
+@router.post("/login",response_model=LoginResponse,tags=["Auth"])
+def student_login(request:StudentLoginRequest):
+    try:
+        user=UserModel.get_user_by_email(request.email)
+        if not user:
+            raise HTTPException(status_code=401,detail="Invalid Email or password")
 
-        user=UserModel.get_user_by_email(email)
-        if user and check_password_hash(user['password'],password):
-            student_obj=StudentModel.get_student_by_user_id(user['user_id'])
-            if student_obj:
-                session['user_id']=user['user_id']
-                session['role']='student'
-                session['student_id']=student_obj['student_id']
-                session['date']=datetime.now()
-                session.permanent=remember
-                return redirect(url_for('student.student_dashboard'))
-            else:
-                return redirect(url_for('student.student_login'))
-        else:
-            return redirect(url_for('student.student_login'))
-    return render_template('student_login.html')
+        if not check_password_hash(user['password'],request.password):
+            raise HTTPException(status_code=401,detail="Invalid Password")
+
+        student_obj=StudentModel.get_student_by_user_id(user['user_id'])
+        if not student_obj:
+            raise HTTPException(status_code=404,detail="Student record not found")
+
+        return LoginResponse(success=True,message="Login Successful",
+        student_id=student_obj['student_id'],user_id=user['user_id'],
+        student_name=f"{student_obj['first_name']} {student_obj['last_name']}")
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=f"Login Failed: {str(e)}")
+    
+
 
 
 @student.route('/student_base',methods=['GET'])
@@ -92,110 +93,164 @@ def base():
     return render_template('student_base.html',student_name=student_name)
 
 
-@student.route('/student_profile',methods=['GET','POST'])
-@student_required
-def student_profile():
-    if session.get('role') != 'student':
-        return redirect(url_for('main_view'))
+# @student.route('/student_profile',methods=['GET','POST'])
 
-    student_id=session['student_id']
-    student_obj=StudentModel.get_student_by_id(student_id)
-    program=StudentModel.get_student_program_details(student_id)
-    show_notification=request.method =='POST' and 'edit_request' in request.form
-    return render_template('student_profile.html',student=student_obj,program=program,show_notification=show_notification)
+# @student_required
+@router.get("/{student_id}/profile",response_model=StudentProfileResponse,tags=["Profile"])
+def student_profile(student_id:int):
+    try:
+        student_obj=StudentModel.get_student_by_id(student_id)
+        if not student_obj:
+            raise HTTPException(statuc_code=404,detail="Student not found")
+
+        program=StudentModel.get_student_program_details(student_id)
+        if not program:
+            raise HTTPException(status_code=404,detail="Program not found")
+
+        return StudentProfileResponse(student=StudentProfileHelper(**student_obj),program=ProgramDetailHelper(**program),
+        show_notification=True)
+
+    except HTTPException:
+        raise
+    except Exception as e :
+        raise HTTPException(status_code=500,detail=str(e))
+        
+
+    # if session.get('role') != 'student':
+    #     return redirect(url_for('main_view'))
+
+    # student_id=session['student_id']
+    # student_obj=StudentModel.get_student_by_id(student_id)
+    # program=StudentModel.get_student_program_details(student_id)
+    # show_notification=request.method =='POST' and 'edit_request' in request.form
+    # return render_template('student_profile.html',student=student_obj,program=program,show_notification=show_notification)
 
 
-@student.route('/student_dashboard',methods=['GET', 'POST'])
-@student_required
-def student_dashboard():
-    cursor=mysql.connection.cursor()
+# @student.route('/student_dashboard',methods=['GET', 'POST'])
+# @student_required
+@router.get("/dashboard",response_model=StudentDashboardResponse,tags=["Dashboard"])
+def student_dashboard(current_student_id: int=Depends(get_current_student)):
+    try:
+        student_obj=StudentModel.get_student_by_id(current_student_id)
+        if not student_obj:
+            raise HTTPException(status_coe=404,detail="Student not ffound")
 
-    if session.get('role') != 'student':
-        return redirect(url_for('main_view'))
+        courses=StudentModel.get_enrolled_courses_by_student_id(current_student_id)
+        if not courses:
+            return StudentDashboardResponse(
+                student_id=current_student_id,student_name=f"{student_obj['first_name']} {student_obj['last_name']}",
+                current_semester=student_obj['current_semester'],
+                enrolled_courses=[],
+                teachers=[],
+                active_notifications=True,
+                has_upcoming_exams=False
+            )
+
+        course_ids=[c['course_id'] for c in courses]
+        course_data=StudentModel.get_course_details_by_ids(course_ids)
+        teacher_rows=StudentModel.get_teachers_by_course_ids(course_ids)
+        all_teacher_ids=list(set(row['teacher_id'] for row in teacher_rows))
+        teacher_info=StudentModel.get_teacher_info_by_ids(all_teacher_ids)
+        schedule=StudentModel.get_course_schedule_by_course_ids(course_ids)
+        active_notifications=NotificationModel.get_active_notfications(current_student_id,'student')
+
+        return StudentDashboardResponse(student_id=current_student_id,student_name=f"{student_obj['first_name']} {student_obj['last_name']}",
+                                        current_semester=student_obj['current_semester'],enrolled_courses=[CourseHelper(**c) for c in course_data],
+                                        teachers=[TeacherHelper(**t) for t in teacher_info],active_notifications=len(active_notifications) if active_notifications else 0,
+                                        has_upcoming_exams=False)
+    except HTTPException:
+        raise 
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=str(e))
+
+
+
+    # if session.get('role') != 'student':
+    #     return redirect(url_for('main_view'))
     
-    student_id=session['student_id']
-    courses=StudentModel.get_enrolled_courses_by_student_id(student_id)
-    if not courses:
-        return render_template('student_dashboard.html', message="You are not enrolled in any courses yet.")
+    # student_id=session['student_id']
+    # courses=StudentModel.get_enrolled_courses_by_student_id(student_id)
+    # if not courses:
+    #     return render_template('student_dashboard.html', message="You are not enrolled in any courses yet.")
 
-    course_ids=[course['course_id'] for course in courses]
-    course_data=StudentModel.get_course_details_by_ids(course_ids)
-    course_names={course['course_id']: course['course_name'] for course in course_data}
+    # course_ids=[course['course_id'] for course in courses]
+    # course_data=StudentModel.get_course_details_by_ids(course_ids)
+    # course_names={course['course_id']: course['course_name'] for course in course_data}
 
-    submissions=StudentModel.get_student_submission_status(student_id)
-    uploaded_assignments=[sub['course_id'] for sub in submissions if sub['submission_type'] == 'assignment']
-    uploaded_quizzes=[sub['course_id'] for sub in submissions if sub['submission_type'] == 'quiz']
+    # submissions=StudentModel.get_student_submission_status(student_id)
+    # uploaded_assignments=[sub['course_id'] for sub in submissions if sub['submission_type'] == 'assignment']
+    # uploaded_quizzes=[sub['course_id'] for sub in submissions if sub['submission_type'] == 'quiz']
 
-    teacher_rows=StudentModel.get_teachers_by_course_ids(course_ids)
-    teacher_ids_by_course={}
-    for row in teacher_rows:
-        teacher_ids_by_course.setdefault(row['course_id'], []).append(row['teacher_id'])
-    all_teacher_ids=list(set(tid for tids in teacher_ids_by_course.values() for tid in tids))
-    teacher_info=StudentModel.get_teacher_info_by_ids(all_teacher_ids)
+    # teacher_rows=StudentModel.get_teachers_by_course_ids(course_ids)
+    # teacher_ids_by_course={}
+    # for row in teacher_rows:
+    #     teacher_ids_by_course.setdefault(row['course_id'], []).append(row['teacher_id'])
+    # all_teacher_ids=list(set(tid for tids in teacher_ids_by_course.values() for tid in tids))
+    # teacher_info=StudentModel.get_teacher_info_by_ids(all_teacher_ids)
 
-    schedule=StudentModel.get_course_schedule_by_course_ids(course_ids)
-    for s in schedule:
-        s['course_name']=course_names.get(s['course_id'], 'Unknown Course')
+    # schedule=StudentModel.get_course_schedule_by_course_ids(course_ids)
+    # for s in schedule:
+    #     s['course_name']=course_names.get(s['course_id'], 'Unknown Course')
 
-    active_notifications=NotificationModel.get_active_notifications(session['user_id'],'student')
+    # active_notifications=NotificationModel.get_active_notifications(session['user_id'],'student')
 
-    exam_data=None
-    admit_card=None
-    show_marquee=False
-    cursor.execute('SELECT program_id FROM students WHERE student_id=%s',(student_id,))
-    student_row=cursor.fetchone()
-    if student_row:
-        program_id=student_row['program_id'] 
-        cursor.execute("""SELECT ex.exam_id,ex.exam_category,ex.exam_date,ex.exam_semester,
-                   ex.start_time,ex.end_time,ex.location,ex.mode,ex.status,ps.program_name
-                FROM exams ex
-            JOIN programs ps ON ex.program_id=ps.program_id
-            WHERE ex.program_id=%s
-            AND ex.is_deleted =0
-        """, (program_id,))
-        exam_details=cursor.fetchall()
-        today=date.today()
-        upcoming=[ex for ex in exam_details if ex['exam_date'] >= today]  
-        if upcoming:
-            exam_data=upcoming
-            show_marquee=True
-            cursor.execute("""SELECT s.student_id,s.first_name,s.last_name,s.current_semester,
-                       p.program_name
-                FROM students s
-                JOIN programs p ON s.program_id=p.program_id
-                WHERE s.student_id=%s
-            """, (student_id,))
-            student_info=cursor.fetchone()
-            exam_category=upcoming[0]['exam_category']
-            exam_location=upcoming[0]['location'] or 'Class Room'
+    # exam_data=None
+    # admit_card=None
+    # show_marquee=False
+    # cursor.execute('SELECT program_id FROM students WHERE student_id=%s',(student_id,))
+    # student_row=cursor.fetchone()
+    # if student_row:
+    #     program_id=student_row['program_id'] 
+    #     cursor.execute("""SELECT ex.exam_id,ex.exam_category,ex.exam_date,ex.exam_semester,
+    #                ex.start_time,ex.end_time,ex.location,ex.mode,ex.status,ps.program_name
+    #             FROM exams ex
+    #         JOIN programs ps ON ex.program_id=ps.program_id
+    #         WHERE ex.program_id=%s
+    #         AND ex.is_deleted =0
+    #     """, (program_id,))
+    #     exam_details=cursor.fetchall()
+    #     today=date.today()
+    #     upcoming=[ex for ex in exam_details if ex['exam_date'] >= today]  
+    #     if upcoming:
+    #         exam_data=upcoming
+    #         show_marquee=True
+    #         cursor.execute("""SELECT s.student_id,s.first_name,s.last_name,s.current_semester,
+    #                    p.program_name
+    #             FROM students s
+    #             JOIN programs p ON s.program_id=p.program_id
+    #             WHERE s.student_id=%s
+    #         """, (student_id,))
+    #         student_info=cursor.fetchone()
+    #         exam_category=upcoming[0]['exam_category']
+    #         exam_location=upcoming[0]['location'] or 'Class Room'
 
-            admit_courses=[
-                {
-                    'course_id':c['course_id'],
-                    'course_name':c['course_name'],
-                    'exam_type':exam_category,
-                    'location':exam_location,
-                    'status':'Allowed',
-                }
-                for c in course_data
-            ]
+    #         admit_courses=[
+    #             {
+    #                 'course_id':c['course_id'],
+    #                 'course_name':c['course_name'],
+    #                 'exam_type':exam_category,
+    #                 'location':exam_location,
+    #                 'status':'Allowed',
+    #             }
+    #             for c in course_data
+    #         ]
 
-            admit_card={
-                'student':student_info,
-                'courses':admit_courses,
-                'exam_date':upcoming[0]['exam_date'],
-                'start_time':upcoming[0]['start_time'],
-                'end_time':upcoming[0]['end_time'],
-            }
-        else:
-            flash('No upcoming exams available.', 'info')
+    #         admit_card={
+    #             'student':student_info,
+    #             'courses':admit_courses,
+    #             'exam_date':upcoming[0]['exam_date'],
+    #             'start_time':upcoming[0]['start_time'],
+    #             'end_time':upcoming[0]['end_time'],
+    #         }
+    #     else:
+    #         flash('No upcoming exams available.', 'info')
 
-    cursor.close()
-    return render_template(
-        'student_dashboard.html', schedule=schedule, teacher=teacher_info, teacher_ids=teacher_ids_by_course,
-        uploaded_assignments=uploaded_assignments,uploaded_quizzes=uploaded_quizzes,
-        active_notifications=active_notifications,exam_data=exam_data,admit_card=admit_card,
-        show_marquee=show_marquee)
+    # cursor.close()
+    # return render_template(
+    #     'student_dashboard.html', schedule=schedule, teacher=teacher_info, teacher_ids=teacher_ids_by_course,
+    #     uploaded_assignments=uploaded_assignments,uploaded_quizzes=uploaded_quizzes,
+    #     active_notifications=active_notifications,exam_data=exam_data,admit_card=admit_card,
+    #     show_marquee=show_marquee)
 
 
 @student.route('/student_fee', methods=['GET', 'POST'])
@@ -210,16 +265,26 @@ def student_fee():
 
 
 
-@student.route('/complaint_suggestion', methods=['GET', 'POST'])
-@student_required
-def complaint_suggestion():
-    if request.method == 'POST':
-        title = request.form['title']
-        description = request.form['description']
-        user_id = session['user_id']
-        StudentModel.insert_complaint_suggestion(title, description, user_id)
-        return redirect(url_for('student.student_dashboard'))
-    return render_template('complaint_suggestion.html')
+# @student.route('/complaint_suggestion', methods=['GET', 'POST'])
+# @student_required
+@router.post("/{student_id}/complaint",response_model=ComplaintResponse,tags=["Complaint"])
+def complaint_suggestion(student_id:int,request_body:ComplaintSuggestionRequest,current_user_id:int=Depends(get_current_student)):
+    try:
+        complaint_id=StudentModel.insert_complaint_suggestion(request_body.title,request_body.description,current_user_id)
+        return ComplaintResponse(
+            success=True,message="Complaint submitted success",complaint_id=complaint_id,status="Pending")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=str(e))
+    
+    # if request.method == 'POST':
+    #     title = request.form['title']
+    #     description = request.form['description']
+    #     user_id = session['user_id']
+    #     StudentModel.insert_complaint_suggestion(title, description, user_id)
+    #     return redirect(url_for('student.student_dashboard'))
+    # return render_template('complaint_suggestion.html')
 
 
 @student.route('/notifications', methods=['GET', 'POST'])
@@ -261,57 +326,110 @@ def upload_fee():
 
 
 
-@student.route('/view_attendence', methods=['GET', 'POST'])
-@student_required
-def view_attendence():
-    cursor=mysql.connection.cursor()
-    student_id=session.get('student_id')
-    if not student_id:
-        flash("Student not logged in.", "danger")
-        return redirect(url_for('student.student_login'))
+# @student.route('/view_attendence', methods=['GET', 'POST'])
+# @student_required
+@router.get("/{student_id}/attendance",response_model=AttendanceReportResponse,tags=["Attendance"])
+def view_attendence(student_id:int):
+    try:
+        enrolled_courses=StudentModel.get_student_courses_for_attendance(student_id)
+        if not enrolled_courses:
+            raise HTTPException(status_code=404,detail="Not courses found")
 
-    enrolled_courses=StudentModel.get_student_courses_for_attendance(student_id)
-    attendance_report=[]
-    for course in enrolled_courses:
-        sc_id=course['student_course_id']
-        total_lectures, attended=StudentModel.get_attendance_summary(sc_id)
-        history=StudentModel.get_attendance_status_details(sc_id)
-        perc=(attended / total_lectures * 100) if total_lectures > 0 else 0
-        cursor.execute('''
-            SELECT CONCAT(t.first_name, ' ', t.last_name) AS teacher_name
-            FROM teacher_course tc
-            JOIN teachers t ON tc.teacher_id = t.teacher_id
-            JOIN student_course sc ON sc.course_id = tc.course_id
-            WHERE sc.student_course_id = %s
-            LIMIT 1
-        ''', (sc_id,))
-        teacher=cursor.fetchone()
+        attendance_report=[]
+        for course in enrolled_courses:
+            sc_id=course['student_course_id']
+            total_lectures,attended=StudentModel.get_attendance_summary(sc_id)
+            history=StudentModel.get_attendance_status_details(sc_id)
+            perc=(attended/total_lectures *100) if total_lectures>0 else 0
+            teacher_result=StudentModel.get_teacherr_for_courses(sc_id)
+            teacher_name=teacher_result['teacher_name'] if teacher_result else '-'
+            attendance_report.append({
+                'course_name':course['course_name'],
+                'credit_house':course['credit_hours'],
+                'total_lectures':total_lectures,
+                'attendance_lectures':attended,
+                'percentage':round(perc,1),
+                'lecture_status':history,
+                'teacher_name':teacher_name
+            })
+        return AttendanceReportResponse(
+            student_id=student_id,total_courses=len(attendance_report),attendance_report=attendance_report)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=str(e))
+        
+    # cursor=mysql.connection.cursor()
+    # student_id=session.get('student_id')
+    # if not student_id:
+    #     flash("Student not logged in.", "danger")
+    #     return redirect(url_for('student.student_login'))
 
-        attendance_report.append({
-            'course_name': course['course_name'],
-            'credit_hours': course['credit_hours'],
-            'total_lectures': total_lectures,
-            'attended_lectures': attended,
-            'percentage': round(perc, 1),
-            'lecture_status': history,
-            'teacher_name': teacher['teacher_name'] if teacher else '—'
-        })
+    # enrolled_courses=StudentModel.get_student_courses_for_attendance(student_id)
+    # attendance_report=[]
+    # for course in enrolled_courses:
+    #     sc_id=course['student_course_id']
+    #     total_lectures, attended=StudentModel.get_attendance_summary(sc_id)
+    #     history=StudentModel.get_attendance_status_details(sc_id)
+    #     perc=(attended / total_lectures * 100) if total_lectures > 0 else 0
+    #     cursor.execute('''
+    #         SELECT CONCAT(t.first_name, ' ', t.last_name) AS teacher_name
+    #         FROM teacher_course tc
+    #         JOIN teachers t ON tc.teacher_id = t.teacher_id
+    #         JOIN student_course sc ON sc.course_id = tc.course_id
+    #         WHERE sc.student_course_id = %s
+    #         LIMIT 1
+    #     ''', (sc_id,))
+    #     teacher=cursor.fetchone()
 
-    cursor.close()
-    return render_template('view_attendence.html',attendance_report=attendance_report)
+    #     attendance_report.append({
+    #         'course_name': course['course_name'],
+    #         'credit_hours': course['credit_hours'],
+    #         'total_lectures': total_lectures,
+    #         'attended_lectures': attended,
+    #         'percentage': round(perc, 1),
+    #         'lecture_status': history,
+    #         'teacher_name': teacher['teacher_name'] if teacher else '—'
+    #     })
+
+    # cursor.close()
+    # return render_template('view_attendence.html',attendance_report=attendance_report)
     
 
-@student.route('/view_grades', methods=['GET', 'POST'])
-@student_required
-def view_grades():
-    student_id = session['student_id']
-    student_details = StudentModel.get_student_by_id(student_id)
-    all_marks = StudentModel.get_student_results_with_marks(student_id)
-    return render_template(
-        'view_grades.html',
-        student_details=student_details,
-        all_marks=all_marks
-    )
+# @student.route('/view_grades',methods=['GET','POST'])
+# @student_required
+@router.get("/{student_id}/grades",response_model=GradesResponse,tags=["Grades"])
+def view_grades(student_id:int):
+    try:
+        student_details=StudentModel.get_student_by_id(student_id)
+        if not student_details:
+            raise HTTPException(status_code=404,detail="Student not found")
+        
+        all_marks=StudentModel.get_student_results_with_marks(student_id)
+        if not all_marks:
+            all_marks=[]
+
+        overall_cgpa=0.0
+        if all_marks:
+            total_gpa=sum(mark.get('subject_gpa',0) for mark in all_marks)
+            overall_cgpa=total_gpa/len(all_marks) if all_marks else 0
+
+        return GradesResponse(student_id=student_id,student_name=f"{student_details['first_name']} {student_details['last_name']}",
+                              total_semesters=len(set(m.get('semester',0) for m in all_marks)),
+                              all_marks=all_marks,overall_cgpa=round(overall_cgpa,2))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=str(e))
+            
+    # student_id = session['student_id']
+    # student_details = StudentModel.get_student_by_id(student_id)
+    # all_marks = StudentModel.get_student_results_with_marks(student_id)
+    # return render_template(
+    #     'view_grades.html',
+    #     student_details=student_details,
+    #     all_marks=all_marks
+    # )
 
 
 @student.route('/course_registeration')
@@ -579,46 +697,72 @@ def student_fyp():
 
 
 
-@student.route('/submit_fyp', methods=['POST'])
-@student_required
-def submit_fyp():
-    if session.get('role') != 'student':
-        return redirect(url_for('main_view'))
-
-    student_id=session.get('student_id')
-    if not student_id:
-        return redirect(url_for('student.student_login'))
-
-    upload_folder=os.path.join(current_app.root_path, 'static', 'uploads', 'students_uploads', 'students_fyp_proposal')
-    
-    
-    if not os.path.exists(upload_folder):
-        os.makedirs(upload_folder, exist_ok=True)
-
-
-    title=request.form.get('project_title')
-    description=request.form.get('description')
-    file=request.files.get('proposal_file')
-    db_file_path=None
-
-    if file and file.filename != '':
-        if not allowed_file(file.filename):
-            flash('Only PDF files are allowed.', 'danger')
-            return redirect(request.url)
-    
-    filename=secure_filename(file.filename)
-    unique_name=f"SID_{student_id}_{filename}"
-    file.save(os.path.join(upload_folder, unique_name))
-    db_file_path=f"uploads/students_uploads/students_fyp_proposal/{unique_name}"
-
+# @student.route('/submit_fyp', methods=['POST'])
+# @student_required
+@router.post("/{student_id}/fyp/submit",response_model=SubmitFYPResponse,tags=["FYP"])
+def submit_fyp(student_id:int,project_title:str=Form(...),description:str=Form(...),proposal_file:UploadFile=File(...),current_student_id:int=Depends(get_current_student)):
     try:
-        
-        StudentModel.insert_fyp_proposal(student_id,title,description,None,db_file_path)
-        flash('FYP Proposal Submitted Successfully!', 'success')
-    except Exception as e:
-        flash(f'Error: {str(e)}', 'danger')
+        if not allowed_file(proposal_file.filename):
+            raise HTTPException(status_code=400,detail="Only pdf allowed")
 
-    return redirect(url_for('student.student_fyp'))
+        upload_folder=os.path.join('static','uploads','students_uploads','students_fyp_proposal')
+        os.makedirs(upload_folder,exist_ok=True)
+
+        filename=secure_filename(proposal_file.filename)
+        unique_name=f"SID_{student_id}_{filename}"
+        file_path=os.path.join(upload_folder,unique_name)
+        contents=proposal_file.file.read()
+        with open(file_path,'wb') as f:
+            f.write(contents)
+
+        db_file_path=f"uploads/students_uploads/students_fyp_proposal/{unique_name}"
+        fyp_id=StudentModel.insert_fyp_proposal(student_id,project_title,description,None,db_file_path)   
+        return SubmitFYPResponse(success=True,message="FYP Proposal submitted success",fyp_id=fyp_id,status="In progress")
+
+    except HTTPException :
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=str(e))
+         
+
+
+    # if session.get('role') != 'student':
+    #     return redirect(url_for('main_view'))
+
+    # student_id=session.get('student_id')
+    # if not student_id:
+    #     return redirect(url_for('student.student_login'))
+
+    # upload_folder=os.path.join(current_app.root_path, 'static', 'uploads', 'students_uploads', 'students_fyp_proposal')
+    
+    
+    # if not os.path.exists(upload_folder):
+    #     os.makedirs(upload_folder, exist_ok=True)
+
+
+    # title=request.form.get('project_title')
+    # description=request.form.get('description')
+    # file=request.files.get('proposal_file')
+    # db_file_path=None
+
+    # if file and file.filename != '':
+    #     if not allowed_file(file.filename):
+    #         flash('Only PDF files are allowed.', 'danger')
+    #         return redirect(request.url)
+    
+    # filename=secure_filename(file.filename)
+    # unique_name=f"SID_{student_id}_{filename}"
+    # file.save(os.path.join(upload_folder, unique_name))
+    # db_file_path=f"uploads/students_uploads/students_fyp_proposal/{unique_name}"
+
+    # try:
+        
+    #     StudentModel.insert_fyp_proposal(student_id,title,description,None,db_file_path)
+    #     flash('FYP Proposal Submitted Successfully!', 'success')
+    # except Exception as e:
+    #     flash(f'Error: {str(e)}', 'danger')
+
+    # return redirect(url_for('student.student_fyp'))
 
 
 
@@ -672,34 +816,67 @@ def update_fyp():
 
 
 
-@student.route('/upload_submission', methods=['POST'])
-@student_required
-def upload_submission():
-    student_id = session.get('student_id')
-    course_id = request.form.get('course_id')
-    section_id = request.form.get('section_id')
-    sub_type = request.form.get('type') 
-    file = request.files.get('file')
+# @student.route('/upload_submission', methods=['POST'])
+# @student_required
+@router.post("/{student_id}/submissions",response_model=UploadResponse,tags=["Submission"])
+def upload_submission(student_id:int,course_id:int=Form(...),section_id:int=Form(...),submission_type:str=Form(...),file:UploadFilr=File(...)):
+    try:
+        if submission_type not in['assignment','quiz']:
+            raise HTTPException(status_code=400,detail="Submission must be assignmnent or quiz")
 
-    if file and file.filename != '':
-        if sub_type == 'assignment':
-            folder_name = 'students_assignments'
-        else:
-            folder_name = 'students_quizes'
-            
-        upload_path = os.path.join(current_app.root_path, 'static', 'uploads', 'students_uploads', folder_name)
+        if not file.filename.endswith(('.pdf','.docx','.doc')):
+            raise HTTPException(status_code=400,detail="Only pdf or docx format allowed")
+
+        contents=file.file.read()
+        file_size=len(contents)
+        if file_size > 10*1024*1024:
+            raise HTTPException(status_code=413,detail="File too large")
+
+        folder_name='students_assignmnets' if submission_type=='assignment' else 'students_quizes'
+        upload_path=os.path.join( 'static', 'uploads', 'students_uploads', folder_name)
         os.makedirs(upload_path, exist_ok=True)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = secure_filename(f"SID{student_id}_{timestamp}_{file.filename}")
-        file.save(os.path.join(upload_path, filename))
-        db_file_path = f"uploads/students_uploads/{folder_name}/{filename}"
-        StudentModel.insert_submission(student_id, course_id, section_id, db_file_path, sub_type)
-        
-        flash(f"{sub_type.capitalize()} uploaded successfully!", "success")
-    else:
-        flash("File upload failed. No file selected.", "danger")
+        timestamp=datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename=secure_filename(f"SID{student_id}_{timestamp}_{file.filename}")
+        file_path=os.path.join(upload_path,filename)
+        with open(file_path,'wb') as f:
+            f.write(contents)
 
-    return redirect(url_for('student.my_submissions'))
+        db_file_path=f"uploads/students_uploads/{folder_name}/{filename}"
+        submission_id=StudentModel.insert_submission(student_id,course_id,section_id,db_file_path,submission_type)
+
+        return UploadResponse(
+            success=True,message="f{Submission_type.capitalize()} Uploaded success",
+            submission_id=submission_id,file_size=file_size)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=f"upload failed: {str(e)}")
+           
+    # student_id = session.get('student_id')
+    # course_id = request.form.get('course_id')
+    # section_id = request.form.get('section_id')
+    # sub_type = request.form.get('type') 
+    # file = request.files.get('file')
+
+    # if file and file.filename != '':
+    #     if sub_type == 'assignment':
+    #         folder_name = 'students_assignments'
+    #     else:
+    #         folder_name = 'students_quizes'
+            
+    #     upload_path = os.path.join(current_app.root_path, 'static', 'uploads', 'students_uploads', folder_name)
+    #     os.makedirs(upload_path, exist_ok=True)
+    #     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    #     filename = secure_filename(f"SID{student_id}_{timestamp}_{file.filename}")
+    #     file.save(os.path.join(upload_path, filename))
+    #     db_file_path = f"uploads/students_uploads/{folder_name}/{filename}"
+    #     StudentModel.insert_submission(student_id, course_id, section_id, db_file_path, sub_type)
+        
+    #     flash(f"{sub_type.capitalize()} uploaded successfully!", "success")
+    # else:
+    #     flash("File upload failed. No file selected.", "danger")
+
+    # return redirect(url_for('student.my_submissions'))
 
 
 
