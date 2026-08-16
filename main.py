@@ -1,29 +1,30 @@
-from flask import Flask,render_template,request,redirect,url_for,session
-from datetime import date
-from utils.db import mysql
-from utils.auth import login_required
-from students_module.students_routes import router as student_router
-from teachers_module.teachers_routes import teacher
-from admin.admin_routes import admin
-from werkzeug.exceptions import RequestEntityTooLarge
-from config import *
-from models import MainModel
-import os
-import re
-from datetime import timedelta
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+# from flask import Flask,render_template,request,redirect,url_for,session
+# from datetime import date
+# from utils.db import mysql
+# from utils.auth import login_required
+# from students_module.students_routes import router as student_router
+# from students_module.students_routes  import  student
+# from teachers_module.teachers_routes import teacher
+# from admin.admin_routes import admin
+# from werkzeug.exceptions import RequestEntityTooLarge
+# from config import *
+# from models import MainModel
+# import os
+# import re
+# from datetime import timedelta
+# from fastapi import FastAPI
+# from fastapi.middleware.cors import CORSMiddleware
 
 
-app=FastAPI(title="LMS",description="Learning System",version="1.0.0")
+# app=FastAPI()
 
-app.add_middleware(CORSMiddleware,allow_origins=["*"],allow_credentials=True,allow_methods=["*"],allow_headers=["*"])
+# app.add_middleware(CORSMiddleware,allow_origins=["*"],allow_credentials=True,allow_methods=["*"],allow_headers=["*"])
 
-app.include_router(student_router,prefix="/api/students",tags=["Students"])
+# app.include_router(student_router,prefix="/api/students",tags=["Students"])
 
-if __name__=="main":
-    import uvicorn
-    uvicorn.run("main:app",host="0.0.0",port=8000,reload=True)
+# # if __name__=="main":
+# #     import uvicorn
+# #     uvicorn.run("main:app",host="0.0.0",port=8000,reload=True)
 
 # app = Flask(__name__, template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates'))
 # app.config['FEE_UPLOAD_FOLDER']=FEE_UPLOAD_FOLDER
@@ -138,3 +139,80 @@ if __name__=="main":
 
 # if __name__ == '__main__':
 #     app.run(port=50001, debug=True)
+
+
+
+
+from fastapi import FastAPI,Request
+from fastapi.middleware.cors import CORSMiddleware
+# from fastapi.middleware.sessions import SessionMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
+import secrets
+import os
+from pathlib import Path
+from students_module.students_routes import router as student_router
+from students_module.students_routes  import  student
+from teachers_module.teachers_routes import teacher
+from admin.admin_routes import admin
+from fastapi.responses import JSONResponse
+
+app=FastAPI()
+
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],allow_credentials=True,allow_methods=["*"],allow_headers=["*"])
+
+static_path=Path(__file__).parent/"static"
+if static_path.exists():
+    app.mount("/static",StaticFiles(directory=static_path),name="static")
+
+      
+
+app.include_router(
+    student_router,prefix="/api/students",
+    tags=["Students"]
+)
+try:
+    app.include_router(
+        teacher,
+        prefix="/api/teachers",
+        tags=["Teachers"]
+    )
+except:
+    pass
+
+try:
+    app.include_router(
+        admin,prefix="/api/admin",
+        tags=["Admin"]
+    )
+except:
+    pass    
+
+
+
+@app.exception_handler(Exception)
+def general_exception_handler(request:Request,exc:Exception):
+    return JSONResponse(
+        statusc_code=500,
+        content={
+            "success":False,
+            "message":"Internal server error",
+            "detail":str(exc)
+        }
+    )
+
+
+
+if __name__=="__main__":
+    import uvicorn
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        log_level="info"
+    )    

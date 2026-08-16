@@ -57,7 +57,7 @@ def track_student_activity():
 
 
 # @student.route('/student_login',methods=['GET','POST'])
-@router.post("/login",response_model=LoginResponse,tags=["Auth"])
+@router.post("/student_login",response_model=LoginResponse,tags=["Auth"])
 def student_login(request:StudentLoginRequest):
     try:
         user=UserModel.get_user_by_email(request.email)
@@ -883,20 +883,20 @@ def upload_submission(student_id:int,course_id:int=Form(...),section_id:int=Form
 @student.route('/my_submissions')
 @student_required
 def my_submissions():
-    student_id = session.get('student_id')
-    courses = StudentModel.get_enrolled_courses_by_student_id(student_id)
+    student_id=session.get('student_id')
+    courses=StudentModel.get_enrolled_courses_by_student_id(student_id)
     if not courses:
         return render_template('my_submissions.html', schedule=[], message="No courses enrolled.")
 
-    course_ids = [c['course_id'] for c in courses]
-    schedule = StudentModel.get_course_schedule_for_enrolled_sections(course_ids, student_id)
+    course_ids=[c['course_id'] for c in courses]
+    schedule=StudentModel.get_course_schedule_for_enrolled_sections(course_ids, student_id)
     
-    course_data = StudentModel.get_course_details_by_ids(course_ids)
-    course_names = {c['course_id']: c['course_name'] for c in course_data}
+    course_data=StudentModel.get_course_details_by_ids(course_ids)
+    course_names={c['course_id']: c['course_name'] for c in course_data}
     for s in schedule:
-        s['course_name'] = course_names.get(s['course_id'], 'Unknown')
+        s['course_name']=course_names.get(s['course_id'], 'Unknown')
 
-    submissions = StudentModel.get_student_submission_status(student_id)
+    submissions=StudentModel.get_student_submission_status(student_id)
     
     assignment_marks = {}
     quiz_marks = {}
