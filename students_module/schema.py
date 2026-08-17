@@ -27,9 +27,7 @@ class StudentProfileHelper(BaseModel):
     first_name:str
     last_name:str
     email:str
-    roll_number:str
     current_semester:int
-    cgpa:float
     program_id:int
 
     class Config:
@@ -39,8 +37,7 @@ class StudentProfileHelper(BaseModel):
 class ProgramDetailHelper(BaseModel):
     program_id:int
     program_name:str
-    duration_semester:int=Field(default=8)
-    department:Optional[str]=None
+    coordinator_name
 
 
 class StudentProfileResponse(BaseModel):
