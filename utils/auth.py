@@ -103,30 +103,3 @@ def admin_required(f):
         cursor.close()
         return f(*args, **kwargs)
     return decorated_function
-
-
-def get_current_student(request:Request)->int:
-    student_id=request.session.get('student_id')
-    if not student_id:
-        raise HTTPException(status_code=400,detail="Not authenticated")
-    return student_id
-
-def current_user(request:Request)->int:
-    user_id=request.session.get('user_id')
-    if not user_id:
-        raise HTTPException(status_code=400,detail="Not authenticated")
-    return user_id
-
-
-def get_current_teacher(request:Request)->int:
-    teacher_id=request.session.get('teacher_id')
-    if not teacher_id:
-        raise HTTPException(status_code=400,detail="Not authenticated")
-    return teacher_id
-
-
-def get_current_admin(request:Request)->int:
-    admin_id=request.session.get('admin_id')
-    if not admin_id:
-        raise HTTPException(status_code=400,detail="Not authenticated")
-    return admin_id

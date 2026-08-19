@@ -6,12 +6,15 @@ from students_module.students_models import UserModel,StudentModel,NotificationM
 import os
 from utils.db import mysql 
 from datetime import datetime,date
-from fastapi import APIRouter,Depends,HTTPException
+from fastapi import APIRouter,Depends,HTTPException,Request
 from students_module.schema import *
-
-
+from fastapi.responses import HTMLResponse,RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi import Form
+from fastapi.templating import Jinja2Templates
 router=APIRouter()
 
+templates=Jinja2Templates(directory="students_views")
 ALLOWED_EXTENSIONS={'pdf'}
 
 def allowed_file(filename):
@@ -51,28 +54,59 @@ def track_exit():
     return '',204
 
 
-@student.route('/student_login',methods=['GET','POST'])
-def student_login():
-    if request.method=='POST':
-        email=request.form['email']
-        password=request.form['password']
-        remember='remember_me' in request.form
 
-        user=UserModel.get_user_by_email(email)
-        if user and check_password_hash(user['password'],password):
-            student_obj=StudentModel.get_student_by_user_id(user['user_id'])
-            if student_obj:
-                session['user_id']=user['user_id']
-                session['role']='student'
-                session['student_id']=student_obj['student_id']
-                session['date']=datetime.now()
-                session.permanent=remember
-                return redirect(url_for('student.student_dashboard'))
-            else:
-                return redirect(url_for('student.student_login'))
+@router.post('/student_login')
+def student_login(request:Request,email:str=Form(None),password:str=Form(None),remember_me:bool=Form(False)):
+    if request.method=='GET':
+        return templates.TemplateResponse("student_login.hhtm",{"request":request})
+
+    user=UserModel.get_user_by_email(email)
+    if user and check_password_hash(user['password'],password):
+        student_obj=StudentModel.get_student_by_user_id(user['user_id'])
+        if student_obj:
+            request.session['user_id']=user['user_id']
+            request.session['role']='student'
+            request.session['student_id']=student_obj['student_id']
+            request.session['date']=datetime.now().isoformat()
+            request.session['remember']=remember_me
+
+            return RedirectResponse(url='/student_dashboard',status_code=303)
         else:
-            return redirect(url_for('student.student_login'))
-    return render_template('student_login.html')
+            return RedirectResponse(url='/student_login',status_code=303)
+    else:
+        return RedirectResponse(url='/student_login',status_code=303)            
+
+# # @student.route('/student_login',methods=['GET','POST'])
+# @router.post("/student_login",response_class=HTMLResponse)
+# def student_login(email:str=Form(...),password:str=Form(...)):
+#     if request.method=='POST':
+#         email=request.form['email']
+#         password=request.form['password']
+#         remember='remember_me' in request.form
+
+#         user=UserModel.get_user_by_email(email)
+#         if user and check_password_hash(user['password'],password):
+#             student_obj=StudentModel.get_student_by_user_id(user['user_id'])
+#             if student_obj:
+#                 session['user_id']=user['user_id']
+#                 session['role']='student'
+#                 session['student_id']=student_obj['student_id']
+#                 session['date']=datetime.now()
+#                 session.permanent=remember
+#                 return templates.TemplateResponse("student_dashboard.html",{
+#                     "request":request,"student":student_obj
+#                 })
+#                 # return redirect(url_for('student.student_dashboard'))
+#             else:
+#                 return templates.TemplateResponse("student_login.html",{
+#                                     "error":"Invalid"})
+
+#                 # return redirect(url_for('student.student_login'))
+#         else:
+#             return templates.TemplateResponse("student_login.html",{
+#                                                 "error":"Invalid"})
+#             # return redirect(url_for('student.student_login'))
+#     return render_template('student_login.html')
 
 
 @student.route('/student_base',methods=['GET'])

@@ -37,7 +37,7 @@ class StudentProfileHelper(BaseModel):
 class ProgramDetailHelper(BaseModel):
     program_id:int
     program_name:str
-    coordinator_name
+    program_coordinator:str
 
 
 class StudentProfileResponse(BaseModel):
