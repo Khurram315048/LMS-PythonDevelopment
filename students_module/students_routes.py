@@ -12,6 +12,9 @@ from fastapi.responses import HTMLResponse,RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi import Form
 from fastapi.templating import Jinja2Templates
+from pydantic import ValidationError
+
+
 router=APIRouter()
 
 templates=Jinja2Templates(directory="students_views")
@@ -59,9 +62,16 @@ def track_exit():
 def student_login(request:Request,email:str=Form(None),password:str=Form(None),remember_me:bool=Form(False)):
     if request.method=='GET':
         return templates.TemplateResponse("student_login.hhtm",{"request":request})
+    
+    try:
+        check_inputs=LoginResponse(
+            email=email,password=password,remember_me=remember_me
+        )
+    except ValidationError:
+        return templates.TemplateResponse("student_login.html",{"request":request,"error":"Email Format Invalid"})    
 
-    user=UserModel.get_user_by_email(email)
-    if user and check_password_hash(user['password'],password):
+    user=UserModel.get_user_by_email(check_inputs.email)
+    if user and check_password_hash(user['password'],check_inputs.password):
         student_obj=StudentModel.get_student_by_user_id(user['user_id'])
         if student_obj:
             request.session['user_id']=user['user_id']
