@@ -64,7 +64,7 @@ def student_login(request:Request,email:str=Form(None),password:str=Form(None),r
         return templates.TemplateResponse("student_login.html",{"request":request})
     
     try:
-        check_inputs=LoginResponse(
+        check_inputs=StudentLoginRequest(
             email=email,password=password,remember_me=remember_me
         )
     except ValidationError:
