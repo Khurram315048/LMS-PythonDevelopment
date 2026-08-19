@@ -61,7 +61,7 @@ def track_exit():
 @router.post('/student_login')
 def student_login(request:Request,email:str=Form(None),password:str=Form(None),remember_me:bool=Form(False)):
     if request.method=='GET':
-        return templates.TemplateResponse("student_login.hhtm",{"request":request})
+        return templates.TemplateResponse("student_login.html",{"request":request})
     
     try:
         check_inputs=LoginResponse(
