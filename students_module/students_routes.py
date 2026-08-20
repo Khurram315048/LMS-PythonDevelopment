@@ -71,6 +71,12 @@ def student_login(request:Request,email:str=Form(None),password:str=Form(None),r
         return templates.TemplateResponse("student_login.html",{"request":request,"error":"Email Format Invalid"})    
 
     user=UserModel.get_user_by_email(check_inputs.email)
+    if not user:
+        return templates.TemplateResponse("student_login.html",{"request":request,"error":"User not found"})
+
+    if user['role_id'] != 2:
+        return templates.TemplateResponse("student_login.html",{"request":request,"error":"Only student can login"})
+            
     if user and check_password_hash(user['password'],check_inputs.password):
         student_obj=StudentModel.get_student_by_user_id(user['user_id'])
         if student_obj:

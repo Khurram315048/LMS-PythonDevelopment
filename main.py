@@ -2,7 +2,7 @@ from flask import Flask,render_template,request,redirect,url_for,session
 from datetime import date
 from utils.db import mysql
 from utils.auth import login_required
-from students_module.students_routes import student,router as student_router
+from students_module.students_routes import student
 from teachers_module.teachers_routes import teacher
 from admin.admin_routes import admin
 from werkzeug.exceptions import RequestEntityTooLarge
@@ -15,9 +15,9 @@ from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 
 
-test_api=FastAPI()
-test_api.add_middleware(SessionMiddleware,secrete_key=SECRET_KEY)
-test_api.include_router(student_router)
+# test_api=FastAPI()
+# test_api.add_middleware(SessionMiddleware,secrete_key=SECRET_KEY)
+# test_api.include_router(student_router)
 
 app = Flask(__name__, template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates'))
 app.config['FEE_UPLOAD_FOLDER']=FEE_UPLOAD_FOLDER
@@ -46,7 +46,7 @@ EMAIL_PATTERN=r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 def main_view():
     if request.method=='POST':
         if 'student' in request.form:
-            
+            # return redirect('http://localhost:8000/student_login')
             return redirect(url_for('student.student_login'))
         elif 'teacher' in request.form:
             return redirect(url_for('teacher.teacher_login'))
@@ -132,6 +132,6 @@ def logout():
 
 
 if __name__ == '__main__':
-    import uvicorn
-    uvicorn.run("main:app",host="127.0.0.1",port=8000,reload=True)
-    # app.run(port=50001, debug=True)
+    # import uvicorn
+    # uvicorn.run("main:app",host="127.0.0.1",port=8000,reload=True)
+    app.run(port=50001, debug=True)
