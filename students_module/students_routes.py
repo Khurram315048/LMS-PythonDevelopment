@@ -13,11 +13,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi import Form
 from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
-
+from pathlib import Path
 
 router=APIRouter()
 
-templates=Jinja2Templates(directory="students_views")
+template_path=Path(__file__).parent/"students_views"
+templates=Jinja2Templates(directory=str(template_path))
 ALLOWED_EXTENSIONS={'pdf'}
 
 def allowed_file(filename):
