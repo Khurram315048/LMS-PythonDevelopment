@@ -837,73 +837,73 @@ class NotificationModel:
 
 
 
-class ActivityModel:
+# class ActivityModel:
 
-    @staticmethod
-    def log_enter(student_id,page_name,page_url,ip_address):
-        cursor=mysql.connection.cursor()
-        cursor.execute('''INSERT INTO student_activity_log(student_id,page_name,page_url,entered_at,ip_address)
-                       VALUES(%s,%s,%s,NOW(),%s)''',(student_id,page_name,page_url,ip_address))
-        mysql.connection.commit()
-        return cursor.lastrowid
+#     @staticmethod
+#     def log_enter(student_id,page_name,page_url,ip_address):
+#         cursor=mysql.connection.cursor()
+#         cursor.execute('''INSERT INTO student_activity_log(student_id,page_name,page_url,entered_at,ip_address)
+#                        VALUES(%s,%s,%s,NOW(),%s)''',(student_id,page_name,page_url,ip_address))
+#         mysql.connection.commit()
+#         return cursor.lastrowid
 
-    @staticmethod
-    def log_exit(log_id):
-        cursor=mysql.connection.cursor()
-        cursor.execute('''UPDATE student_activity_log
-                       SET exited_at=NOW(),
-                       time_spent_seconds=TIMESTAMPDIFF(SECOND,entered_at,NOW())
-                       WHERE log_id=%s''',(log_id,))
-        mysql.connection.commit()
+#     @staticmethod
+#     def log_exit(log_id):
+#         cursor=mysql.connection.cursor()
+#         cursor.execute('''UPDATE student_activity_log
+#                        SET exited_at=NOW(),
+#                        time_spent_seconds=TIMESTAMPDIFF(SECOND,entered_at,NOW())
+#                        WHERE log_id=%s''',(log_id,))
+#         mysql.connection.commit()
 
-    @staticmethod
-    def get_all_activity():
-        cursor=mysql.connection.cursor()
-        cursor.execute('''SELECT sal.log_id,sal.page_name,sal.page_url,sal.entered_at,
-                       sal.exited_at,sal.time_spent_seconds,sal.ip_address,
-                       s.first_name,s.last_name,s.student_id
-                       FROM student_activity_log sal
-                       JOIN students s ON sal.student_id=s.student_id
-                       ORDER BY sal.entered_at DESC''')
-        return cursor.fetchall()
+#     @staticmethod
+#     def get_all_activity():
+#         cursor=mysql.connection.cursor()
+#         cursor.execute('''SELECT sal.log_id,sal.page_name,sal.page_url,sal.entered_at,
+#                        sal.exited_at,sal.time_spent_seconds,sal.ip_address,
+#                        s.first_name,s.last_name,s.student_id
+#                        FROM student_activity_log sal
+#                        JOIN students s ON sal.student_id=s.student_id
+#                        ORDER BY sal.entered_at DESC''')
+#         return cursor.fetchall()
 
-    @staticmethod
-    def get_activity_by_student(student_id):
-        cursor=mysql.connection.cursor()
-        cursor.execute('''SELECT log_id,page_name,page_url,entered_at,exited_at,time_spent_seconds
-                       FROM student_activity_log
-                       WHERE student_id=%s ORDER BY entered_at DESC''',(student_id,))
-        return cursor.fetchall()
+#     @staticmethod
+#     def get_activity_by_student(student_id):
+#         cursor=mysql.connection.cursor()
+#         cursor.execute('''SELECT log_id,page_name,page_url,entered_at,exited_at,time_spent_seconds
+#                        FROM student_activity_log
+#                        WHERE student_id=%s ORDER BY entered_at DESC''',(student_id,))
+#         return cursor.fetchall()
 
-    @staticmethod
-    def get_page_summary():
-        cursor=mysql.connection.cursor()
-        cursor.execute('''SELECT page_name,COUNT(*) AS total_visits,
-                       AVG(time_spent_seconds) AS avg_seconds,
-                       MAX(time_spent_seconds) AS max_seconds
-                       FROM student_activity_log
-                       WHERE time_spent_seconds IS NOT NULL
-                       GROUP BY page_name ORDER BY total_visits DESC''')
-        return cursor.fetchall()
+#     @staticmethod
+#     def get_page_summary():
+#         cursor=mysql.connection.cursor()
+#         cursor.execute('''SELECT page_name,COUNT(*) AS total_visits,
+#                        AVG(time_spent_seconds) AS avg_seconds,
+#                        MAX(time_spent_seconds) AS max_seconds
+#                        FROM student_activity_log
+#                        WHERE time_spent_seconds IS NOT NULL
+#                        GROUP BY page_name ORDER BY total_visits DESC''')
+#         return cursor.fetchall()
 
-    @staticmethod
-    def get_student_page_summary(student_id):
-        cursor=mysql.connection.cursor()
-        cursor.execute('''SELECT page_name,COUNT(*) AS total_visits,
-                       SUM(time_spent_seconds) AS total_seconds,
-                       AVG(time_spent_seconds) AS avg_seconds
-                       FROM student_activity_log
-                       WHERE student_id=%s AND time_spent_seconds IS NOT NULL
-                       GROUP BY page_name ORDER BY total_seconds DESC''',(student_id,))
-        return cursor.fetchall()
+#     @staticmethod
+#     def get_student_page_summary(student_id):
+#         cursor=mysql.connection.cursor()
+#         cursor.execute('''SELECT page_name,COUNT(*) AS total_visits,
+#                        SUM(time_spent_seconds) AS total_seconds,
+#                        AVG(time_spent_seconds) AS avg_seconds
+#                        FROM student_activity_log
+#                        WHERE student_id=%s AND time_spent_seconds IS NOT NULL
+#                        GROUP BY page_name ORDER BY total_seconds DESC''',(student_id,))
+#         return cursor.fetchall()
 
-    @staticmethod
-    def get_active_now():
-        cursor=mysql.connection.cursor()
-        cursor.execute('''SELECT sal.log_id,sal.page_name,sal.entered_at,sal.ip_address,
-                       s.first_name,s.last_name,s.student_id
-                       FROM student_activity_log sal
-                       JOIN students s ON sal.student_id=s.student_id
-                       WHERE sal.exited_at IS NULL
-                       ORDER BY sal.entered_at DESC''')
-        return cursor.fetchall()
+#     @staticmethod
+#     def get_active_now():
+#         cursor=mysql.connection.cursor()
+#         cursor.execute('''SELECT sal.log_id,sal.page_name,sal.entered_at,sal.ip_address,
+#                        s.first_name,s.last_name,s.student_id
+#                        FROM student_activity_log sal
+#                        JOIN students s ON sal.student_id=s.student_id
+#                        WHERE sal.exited_at IS NULL
+#                        ORDER BY sal.entered_at DESC''')
+#         return cursor.fetchall()

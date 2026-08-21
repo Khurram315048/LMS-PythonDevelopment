@@ -2,11 +2,11 @@
 import secrets
 import os
 TEMPLATES_AUTO_RELOAD=True
-MYSQL_HOST='localhost'
+MYSQL_HOST='172.25.0.2'
 MYSQL_USER='root'
-MYSQL_PASSWORD=''
-MYSQL_DB='lms'
-MYSQL_PORT=3307
+MYSQL_PASSWORD='root'
+MYSQL_DB='lms_db'
+MYSQL_PORT=3306
 SECRET_KEY=secrets.token_hex(16)
 MYSQL_CURSORCLASS='DictCursor'
 BASE_DIR=os.path.abspath(os.path.dirname(__file__))

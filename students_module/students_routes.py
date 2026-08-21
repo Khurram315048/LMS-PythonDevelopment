@@ -2,7 +2,7 @@ from flask import Blueprint,render_template,request,redirect,url_for,session,fla
 from utils.auth import login_required,student_required
 from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
-from students_module.students_models import UserModel,StudentModel,NotificationModel,ActivityModel
+from students_module.students_models import UserModel,StudentModel,NotificationModel
 import os
 from utils.db import mysql 
 from datetime import datetime,date
@@ -26,39 +26,39 @@ def allowed_file(filename):
 
 student=Blueprint('student', __name__, template_folder='students_views')
 
-@student.before_request
-def track_student_activity():
-    student_id=session.get('student_id')
-    if not student_id:
-        return
+# @student.before_request
+# def track_student_activity():
+#     student_id=session.get('student_id')
+#     if not student_id:
+#         return
     
-    if request.path.startswith('/static'):
-        return
+#     if request.path.startswith('/static'):
+#         return
     
-    log_id=session.pop('current_log_id',None)
+#     log_id=session.pop('current_log_id',None)
 
-    if log_id:
-        ActivityModel.log_exit(log_id)
+#     if log_id:
+#         ActivityModel.log_exit(log_id)
 
-    new_log_id=ActivityModel.log_enter(
-        student_id=student_id,
-        page_name=request.endpoint or request.path,
-        page_url=request.path,
-        ip_address=request.remote_addr
-    )
-    session['current_log_id']=new_log_id
-
-
-@student.route('/track_exit',methods=['POST'])
-def track_exit():
-    log_id=session.pop('current_log_id',None)
-
-    if log_id:
-        ActivityModel.log_exit(log_id)
-    return '',204
+#     new_log_id=ActivityModel.log_enter(
+#         student_id=student_id,
+#         page_name=request.endpoint or request.path,
+#         page_url=request.path,
+#         ip_address=request.remote_addr
+#     )
+#     session['current_log_id']=new_log_id
 
 
+# @student.route('/track_exit',methods=['POST'])
+# def track_exit():
+#     log_id=session.pop('current_log_id',None)
 
+#     if log_id:
+#         ActivityModel.log_exit(log_id)
+#     return '',204
+
+
+# @router.get('/student_login')
 @router.post('/student_login')
 def student_login(request:Request,email:str=Form(None),password:str=Form(None),remember_me:bool=Form(False)):
     if request.method=='GET':
@@ -89,16 +89,18 @@ def student_login(request:Request,email:str=Form(None),password:str=Form(None),r
 
             return RedirectResponse(url='/student_dashboard',status_code=303)
         else:
+            
             return RedirectResponse(url='/student_login',status_code=303)
     else:
         return RedirectResponse(url='/student_login',status_code=303)            
 
-# # @student.route('/student_login',methods=['GET','POST'])
-# @router.post("/student_login",response_class=HTMLResponse)
-# def student_login(email:str=Form(...),password:str=Form(...)):
+
+
+# @student.route('/student_login',methods=['GET','POST'])
+# def student_login():
 #     if request.method=='POST':
-#         email=request.form['email']
-#         password=request.form['password']
+#         email=request.form.get('email')
+#         password=request.form.get('password')
 #         remember='remember_me' in request.form
 
 #         user=UserModel.get_user_by_email(email)
@@ -110,19 +112,11 @@ def student_login(request:Request,email:str=Form(None),password:str=Form(None),r
 #                 session['student_id']=student_obj['student_id']
 #                 session['date']=datetime.now()
 #                 session.permanent=remember
-#                 return templates.TemplateResponse("student_dashboard.html",{
-#                     "request":request,"student":student_obj
-#                 })
-#                 # return redirect(url_for('student.student_dashboard'))
+#                 return redirect(url_for('student.student_dashboard'))
 #             else:
-#                 return templates.TemplateResponse("student_login.html",{
-#                                     "error":"Invalid"})
-
-#                 # return redirect(url_for('student.student_login'))
+#                 return render_template('student_login.html', error='Invalid')
 #         else:
-#             return templates.TemplateResponse("student_login.html",{
-#                                                 "error":"Invalid"})
-#             # return redirect(url_for('student.student_login'))
+#             return render_template('student_login.html', error='Invalid')
 #     return render_template('student_login.html')
 
 
