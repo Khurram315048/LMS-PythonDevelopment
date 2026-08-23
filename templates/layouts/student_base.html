@@ -55,7 +55,7 @@
             {% endif %}
             <ul>
                 <li><a href="{{ url_for('student.student_dashboard') }}"><i class="fa-solid fa-chart-line"></i> <span>Dashboard</span></a></li>
-                <li><a href="/student_profile"><i class="fa-solid fa-user"></i> <span>My Profile</span></a></li>
+                <li><a href="{{ url_for('student.student_profile') }}"><i class="fa-solid fa-user"></i> <span>My Profile</span></a></li>
                 <li><a href="{{ url_for('student.view_grades') }}"><i class="fa-solid fa-graduation-cap"></i> <span>My Results</span></a></li>
                 <li><a href="{{ url_for('student.view_attendence') }}"><i class="fa-solid fa-calendar-check"></i> <span>Attendance Summary</span></a></li>
                 <li><a href="{{ url_for('student.my_submissions') }}"><i class="fa-solid fa-file-arrow-up"></i> <span>My Submissions</span></a></li>

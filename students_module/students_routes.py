@@ -60,109 +60,109 @@ student=Blueprint('student', __name__, template_folder='students_views')
 #     return '',204
 
 
-@router.get('/student_login')
-@router.post('/student_login')
-def student_login(request:Request,email:str=Form(None),
-    password:str=Form(None),
-    remember_me:bool=Form(False)):
+# @router.get('/student_login')
+# @router.post('/student_login')
+# def student_login(request:Request,email:str=Form(None),
+#     password:str=Form(None),
+#     remember_me:bool=Form(False)):
 
-    if request.method=='GET':
-        return templates.TemplateResponse(
-            request=request, 
-            name="student_login.html"
-        )
+#     if request.method=='GET':
+#         return templates.TemplateResponse(
+#             request=request, 
+#             name="student_login.html"
+#         )
 
-    try:
-        check_inputs=StudentLoginRequest(
-            email=email,
-            password=password,
-            remember_me=remember_me
-        )
-    except ValidationError as e:
-        print("Pydantic Validation Error:",e.errors())
-        return templates.TemplateResponse(
-            request=request, 
-            name="student_login.html", 
-            context={"error": "Email Format Invalid"}
-        )
+#     try:
+#         check_inputs=StudentLoginRequest(
+#             email=email,
+#             password=password,
+#             remember_me=remember_me
+#         )
+#     except ValidationError as e:
+#         print("Pydantic Validation Error:",e.errors())
+#         return templates.TemplateResponse(
+#             request=request, 
+#             name="student_login.html", 
+#             context={"error": "Email Format Invalid"}
+#         )
     
-    from main import app
-    with app.test_request_context('/student_login'):
+#     from main import app
+#     with app.test_request_context('/student_login'):
         
-        user=UserModel.get_user_by_email(check_inputs.email)
-        if not user:
-            return templates.TemplateResponse(
-                request=request, 
-                name="student_login.html", 
-                context={"error": "User not found"}
-            )
+#         user=UserModel.get_user_by_email(check_inputs.email)
+#         if not user:
+#             return templates.TemplateResponse(
+#                 request=request, 
+#                 name="student_login.html", 
+#                 context={"error": "User not found"}
+#             )
         
-        if user['role_id'] != 2:
-            return templates.TemplateResponse(
-                request=request, 
-                name="student_login.html", 
-                context={"error": "Only student can login"}
-            )
+#         if user['role_id'] != 2:
+#             return templates.TemplateResponse(
+#                 request=request, 
+#                 name="student_login.html", 
+#                 context={"error": "Only student can login"}
+#             )
 
-        if user and check_password_hash(user['password'],check_inputs.password):
-            student_obj=StudentModel.get_student_by_user_id(user['user_id'])
-            if student_obj:
-                flask_session['user_id']=user['user_id']
-                flask_session['role']='student'
-                flask_session['student_id']=student_obj['student_id']
-                flask_session['date']=datetime.now().isoformat()
-                flask_session['remember']=remember_me
-
-                session_cookie_name=app.config.get('SESSION_COOKIE_NAME','session')
-                session_data=app.session_interface.get_signing_serializer(app).dumps(dict(flask_session))
-                response=RedirectResponse(url='/student_dashboard', status_code=303)
-                response.set_cookie(
-                    key=session_cookie_name,
-                    value=session_data,
-                    httponly=True,
-                    path='/'
-                )
-                return response
-
-                # request.session['user_id'] = user['user_id']
-                # request.session['role'] = 'student'
-                # request.session['student_id'] = student_obj['student_id']
-                # request.session['date'] = datetime.now().isoformat()
-                # request.session['remember'] = remember_me
-                # return RedirectResponse(url='/student_dashboard', status_code=303)
-            else:
-                return RedirectResponse(url='/student_login',status_code=303)
-            
-    return templates.TemplateResponse(request=request,
-                                    name="student_login.html",context={
-                                    "error": "Invalid credentials"
-                                     })
-
-
-
-
-# @student.route('/student_login',methods=['GET','POST'])
-# def student_login():
-#     if request.method=='POST':
-#         email=request.form.get('email')
-#         password=request.form.get('password')
-#         remember='remember_me' in request.form
-
-#         user=UserModel.get_user_by_email(email)
-#         if user and check_password_hash(user['password'],password):
+#         if user and check_password_hash(user['password'],check_inputs.password):
 #             student_obj=StudentModel.get_student_by_user_id(user['user_id'])
 #             if student_obj:
-#                 session['user_id']=user['user_id']
-#                 session['role']='student'
-#                 session['student_id']=student_obj['student_id']
-#                 session['date']=datetime.now()
-#                 session.permanent=remember
-#                 return redirect(url_for('student.student_dashboard'))
+#                 flask_session['user_id']=user['user_id']
+#                 flask_session['role']='student'
+#                 flask_session['student_id']=student_obj['student_id']
+#                 flask_session['date']=datetime.now().isoformat()
+#                 flask_session['remember']=remember_me
+
+#                 session_cookie_name=app.config.get('SESSION_COOKIE_NAME','session')
+#                 session_data=app.session_interface.get_signing_serializer(app).dumps(dict(flask_session))
+#                 response=RedirectResponse(url='/student_dashboard', status_code=303)
+#                 response.set_cookie(
+#                     key=session_cookie_name,
+#                     value=session_data,
+#                     httponly=True,
+#                     path='/'
+#                 )
+#                 return response
+
+#                 # request.session['user_id'] = user['user_id']
+#                 # request.session['role'] = 'student'
+#                 # request.session['student_id'] = student_obj['student_id']
+#                 # request.session['date'] = datetime.now().isoformat()
+#                 # request.session['remember'] = remember_me
+#                 # return RedirectResponse(url='/student_dashboard', status_code=303)
 #             else:
-#                 return render_template('student_login.html', error='Invalid')
-#         else:
-#             return render_template('student_login.html', error='Invalid')
-#     return render_template('student_login.html')
+#                 return RedirectResponse(url='/student_login',status_code=303)
+            
+#     return templates.TemplateResponse(request=request,
+#                                     name="student_login.html",context={
+#                                     "error": "Invalid credentials"
+#                                      })
+
+
+
+
+@student.route('/student_login',methods=['GET','POST'])
+def student_login():
+    if request.method=='POST':
+        email=request.form.get('email')
+        password=request.form.get('password')
+        remember='remember_me' in request.form
+
+        user=UserModel.get_user_by_email(email)
+        if user and check_password_hash(user['password'],password):
+            student_obj=StudentModel.get_student_by_user_id(user['user_id'])
+            if student_obj:
+                session['user_id']=user['user_id']
+                session['role']='student'
+                session['student_id']=student_obj['student_id']
+                session['date']=datetime.now()
+                session.permanent=remember
+                return redirect(url_for('student.student_dashboard'))
+            else:
+                return render_template('student_login.html', error='Invalid')
+        else:
+            return render_template('student_login.html', error='Invalid')
+    return render_template('student_login.html')
 
 
 @student.route('/student_base',methods=['GET'])
@@ -176,45 +176,45 @@ def base():
 
 
 
-@router.get('/student_profile')
-@router.post('/student_profile')
-def student_profile(request:Request):
-    from main import app
+# @router.get('/student_profile')
+# @router.post('/student_profile')
+# def student_profile(request:Request):
+#     from main import app
     
-    student_id=request.session.get('student_id')
-    user_id=request.session.get('user_id')
-    if not student_id or not user_id:
-        return RedirectResponse(url='/student_login',status_code=303)
+#     student_id=request.session.get('student_id')
+#     user_id=request.session.get('user_id')
+#     if not student_id or not user_id:
+#         return RedirectResponse(url='/student_login',status_code=303)
 
-    try:
-        with app.app_context():
-            student_obj=StudentModel.get_student_by_id(student_id)
-            program=StudentModel.get_student_program_details(student_id)
-            student_name=StudentModel.get_student_name_by_user_id(user_id)
-            return templates.TemplateResponse(request=request,name="student_profile.html",context={
-                "program":program,
-                "student":student_obj,
-                "student_name":student_name
-                })
-    except Exception as e:
-        print(f"Error is student_profile is: {e}")
-        return templates.TemplateResponse(request=request,name="student_profile.html",context={
-            "error":"An error occured while fetching the profile"
-        })
+#     try:
+#         with app.app_context():
+#             student_obj=StudentModel.get_student_by_id(student_id)
+#             program=StudentModel.get_student_program_details(student_id)
+#             student_name=StudentModel.get_student_name_by_user_id(user_id)
+#             return templates.TemplateResponse(request=request,name="student_profile.html",context={
+#                 "program":program,
+#                 "student":student_obj,
+#                 "student_name":student_name
+#                 })
+#     except Exception as e:
+#         print(f"Error is student_profile is: {e}")
+#         return templates.TemplateResponse(request=request,name="student_profile.html",context={
+#             "error":"An error occured while fetching the profile"
+#         })
         
 
 
-# @student.route('/student_profile',methods=['GET','POST'])
-# @student_required
-# def student_profile():
-#     if session.get('role') != 'student':
-#         return redirect(url_for('main_view'))
+@student.route('/student_profile',methods=['GET','POST'])
+@student_required
+def student_profile():
+    if session.get('role') != 'student':
+        return redirect(url_for('main_view'))
 
-#     student_id=session['student_id']
-#     student_obj=StudentModel.get_student_by_id(student_id)
-#     program=StudentModel.get_student_program_details(student_id)
-#     show_notification=request.method =='POST' and 'edit_request' in request.form
-#     return render_template('student_profile.html',student=student_obj,program=program,show_notification=show_notification)
+    student_id=session['student_id']
+    student_obj=StudentModel.get_student_by_id(student_id)
+    program=StudentModel.get_student_program_details(student_id)
+    show_notification=request.method =='POST' and 'edit_request' in request.form
+    return render_template('student_profile.html',student=student_obj,program=program,show_notification=show_notification)
 
 
 @student.route('/student_dashboard',methods=['GET', 'POST'])

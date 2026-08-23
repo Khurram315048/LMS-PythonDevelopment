@@ -37,6 +37,19 @@
             <label>Admission Session</label>
             <input type="text" name="admission_session" value="{{ student.admission_session }}" readonly>
         </form>
+        
+        <div class="edit-profile-section">
+            <form method="POST">
+                <button type="submit" name="edit_request" value="true" class="edit-btn">
+                    Click Here If Anything Is Wrong 😊
+                </button>
+            </form>
+            {% if show_notification %}
+            <div class="notification">
+                Contact To Register Office
+            </div>
+            {% endif %}
+        </div>
         {% endif %}
     </div>
 </div>
