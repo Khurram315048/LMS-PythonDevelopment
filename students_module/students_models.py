@@ -1,3 +1,4 @@
+import MySQLdb
 import MySQLdb.cursors
 from utils.db import mysql 
 
@@ -5,7 +6,7 @@ class UserModel:
     @staticmethod
     def get_user_by_email(email):
         cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT user_id,password FROM users WHERE email=%s',(email,))
+        cursor.execute('SELECT user_id,password,role_id FROM users WHERE email=%s',(email,))
         user=cursor.fetchone()
         cursor.close()
         return user

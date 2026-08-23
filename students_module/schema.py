@@ -6,7 +6,7 @@ from datetime import datetime
 
 class StudentLoginRequest(BaseModel):
     email:EmailStr
-    password:str=Field(...,min_length=6)
+    password:str
     remember_me:bool=False
 
 
