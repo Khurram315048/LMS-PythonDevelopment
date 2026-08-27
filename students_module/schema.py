@@ -62,7 +62,7 @@ class TeacherHelper(BaseModel):
 
 
 class CourseScheduleHelper(BaseModel):
-    course_schdule_id:int
+    course_schedule_id:int
     course_id:int
     section_id:int
     day:str
@@ -138,7 +138,7 @@ class FYPHelper(BaseModel):
     fyp_id:int
     project_title:str
     description:Optional[str]=None
-    studet_id:int
+    student_id:int
     teacher_id:Optional[int]=None
     status:str
     progress:int=Field(ge=0,le=100)
@@ -171,7 +171,7 @@ class SendFYPMessageRequest(BaseModel):
 
 
 class AttendanceRecordHelper(BaseModel):
-    attendace_date:datetime
+    attendance_date:datetime
     attendance_status:str
 
 
@@ -196,8 +196,7 @@ class GradeHelper(BaseModel):
     course_name:str
     credit_hours:int
     total_marks:float
-    student_grade:str
-    subject_cgpa:float
+    subject_gpa:float
     status:str
 
 
@@ -223,7 +222,7 @@ class FeeRecordHelper(BaseModel):
 
 class StudentFeeResponse(BaseModel):
     student_id:int
-    programm:str
+    program:str
     total_fees_due:float
     fees_paid:float
     pending_fees:float
@@ -252,7 +251,7 @@ class ImprovementSubjectHelper(BaseModel):
 
 
 class RetakeSubjectHelper(BaseModel):
-    faild_id:int
+    failed_id:int
     course_id:int
     course_name:str
     status:str
@@ -299,7 +298,7 @@ class  ComplaintSuggestionRequest(BaseModel):
 
 
 class ComplaintResponse(BaseModel):
-    success:str
+    success:bool
     message:str
     complaint_id:int
     status:str

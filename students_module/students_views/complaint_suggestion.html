@@ -10,13 +10,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/suggesstion_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',path='css/suggesstion_style.css') }}">
 </head>
 <body>
-
+ {% if error_msg %}
+        <div class="alert alert-danger" style="padding: 10px; background-color: #f8d7da; color: #721c24; border-radius: 4px; margin-bottom: 15px;">
+            ❌ {{ error_msg }}
+        </div>
+    {% endif %}
     <div class="container">
         <h1 class="headings">Complaint/Suggestion Form</h1>
-        <form method="POST" action="{{ url_for('student.complaint_suggestion') }}" enctype="multipart/form-data">
+        <form method="POST" action="/complaint_suggestion" enctype="multipart/form-data">
             <label for="title">Title:</label>
             <select id="title" name="title" required>
                 <option value="" disabled selected>Select a title</option>

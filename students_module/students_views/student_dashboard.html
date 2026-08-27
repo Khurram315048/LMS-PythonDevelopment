@@ -4,13 +4,10 @@
 
 {% block content %}
 
-<head>
-    <title>Student-Dashboard</title>
-</head>
 <div class="container">
     <div class="dashboard-content">
         <h1 class="headings">My Dashboard</h1>
-        {% if schedule and teacher %}
+        {% if schedule %}
         <table>
             <thead>
                 <tr>
@@ -24,16 +21,11 @@
                 {% for s in schedule %}
                 <tr>
                     <td>{{ s.course_name }}</td>
-                    <td>
-                        {% for t in teacher %}
-                        {% if t.teacher_id in teacher_ids.get(s.course_id, []) %}
-                        {{ t.first_name }} {{ t.last_name }}
-                        {% endif %}
-                        {% endfor %}
-                    </td>
+                    <td>{{ s.teacher_name }}</td>
                     <td>{{ s.day_of_week }} {{ s.start_time }}</td>
                     <td>{{ s.location }}</td>
-                     {% endfor %}
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
         {% else %}

@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import session, redirect, url_for
+from flask import session, redirect, url_for,request
 import MySQLdb.cursors
 from utils.db import mysql
 from fastapi import Depends,HTTPException,Request
@@ -43,7 +43,7 @@ def login_required(f):
 def student_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
+        if 'user_id' not in request.session:
             return redirect(url_for('main_view'))
         if session.get('role') != 'student':
             return redirect(url_for('main_view'))

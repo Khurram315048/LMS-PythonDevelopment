@@ -1,6 +1,7 @@
 import MySQLdb
 import MySQLdb.cursors
 from utils.db import mysql 
+import datetime
 
 class UserModel:
     @staticmethod
@@ -34,7 +35,7 @@ class StudentModel:
 
     @staticmethod
     def get_student_by_id(student_id):
-        cursor=mysql.connection.cursor()
+        cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM students WHERE student_id=%s AND is_deleted=%s',(student_id,0,))
         student=cursor.fetchone()
         cursor.close()
@@ -66,8 +67,13 @@ class StudentModel:
 
     @staticmethod
     def get_enrolled_courses_by_student_id(student_id):
-        cursor=mysql.connection.cursor()
-        cursor.execute('SELECT course_id FROM student_course WHERE student_id=%s AND is_deleted=%s',(student_id,0,))
+        cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute("""SELECT DISTINCT c.course_id,c.course_name,c.credit_hours
+            FROM student_course sc
+            JOIN courses c ON sc.course_id=c.course_id
+            WHERE sc.student_id=%s 
+            AND sc.is_deleted=0 
+            AND c.is_deleted=0 """,(student_id,))
         courses=cursor.fetchall()
         cursor.close()
         return courses
@@ -77,7 +83,7 @@ class StudentModel:
     def get_course_details_by_ids(course_ids):
         if not course_ids:
             return []
-        cursor=mysql.connection.cursor()
+        cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         course_placeholders= ','.join(['%s'] * len(course_ids))
         cursor.execute(f'''
             SELECT course_id,course_name
@@ -93,13 +99,12 @@ class StudentModel:
     def get_teachers_by_course_ids(course_ids):
         if not course_ids:
             return []
-        cursor=mysql.connection.cursor()
+        cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         course_placeholders=','.join(['%s'] * len(course_ids))
         cursor.execute(f'''
             SELECT course_id,teacher_id
             FROM teacher_course
-            WHERE course_id IN ({course_placeholders})
-        ''', tuple(course_ids))
+            WHERE course_id IN ({course_placeholders}) AND is_deleted=0''', tuple(course_ids))
         teacher_rows=cursor.fetchall()
         cursor.close()
         return teacher_rows
@@ -109,12 +114,12 @@ class StudentModel:
     def get_teacher_info_by_ids(teacher_ids):
         if not teacher_ids:
             return []
-        cursor=mysql.connection.cursor()
+        cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         teacher_placeholders=','.join(['%s'] * len(teacher_ids))
         cursor.execute(f'''
             SELECT teacher_id,first_name,last_name
             FROM teachers
-            WHERE teacher_id IN ({teacher_placeholders})
+            WHERE teacher_id IN ({teacher_placeholders}) AND is_deleted=0
         ''', tuple(teacher_ids))
         teacher_data=cursor.fetchall()
         cursor.close()
@@ -128,16 +133,12 @@ class StudentModel:
             return []
 
         cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        placeholders=', '.join(['%s'] * len(course_ids))
-        
-        query="""
-        SELECT cs.*, s.assignments_enabled,s.quizzes_enabled 
+        placeholder= ', '.join(['%s'] * len(course_ids))
+        query=f"""SELECT cs.*,s.assignments_enabled,s.quizzes_enabled
         FROM course_schedule cs
         JOIN sections s ON cs.section_id=s.section_id
-        WHERE cs.course_id IN (%s)
-    """ % placeholders
-        cursor.execute(query, tuple(course_ids))
-        
+        WHERE cs.course_id IN ({placeholder})"""
+        cursor.execute(query,tuple(course_ids))
         schedule=cursor.fetchall()
         cursor.close()
         return schedule
@@ -150,14 +151,16 @@ class StudentModel:
             return []
     
         cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        placeholders = ', '.join(['%s'] * len(course_ids))
-        query=f"""
-        SELECT cs.*, s.assignments_enabled,s.quizzes_enabled,s.section_name
-        FROM course_schedule cs
-        JOIN sections s ON cs.section_id=s.section_id
-        JOIN student_section ss ON s.section_id=ss.section_id
-        WHERE cs.course_id IN ({placeholders}) AND ss.student_id=%s
-    """
+        placeholders=', '.join(['%s'] * len(course_ids))
+        query=f"""SELECT DISTINCT cs.course_id,cs.section_id,
+         cs.day_of_week,cs.start_time,cs.end_time,
+          cs.location,s.assignments_enabled,s.quizzes_enabled,
+           s.section_name
+            FROM course_schedule cs
+             JOIN sections s ON cs.section_id=s.section_id
+              JOIN student_section ss ON s.section_id=ss.section_id
+               WHERE cs.course_id IN ({placeholders})
+                AND ss.student_id=%s AND cs.is_deleted=0 AND s.is_deleted=0 """
         params=list(course_ids)
         params.append(student_id)
     
@@ -170,22 +173,17 @@ class StudentModel:
 
     @staticmethod
     def get_student_fee_records(student_id):
-        cursor=mysql.connection.cursor()
+        cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         query="""
-            SELECT
-                p.program_name AS program,
-                sf.update_date AS paid_date,
-                sf.fee_month AS month,
-                sf.fee_amount AS fee_amount,
-                sf.voucher_front_pic AS front_voucher,
-                sf.voucher_back_pic AS back_voucher,
-                DATE(sf.update_date) AS fee_paid_at,
-                sf.fee_status AS status
-            FROM student_fees sf
-            JOIN programs p ON sf.program_id=p.program_id
-            WHERE sf.student_id=%s
-        """
-        cursor.execute(query, (student_id,))
+        SELECT p.program_name AS program,
+            sf.update_date AS paid_date,sf.fee_month AS month,
+            sf.fee_amount AS fee_amount,sf.voucher_front_pic AS front_voucher,
+            sf.voucher_back_pic AS back_voucher,DATE(sf.update_date) AS fee_paid_at,
+            sf.fee_status AS status
+        FROM student_fees sf
+        JOIN programs p ON sf.program_id=p.program_id
+        WHERE sf.student_id=%s AND sf.is_deleted=0"""
+        cursor.execute(query,(student_id,))
         fee_records=cursor.fetchall()
         cursor.close()
         return fee_records
@@ -256,14 +254,10 @@ class StudentModel:
     def upload_fee_voucher(student_id,program_id,month,fee_amount,front_path,back_path):
         cursor=mysql.connection.cursor()
         cursor.execute('''
-            INSERT INTO student_fees
-            (student_id,program_id,fee_month,fee_amount,
-             voucher_front_pic,voucher_back_pic,fee_status,update_date)
-            VALUES (%s,%s,%s,%s,%s,%s,%s, NOW())
-        ''', (
-            student_id,program_id,month,fee_amount,
-            front_path,back_path,'Pending'
-        ))
+            INSERT INTO student_fees(fee_amount,fee_status,update_date,voucher_front_pic,
+            voucher_back_pic,program_id,fee_month,student_id,is_deleted)
+            VALUES(%s,%s,NOW(),%s,%s,%s,%s,%s,%s)''',
+            (fee_amount,'due',front_path,back_path,program_id,month,student_id,0))
         mysql.connection.commit()
         cursor.close()
 
@@ -408,21 +402,24 @@ class StudentModel:
     @staticmethod
     def get_eligible_improvement_courses(student_id,max_semester):
         cursor=mysql.connection.cursor()
-        cursor.execute("""
-            SELECT
-                c.course_id,
-                c.course_name,
-                c.credit_hours,
-                CONCAT(t.first_name, ' ', t.last_name) AS teacher_name,
-                s.semester
+        cursor.execute("""SELECT c.course_id,c.course_name,c.credit_hours,
+                GROUP_CONCAT(DISTINCT CONCAT(t.first_name, ' ', t.last_name) SEPARATOR ', ') AS teacher_name,
+                MIN(s.semester) AS semester
             FROM courses c
-            LEFT JOIN teacher_course tc ON c.course_id=tc.course_id
-            LEFT JOIN teachers t ON tc.teacher_id=t.teacher_id
-            LEFT JOIN sections s ON c.course_id=s.course_id
-            LEFT JOIN student_section ss ON s.section_id=ss.section_id
-            WHERE ss.student_id=%s AND s.semester BETWEEN 1 AND %s
-            ORDER BY s.semester ASC
-        """, (student_id,max_semester))
+            LEFT JOIN teacher_course tc ON c.course_id=tc.course_id AND tc.is_deleted=0
+            LEFT JOIN teachers t ON tc.teacher_id=t.teacher_id AND t.is_deleted=0
+            LEFT JOIN sections s ON c.course_id=s.course_id AND s.is_deleted=0
+            LEFT JOIN student_section ss ON s.section_id=ss.section_id AND ss.is_deleted=0
+            LEFT JOIN student_course sc ON c.course_id=sc.course_id AND sc.is_deleted=0
+            LEFT JOIN student_result_marks rm ON rm.student_course_id=sc.student_course_id AND rm.is_deleted = 0
+            WHERE ss.student_id=%s 
+              AND sc.student_id=%s
+              AND s.semester BETWEEN 1 AND %s
+              AND (rm.student_grade != 'F' OR rm.student_grade IS NULL)  
+              AND c.is_deleted=0
+            GROUP BY c.course_id,c.course_name,c.credit_hours
+            ORDER BY semester ASC
+        """, (student_id,student_id,max_semester))
         courses=cursor.fetchall()
         cursor.close()
         return courses
@@ -474,21 +471,21 @@ class StudentModel:
     def get_eligible_fail_subjects(student_id,max_semester):
         cursor=mysql.connection.cursor()
         cursor.execute("""
-            SELECT
-                c.course_id,
-                c.course_name,
-                c.credit_hours,
-                CONCAT(t.first_name, ' ', t.last_name) AS teacher_name,
-                s.semester
+            SELECT c.course_id,c.course_name,c.credit_hours,
+                GROUP_CONCAT(DISTINCT CONCAT(t.first_name, ' ',t.last_name) SEPARATOR ', ') AS teacher_name,
+                MIN(s.semester) AS semester
             FROM courses c
-            LEFT JOIN teacher_course tc ON c.course_id=tc.course_id
-            LEFT JOIN teachers t ON tc.teacher_id=t.teacher_id
-            LEFT JOIN sections s ON c.course_id=s.course_id
-            LEFT JOIN student_section ss ON s.section_id=ss.section_id
-            LEFT JOIN student_course sc ON c.course_id=sc.course_id
-            LEFT JOIN student_result_marks rm ON rm.student_course_id=sc.student_course_id
-            WHERE ss.student_id=%s AND sc.student_id=%s AND s.semester BETWEEN 1 AND %s AND rm.student_grade = 'F'
-            ORDER BY s.semester ASC
+            LEFT JOIN teacher_course tc ON c.course_id=tc.course_id AND tc.is_deleted=0
+            LEFT JOIN teachers t ON tc.teacher_id = t.teacher_id AND t.is_deleted=0
+            LEFT JOIN sections s ON c.course_id = s.course_id AND s.is_deleted=0
+            LEFT JOIN student_section ss ON s.section_id=ss.section_id AND ss.is_deleted=0
+            LEFT JOIN student_course sc ON c.course_id=sc.course_id AND sc.is_deleted=0
+            LEFT JOIN student_result_marks rm ON rm.student_course_id=sc.student_course_id AND rm.is_deleted = 0
+            WHERE ss.student_id=%s AND sc.student_id=%s 
+              AND s.semester BETWEEN 1 AND %s AND rm.student_grade='F'
+              AND c.is_deleted=0
+            GROUP BY c.course_id,c.course_name,c.credit_hours
+            ORDER BY semester ASC
         """, (student_id,student_id,max_semester))
         courses=cursor.fetchall()
         cursor.close()
@@ -558,11 +555,7 @@ class StudentModel:
     @staticmethod
     def get_eligible_summer_failed_subjects(student_id):
         cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        query="""
-            SELECT 
-                c.course_id, 
-                c.course_name, 
-                c.credit_hours,
+        query="""SELECT c.course_id, c.course_name, c.credit_hours,
                 rm.student_semester as semester,
                 CONCAT(t.first_name, ' ', t.last_name) AS teacher_name
             FROM student_result_marks rm
@@ -570,15 +563,12 @@ class StudentModel:
             JOIN courses c ON sc.course_id=c.course_id
             LEFT JOIN teacher_course tc ON c.course_id=tc.course_id
             LEFT JOIN teachers t ON tc.teacher_id=t.teacher_id
-            WHERE sc.student_id=%s
-              AND rm.student_grade = 'F'
+            WHERE sc.student_id=%s AND rm.student_grade='F'
               AND rm.student_semester = (
                   SELECT MAX(rm2.student_semester) 
                   FROM student_result_marks rm2 
                   JOIN student_course sc2 ON rm2.student_course_id=sc2.student_course_id 
-                  WHERE sc2.student_id=%s AND rm2.student_grade = 'F'
-              )
-        """
+                  WHERE sc2.student_id=%s AND rm2.student_grade= 'F')"""
         cursor.execute(query,(student_id,student_id))
         failed_subjects=cursor.fetchall()
         cursor.close()
@@ -633,17 +623,18 @@ class StudentModel:
         return result['setting_value'] if result else None
 
     @staticmethod
-    def add_summer_subject(student_id, course_id, summer_semester_id):
+    def add_summer_subject(student_id,course_id,summer_semester_id):
         cursor=mysql.connection.cursor()
         cursor.execute('SELECT * FROM summer_registration WHERE student_id=%s AND course_id=%s AND summer_semesters_id=%s',
-                   (student_id, course_id, summer_semester_id))
+                   (student_id,course_id,summer_semester_id))
         if cursor.fetchone():
             cursor.close()
             return False
+        
         cursor.execute('''
             INSERT INTO summer_registration(student_id,course_id,summer_semesters_id,registration_date)
             VALUES (%s,%s,%s, NOW())
-            ''', (student_id,course_id,summer_semester_id))
+            ''',(student_id,course_id,summer_semester_id))
         mysql.connection.commit()
         cursor.close()
         return True
@@ -652,8 +643,8 @@ class StudentModel:
     @staticmethod
     def delete_summer_subject(student_id,course_id,summer_semester_id):
         cursor=mysql.connection.cursor()
-        query = "DELETE FROM summer_registration WHERE student_id=%s AND course_id=%s AND summer_semesters_id=%s"
-        cursor.execute(query, (student_id,course_id,summer_semester_id))
+        query="DELETE FROM summer_registration WHERE student_id=%s AND course_id=%s AND summer_semesters_id=%s"
+        cursor.execute(query,(student_id,course_id,summer_semester_id))
         mysql.connection.commit()
         cursor.close()
         return True
@@ -663,7 +654,7 @@ class StudentModel:
     def get_selected_summer_subjects(student_id,summer_semester_id):
         cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         query="""
-            SELECT sr.course_id,c.course_name,c.credit_hours,'Summer' as type, 'Registered' as status
+            SELECT sr.course_id,c.course_name,c.credit_hours,'Summer' as type,'Registered' as status
             FROM summer_registration sr
             JOIN courses c ON sr.course_id=c.course_id
             WHERE sr.student_id=%s AND sr.summer_semesters_id=%s
@@ -695,9 +686,7 @@ class StudentModel:
     @staticmethod
     def get_all_teachers():
         cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute(
-            "SELECT teacher_id,first_name,last_name FROM teachers WHERE is_deleted=0"
-            )
+        cursor.execute("SELECT teacher_id,first_name,last_name FROM teachers WHERE is_deleted=0")
         teachers=cursor.fetchall()
         cursor.close()
         return teachers

@@ -43,14 +43,14 @@
     <div class="actions-card">
       <div class="button-row">
         {% if can_register %}
-            <form action="{{ url_for('student.summer_subjects') }}" method="GET">
+            <form action="/summer_subjects" method="GET">
                 <button class="btn-yellow">Add Subject (For Summer Intake)</button>
             </form>
         {% else %}
             <button class="btn-yellow" style="background-color: grey; cursor: not-allowed;" disabled>
                 {% if failed_count == 0 %}
                     No Eligible Failed Subjects Found
-                {% elif selected|length >= failed_count %}
+                {% elif selected | length >= failed_count | default(0) %}
                     All Failed Subjects Selected
                 {% else %}
                     Registration Closed
@@ -69,7 +69,7 @@
               {{ sel.course_name }} ({{ sel.credit_hours }} Cr) - 
               <span style="color:green;">{{ sel.status }}</span>
               <form method="POST"
-                    action="{{ url_for('student.delete_summer_subject', subject_id=sel.course_id) }}"
+                    action="{{ url_for('delete_summer_subject',subject_id=sel.course_id) }}"
                     style="display:inline; margin-left: 10px;">
                 <button type="submit" class="delete-btn" title="Delete Subject" onclick="return confirm('Are you sure you want to remove this subject?');">🗑️</button>
               </form>

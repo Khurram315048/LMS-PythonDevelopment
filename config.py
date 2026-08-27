@@ -2,6 +2,7 @@
 import secrets
 import os
 TEMPLATES_AUTO_RELOAD=True
+
 MYSQL_HOST='172.25.0.2'
 MYSQL_USER='root'
 MYSQL_PASSWORD='root'

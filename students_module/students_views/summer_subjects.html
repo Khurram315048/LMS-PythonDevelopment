@@ -22,7 +22,7 @@
       <td>{{ course.teacher_name }}</td>
       <td>{{ course.semester }}</td>
       <td>
-        <form method="POST" action="{{ url_for('student.select_summer_subject', subject_id=course.course_id) }}" style="display:inline;">
+        <form method="POST" action="{{ url_for('select_summer_subject',subject_id=course.course_id) }}" style="display:inline;">
             <button type="submit" style="background:#3aaed7;border:none;padding:5px 10px;cursor:pointer;color:white;border-radius:4px;">Select</button>
         </form>
       </td>
@@ -32,7 +32,7 @@
   {% else %}
     <p style="color:red; text-align:center; padding:20px;">No more courses available to select.</p>
     <div style="text-align:center;">
-        <a href="{{ url_for('student.summer_semester') }}" class="btn-yellow">Go Back</a>
+        <a href="{{ url_for('summer_semester') }}" class="btn-yellow">Go Back</a>
     </div>
   {% endif %}
 </div>

@@ -7,6 +7,17 @@
     <title>Student-Course-Registeration</title>
   </head>
   <div class="container">
+    {% if flash_success %}
+    <div class="alert alert-success" style="padding: 10px; background-color: #d4edda; color: #155724; border-radius: 4px; margin-bottom: 15px;">
+        ✅ {{ flash_success }}
+    </div>
+    {% endif %}
+    {% if flash_error %}
+    <div class="alert alert-danger" style="padding: 10px; background-color: #f8d7da; color: #721c24; border-radius: 4px; margin-bottom: 15px;">
+        ❌ {{ flash_error }}
+    </div>
+    {% endif %}
+    
     {% if reg_closed %}
       <div class="subject-card">
           <div class="subject-list text-center" style="padding: 30px;">
@@ -49,9 +60,11 @@
         <p>
           {{ sel.course_name }} ({{ sel.type|capitalize }}) - 
           <span style="color:green;">{{ sel.status }}</span>
-          <form method="POST" action="{% if sel.type=='improvement' %}{{ url_for('student.delete_improvement', improvement_id=sel.id) }}{% else %}{{ url_for('student.delete_fail', fail_id=sel.id) }}{% endif %}" style="display:inline;">
-            <button type="submit" class="delete-btn" title="Delete Subject">🗑️</button>
-          </form>
+          <form method="POST" 
+            action="{% if sel.type == 'improvement' %}{{ url_for('delete_improvement',improvement_id=sel.id) }}{% else %}{{ url_for('delete_fail',fail_id=sel.id) }}{% endif %}" 
+            style="display:inline;">
+          <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+      </form>
         </p>
       {% endfor %}
     {% else %}
