@@ -6,9 +6,9 @@ from students_module.students_models import UserModel,StudentModel,NotificationM
 import os
 from utils.db import mysql 
 from datetime import datetime,date
-from fastapi import APIRouter,Depends,HTTPException,Request,UploadFile,File,Form
+from fastapi import APIRouter,Depends,Request,UploadFile,File,Form
 from students_module.schema import *
-from fastapi.responses import HTMLResponse,RedirectResponse
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi import Form
 from fastapi.templating import Jinja2Templates
@@ -79,14 +79,11 @@ def student_login(request:Request,email:str=Form(None),
         )
     except ValidationError as e:
         print("Pydantic Validation Error:",e.errors())
-        return templates.TemplateResponse(
-            request=request, 
-            name="student_login.html", 
-            context={"error": "Email Format Invalid"}
-        )
+        return templates.TemplateResponse(request=request,name="student_login.html", 
+            context={"error":"Email Format Invalid"})
     
     from main import app
-    with app.test_request_context('/student_login'):
+    with app.test_request_context():
         
         user=UserModel.get_user_by_email(check_inputs.email)
         if not user:
@@ -98,27 +95,24 @@ def student_login(request:Request,email:str=Form(None),
         
         if user['role_id'] != 2:
             return templates.TemplateResponse(
-                request=request, 
-                name="student_login.html", 
-                context={"error": "Only student can login"}
+                request=request,name="student_login.html", 
+                context={"error":"Only student can login"}
             )
 
         if user and check_password_hash(user['password'],check_inputs.password):
             student_obj=StudentModel.get_student_by_user_id(user['user_id'])
             if student_obj:
-                request.session['user_id'] = user['user_id']
-                request.session['role'] = 'student'
-                request.session['student_id'] = student_obj['student_id']
-                request.session['date'] = datetime.now().isoformat()
-                request.session['remember'] = remember_me
-                return RedirectResponse(url='/student_dashboard', status_code=303)
+                request.session['user_id']=user['user_id']
+                request.session['role']='student'
+                request.session['student_id']=student_obj['student_id']
+                request.session['date']=datetime.now().isoformat()
+                request.session['remember']=remember_me
+                return RedirectResponse(url='/student_dashboard',status_code=303)
             else:
                 return RedirectResponse(url='/student_login',status_code=303)
             
-    return templates.TemplateResponse(request=request,
-                                    name="student_login.html",context={
-                                    "error": "Invalid credentials"
-                                     })
+    return templates.TemplateResponse(request=request,name="student_login.html",context={
+                                    "error":"Invalid credentials"})
 
 
 
@@ -147,15 +141,32 @@ def student_login(request:Request,email:str=Form(None),
 #     return render_template('student_login.html')
 
 
-@student.route('/student_base',methods=['GET'])
-@student_required
-def base():
-    if session.get('role') != 'student':
-        return redirect(url_for('main_view'))
+# @student.route('/student_base',methods=['GET'])
+# @student_required
+# def base():
+#     if session.get('role') != 'student':
+#         return redirect(url_for('main_view'))
     
-    student_name=StudentModel.get_student_name_by_user_id(session['user_id'])
-    return render_template('student_base.html',student_name=student_name)
+#     student_name=StudentModel.get_student_name_by_user_id(session['user_id'])
+#     return render_template('student_base.html',student_name=student_name)
 
+
+@router.get('/student_base')
+def student_base(request:Request):
+    user_id=request.session.get('user_id')
+    if not user_id:
+        return templates.TemplateResponse(request=request,name="student_login.html",
+                         context={"error":"PLease login again"})
+
+    from main import app
+    try:
+        with app.app_context():
+            student_name=StudentModel.get_student_name_by_user_id(user_id)
+            return templates.TemplateResponse(request=request,name="student_base.html",
+                                              context={"student_name":student_name})
+    except Exception as e:
+        print(f"Error for student base: {str(e)}")
+        return RedirectResponse(url='/student_dashboard.html',status_code=303)    
 
 
 # @router.get('/student_profile')

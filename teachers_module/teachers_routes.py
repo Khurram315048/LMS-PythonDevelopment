@@ -40,23 +40,30 @@ teacher =Blueprint('teacher', __name__, template_folder='teachers_views')
 #     return '',204
 
 
-@teacher.route('/teacher_login',methods=['GET', 'POST'])
+@teacher.route('/teacher_login',methods=['GET','POST'])
 def teacher_login():
-    if request.method=='POST':
-        email=request.form.get('email')
-        password=request.form.get('password')
-        
-        user_data,logged_user=TeacherModel.get_by_email(email)
-        
-        if user_data and check_password_hash(logged_user['password'],password):
-            session.update({
-                'user_id':logged_user['user_id'], 
-                'role':'teacher', 
-                'teacher_id':user_data['teacher_id']
-            })
-            return redirect(url_for('teacher.teacher_dashboard'))
-        else:
-            flash("Invalid email or password", "danger")
+    try:
+        if request.method=='POST':
+            email=request.form.get('email')
+            password=request.form.get('password')
+            print("Email: ",email)
+            print("Password: ",password)
+            user_data,logged_user=TeacherModel.get_by_email(email)
+            
+            if user_data and check_password_hash(logged_user['password'],password):
+                session.update({
+                    'user_id':logged_user['user_id'], 
+                    'role':'teacher', 
+                    'teacher_id':user_data['teacher_id']
+                })
+                return redirect(url_for('teacher.teacher_dashboard'))
+            else:
+                flash("Invalid email or password","danger")
+                return redirect(url_for('teacher.teacher_login'))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return redirect(url_for('teacher.teacher_login'))
             
     return render_template('teacher_login.html')
 

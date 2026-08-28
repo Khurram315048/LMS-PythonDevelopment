@@ -694,7 +694,7 @@ class StudentModel:
 
 
     @staticmethod
-    def get_fyp_by_id_and_student(fyp_id, student_id):
+    def get_fyp_by_id_and_student(fyp_id,student_id):
         cursor=mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute(
             "SELECT fyp_id FROM fyp_groups WHERE fyp_id=%s AND student_id=%s",
