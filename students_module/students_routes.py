@@ -707,10 +707,12 @@ def view_attendence(request:Request):
                 )
                 attendance_report.append(course_record)
                 
-                cursor.close()
+                
                 return templates.TemplateResponse(request=request,name="view_attendence.html",
                 context={"attendance_report":attendance_report})
+            cursor.close()
     except Exception as e:
+        print(f"Error during attendance: {str(e)}")
         return templates.TemplateResponse(request=request,name="student_login.html",
         context={"error":f"Error : {e}"})        
     
